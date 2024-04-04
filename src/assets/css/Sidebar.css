@@ -1,0 +1,52 @@
+.hidden_submenu ul {
+    animation: fade-out .5s forwards;
+}
+
+.show_submenu ul {
+    animation: fade-in .5s forwards;
+    visibility: visible;
+    opacity: 1;
+}
+
+.hidden_submenu button p svg {
+    transform: rotate(0deg);
+    transition: transform .5s ease-in-out;
+}
+
+.show_submenu button p svg {
+    transform: rotate(180deg);
+    transition: transform .5s ease-in-out;
+}
+
+.current-item span svg,
+.current-item p{
+    color: #172870;
+}
+
+.dark .current-item span svg,
+.dark .current-item p{
+    color: #f8f8f8;
+}
+
+@keyframes fade-out {
+    to {
+        visibility: hidden;
+        opacity: 0;
+        display: none;
+    }
+}
+
+@keyframes fade-in {
+    0% {
+        visibility: hidden;
+        opacity: 0;
+    }
+    1% {
+        visibility: visible;
+        opacity: 0;
+    }
+    to {
+        visibility: visible;
+        opacity: 1;
+    }
+}

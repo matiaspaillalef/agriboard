@@ -1,0 +1,17 @@
+.cardForm {
+    padding: 2.5rem;
+}
+
+@media screen and (max-width: 768px) {
+    .cardForm {
+        padding: 1.5rem;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .cardForm h2 {
+        font-size: 1.5rem;
+        line-height: 2rem;
+    }
+
+}
