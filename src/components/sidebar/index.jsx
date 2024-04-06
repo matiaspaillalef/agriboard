@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 import { HiX } from "react-icons/hi";
 import Image from "next/image";
@@ -24,8 +24,7 @@ const Sidebar = ({ open, onClose }) => {
   //const [subItemsVisible, setSubItemsVisible] = useState(false);
   const [subItemsVisible, setSubItemsVisible] = useState(null); // Cambiado a null para manejar el estado inicial
   const router = useRouter();
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const pathname = usePathname();
 
   //console.log(pathname);
 
