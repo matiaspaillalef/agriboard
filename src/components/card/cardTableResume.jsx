@@ -76,7 +76,7 @@ const CardTable = ({ data, thead, columnsClasses = [], omitirColumns = [], title
                             <h4 className="text-xl font-bold text-navy-700 dark:text-white">{title}</h4>
                         </div>)
                     }
-                    <div className="h-full overflow-x-scroll xl:overflow-x-hidden">
+                    <div className="h-full overflow-x-scroll">
                         <table role="table" className="mt-8 h-max w-full" variant="simple" color="gray-500" mb="24px">
                             {thead && (
                                 <thead>
