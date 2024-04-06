@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react";
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
 import { HiX } from "react-icons/hi";
 import Image from "next/image";
@@ -22,7 +23,15 @@ const Sidebar = ({ open, onClose }) => {
 
   //const [subItemsVisible, setSubItemsVisible] = useState(false);
   const [subItemsVisible, setSubItemsVisible] = useState(null); // Cambiado a null para manejar el estado inicial
+  const router = useRouter();
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
+  //console.log(pathname);
+
+  const isCurrentPage = (url) => {
+    return pathname === url;
+  }
 
   const toggleSubItemsVisibility = (itemId) => {
     //setSubItemsVisible(!subItemsVisible);
@@ -68,26 +77,37 @@ const Sidebar = ({ open, onClose }) => {
           <li key={menuItem.id} className={`relative mb-3 px-8 ${subItemsVisible === menuItem.id ? 'show_submenu' : 'hidden_submenu'}`}>
 
             {menuItem.children ? (
-              <button onClick={() => toggleSubItemsVisibility(menuItem.id)} className="flex cursor-pointer items-center w-full pb-2 px-8">
+              <button onClick={() => toggleSubItemsVisibility(menuItem.id)} className={`flex cursor-pointer items-center w-full pb-2 px-8 `}>
                 <span className="font-medium text-gray-600">
                   <menuItem.icon className="w-6 h-6" />
                 </span>
                 <p className="leading-1 flex justify-between items-center ms-4 font-medium text-gray-600 w-full">{menuItem.name} <ChevronDownIcon className="w-5 h-5 ml-1" /></p>
               </button>
             ) : (
-              <Link href={menuItem.url} className="flex hover:cursor-pointer items-center px-8">
-                <span className="font-medium text-gray-600">
-                  <menuItem.icon className="w-6 h-6" />
-                </span>
-                <p className="leading-1 flex ms-4 font-medium text-gray-600">{menuItem.name}</p>
-              </Link>
+              <>
+                <Link href={menuItem.url} className={`flex hover:cursor-pointer items-center px-8 ${isCurrentPage(menuItem.url) ? 'active' : 'no-active'}`}>
+                  <span className="font-medium text-gray-600">
+                    <menuItem.icon className="w-6 h-6" />
+                  </span>
+                  <p className="leading-1 flex ms-4 font-medium text-gray-600">{menuItem.name}</p>
+                </Link>
+
+                {isCurrentPage(menuItem.url) && (
+                  <div className="absolute top-px h-9 w-1 rounded-lg bg-brand-500 end-0 dark:bg-brand-400"></div>
+                )}
+              </>
             )}
 
             {subItemsVisible === menuItem.id && menuItem.children && (
               <ul className="px-8 rounded-[8px] bg-lightPrimary bg-clip-border shadow-3xl shadow-shadow-500 dark:bg-navy-900 dark:text-white dark:shadow-none items-center p-5">
                 {menuItem.children.map((subItem) => (
                   <li key={subItem.id} className="mb-1">
-                    <Link href={subItem.url} className="text-gray-700 hover:text-navy-700 dark:hover:text-white">{subItem.name}</Link>
+                    <Link href={subItem.url} className={`text-gray-700 hover:text-navy-700 dark:hover:text-white ${isCurrentPage(subItem.url) ? 'font-semibold text-navy-700' : ''}`}>
+                      {subItem.name}
+                    </Link>
+                    {isCurrentPage(subItem.url) && (
+                      <div class="absolute top-px h-9 w-1 rounded-lg bg-brand-500 end-0 dark:bg-brand-400"></div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -95,8 +115,6 @@ const Sidebar = ({ open, onClose }) => {
           </li>
         ))}
       </ul>
-
-
 
       <p className="px-8 py-8 text-xs mb-0">&copy; {new Date().getFullYear()} Agrisoft Software</p>
 
