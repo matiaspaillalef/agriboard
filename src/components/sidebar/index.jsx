@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from "react";
-import { useRouter, usePathname } from 'next/navigation'
+import { useState } from "react"
+// @ts-ignore
+import { usePathname } from 'next/navigation'
 
 import { HiX } from "react-icons/hi";
 import Image from "next/image";
@@ -21,20 +22,16 @@ import CustomImage from "@/components/customImage/CustomImage";
 
 const Sidebar = ({ open, onClose }) => {
 
-  //const [subItemsVisible, setSubItemsVisible] = useState(false);
-  const [subItemsVisible, setSubItemsVisible] = useState(null); // Cambiado a null para manejar el estado inicial
-  const router = useRouter();
+  const [subItemsVisible, setSubItemsVisible] = useState(null);
+  
   const pathname = usePathname();
-
-  //console.log(pathname);
 
   const isCurrentPage = (url) => {
     return pathname === url;
   }
 
-  const toggleSubItemsVisibility = (itemId) => {
-    //setSubItemsVisible(!subItemsVisible);
-    setSubItemsVisible(itemId === subItemsVisible ? null : itemId); // Cambiado para alternar la visibilidad del elemento del menú
+  const toggleSubItemsVisibility = (itemId) => {;
+    setSubItemsVisible(itemId === subItemsVisible ? null : itemId); 
   };
 
   return (

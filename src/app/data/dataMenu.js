@@ -11,27 +11,27 @@ export const primaryMenu = [
     {
         id: 2,
         name: 'Configuración',
-        url: '/settings',
+        url: '/enviroment',
         children: [
             {
                 id: 1,
                 name: 'Empresa',
-                url: '/settings/company'
+                url: '/enviroment/company'
             },
             {
                 id: 2,
                 name: 'Control de acceso',
-                url: '/settings/access-control'
+                url: '/enviroment/access-control'
             },
             {
                 id: 3,
                 name: 'Ubicación geográfica',
-                url: '/settings/geographic-location'
+                url: '/enviroment/geographic-location'
             },
             {
                 id: 4,
                 name: 'Instituciones provisionales',
-                url: '/settings/provisional-institutions'
+                url: '/enviroment/provisional-institutions'
             }
         ],
         icon: Cog8ToothIcon,

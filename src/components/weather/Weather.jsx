@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import WeatherIcons from '../../assets/css/weather-icons.css';
 import style from './Weather.module.css';
 
-const API_TOKEN = process.env.NEXT_API_TOKEN;
-const WEATHER_TOKEN = process.env.NEXT_WEATHER_TOKEN;
+const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+const WEATHER_TOKEN = process.env.NEXT_PUBLIC_WEATHER_TOKEN;
 
 const Weather = () => {
 
@@ -14,8 +14,7 @@ const Weather = () => {
     const fetchData = async () => {
       try {
         // Obtener la ubicación del usuario
-        const token = API_TOKEN;
-        const locationResponse = await fetch('https://ipinfo.io?token=' + token);
+        const locationResponse = await fetch('https://ipinfo.io?token=' + API_TOKEN);
 
         //console.log(locationResponse);
 
@@ -38,7 +37,7 @@ const Weather = () => {
 
         // Configurar la URL para obtener datos meteorológicos
         const api_key = WEATHER_TOKEN;
-        const urlWeather = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${api_key}&units=metric&lang=en`;
+        const urlWeather = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_TOKEN}&units=metric&lang=en`;
 
         // Obtener datos meteorológicos
         const weatherResponse = await fetch(urlWeather);
