@@ -8,6 +8,8 @@ import Image from "next/image";
 const SimpleSlider = (props) => {
     const { slides, slidesToShow, dots, infinite, speed, fade, autoplay, arrow } = props;
 
+    console.log(slides);
+
     var settings = {
         dots: dots !== undefined ? dots : false,
         fade: fade !== undefined ? fade : false,
@@ -24,8 +26,9 @@ const SimpleSlider = (props) => {
         <Slider {...settings}>
             {slides.map((slide, index) => (
                 <div className="inner-slide" key={index}>
-                    <img
-                        src={slide.image_url}
+                    <Image
+                        //src={slide.image_url}
+                        src={slide}
                         alt={`Slide ${index}`}
                         className="object-cover h-full w-full"
                     />

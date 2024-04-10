@@ -14,6 +14,13 @@ import { SlideWelcome } from "@/app/data/dataSlide";
 import LogoNormal from "@/assets/img/layout/agrisoft_logo_dark.png";
 import "@/assets/css/Login.css";
 
+
+import Slide1 from '@/assets/img/slides/slide-avocado.png';
+import Slide2 from '@/assets/img/slides/slide-potatos.jpg';
+import Slide3 from '@/assets/img/slides/slide-blueberries.jpg';
+import Slide4 from '@/assets/img/slides/slide-apple.jpg';
+
+
 function LoginPage() {
 
   const {
@@ -138,9 +145,9 @@ function LoginPage() {
 
           <div className="absolute right-0 hidden h-dvh min-h-screen md:block lg:w-[49vw] 2xl:w-[44vw]">
             <div className="relative h-full w-full lg:rounded-bl-[120px] xl:rounded-bl-[200px] overflow-hidden">
-
+{/** Esto se debe arreglar cuando se termine ya que para vercel debe estar en la ruta de app */}
               <SimpleSlider
-                slides={SlideWelcome}
+                slides={[Slide1, Slide2, Slide3, Slide4]}
                 slidesToShow={1}
                 dots={false}
                 infinite={true}
