@@ -97,12 +97,12 @@ const Sidebar = ({ open, onClose }) => {
             {subItemsVisible === menuItem.id && menuItem.children && (
               <ul className="px-8 rounded-[8px] bg-lightPrimary bg-clip-border shadow-3xl shadow-shadow-500 dark:bg-navy-900 dark:text-white dark:shadow-none items-center p-5">
                 {menuItem.children.map((subItem) => (
-                  <li key={subItem.id} className="mb-1">
-                    <Link href={subItem.url} className={`text-gray-700 hover:text-navy-700 dark:hover:text-white ${isCurrentPage(subItem.url) ? 'font-semibold text-navy-700' : ''}`}>
+                  <li key={subItem.id} className="mb-1 leading-8">
+                    <Link href={subItem.url} className={`text-sm text-gray-700 hover:text-navy-700 dark:hover:text-white ${isCurrentPage(subItem.url) ? 'font-semibold text-navy-700' : ''}`}>
                       {subItem.name}
                     </Link>
                     {isCurrentPage(subItem.url) && (
-                      <div class="absolute top-px h-9 w-1 rounded-lg bg-brand-500 end-0 dark:bg-brand-400"></div>
+                      <div className="absolute top-px h-9 w-1 rounded-lg bg-brand-500 end-0 dark:bg-brand-400"></div>
                     )}
                   </li>
                 ))}

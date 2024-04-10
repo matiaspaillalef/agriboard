@@ -5,59 +5,68 @@ export const primaryMenu = [
     {
         id: 1,
         name: 'Inicio',
-        url: '/',
+        url: '/dashboard',
         icon: HomeModernIcon,
     },
     {
         id: 2,
         name: 'Configuración',
-        url: '/enviroment',
+        url: '/dashboard/enviroment',
         children: [
             {
                 id: 1,
                 name: 'Empresa',
-                url: '/enviroment/company'
+                url: '/dashboard/enviroment/company'
             },
             {
                 id: 2,
                 name: 'Control de acceso',
-                url: '/enviroment/access-control'
+                url: '/dashboard/enviroment/access-control'
             },
             {
                 id: 3,
                 name: 'Ubicación geográfica',
-                url: '/enviroment/geographic-location'
+                url: '/dashboard/enviroment/geographic-location'
             },
             {
                 id: 4,
                 name: 'Instituciones provisionales',
-                url: '/enviroment/provisional-institutions'
-            }
+                url: '/dashboard/enviroment/provisional-institutions'
+            },
+            {
+                id: 5,
+                name: 'Creación de roles',
+                url: '/dashboard/enviroment/role-creation'
+            },
+            {
+                id: 6,
+                name: 'Creación de usuarios',
+                url: '/dashboard/enviroment/user-creation'
+            },
+            {
+                id: 7,
+                name: 'Creación de menú',
+                url: '/dashboard/enviroment/menu-creation'
+            },
         ],
         icon: Cog8ToothIcon,
     },
     {
         id: 3,
         name: 'Producción',
-        url: '/production',
+        url: '/dashboard/production',
         icon: TableCellsIcon,
     },
     {
         id: 4,
         name: 'Gestión de personas',
-        url: '/people-management',
+        url: '/dashboard/people-management',
         icon: UserGroupIcon,
     },
     {
         id: 5,
         name: 'Reportes',
-        url: '/reports',
+        url: '/dashboard/reports',
         icon: DocumentChartBarIcon,
-    },
-    {
-        id: 6,
-        name: 'Salir',
-        url: '/logout',
-        icon: ArrowLeftStartOnRectangleIcon,
     },
 ]

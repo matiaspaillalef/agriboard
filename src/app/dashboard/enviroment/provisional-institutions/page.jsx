@@ -5,3 +5,5 @@ const ProvisionalInstitutionsPage = () => {
         </div>
     );
 };
+
+export default ProvisionalInstitutionsPage;
