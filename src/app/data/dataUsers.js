@@ -1,0 +1,132 @@
+export const dataUsers = [
+    {
+        id: 1,
+        username: 'javierdonoso',
+        name: 'Javier',
+        lastName: 'Donoso',
+        email: 'j.donoso@gmail.com',
+        rol: 'superadmin',
+        password: '********',
+        state: 1,
+    },
+    {
+        id: 2,
+        username: 'matiaspaillalef',
+        name: 'Matias',
+        lastName: 'Paillalef',
+        email: 'm.paillalef.c@gmail.com',
+        rol: 'superadmin',
+        password: '********',
+        state: 1,
+    },
+    {
+        id: 3,
+        username: 'lauragonzalez',
+        name: 'Laura',
+        lastName: 'González',
+        email: 'l.gonzalez@gmail.com',
+        rol: 'admin',
+        password: '********',
+        state: 0,
+        }
+        ,
+        {
+        id: 4,
+        username: 'pedroperez',
+        name: 'Pedro',
+        lastName: 'Pérez',
+        email: 'p.perez@hotmail.com',
+        rol: 'admin',
+        password: '********',
+        state: 1,
+        }
+        ,
+        {
+        id: 5,
+        username: 'mariaramirez',
+        name: 'María',
+        lastName: 'Ramírez',
+        email: 'm.ramirez@yahoo.com',
+        rol: 'user',
+        password: '********',
+        state: 1,
+        }
+        ,
+        {
+        id: 6,
+        username: 'carloslopez',
+        name: 'Carlos',
+        lastName: 'López',
+        email: 'c.lopez@gmail.com',
+        rol: 'user',
+        password: '********',
+        state: 0,
+        }
+        ,
+        {
+        id: 7,
+        username: 'anaperez',
+        name: 'Ana',
+        lastName: 'Pérez',
+        email: 'a.perez@gmail.com',
+        rol: 'superadmin',
+        password: '********',
+        state: 1,
+        }
+        ,
+        {
+        id: 8,
+        username: 'lucasgarcia',
+        name: 'Lucas',
+        lastName: 'García',
+        email: 'l.garcia@hotmail.com',
+        rol: 'superadmin',
+        password: '********',
+        state: 1,
+        }
+        ,
+        {
+        id: 9,
+        username: 'danielruiz',
+        name: 'Daniel',
+        lastName: 'Ruiz',
+        email: 'd.ruiz@yahoo.com',
+        rol: 'admin',
+        password: '********',
+        state: 1,
+        }
+        ,
+        {
+        id: 10,
+        username: 'anitagonzalez',
+        name: 'Anita',
+        lastName: 'González',
+        email: 'anita.gonzalez@gmail.com',
+        rol: 'admin',
+        password: '********',
+        state: 1,
+        }
+        ,
+        {
+        id: 11,
+        username: 'marcelotrujillo',
+        name: 'Marcelo',
+        lastName: 'Trujillo',
+        email: 'marcelo.trujillo@gmail.com',
+        rol: 'user',
+        password: '********',
+        state: 0,
+        }
+        ,
+        {
+        id: 12,
+        username: 'sofiacastillo',
+        name: 'Sofía',
+        lastName: 'Castillo',
+        email: 's.castillo@yahoo.com',
+        rol: 'user',
+        password: '********',
+        state: 0,
+        }
+
+];

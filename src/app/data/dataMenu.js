@@ -7,6 +7,7 @@ export const primaryMenu = [
         name: 'Inicio',
         url: '/dashboard',
         icon: HomeModernIcon,
+        role: ['superadmin', 'admin', 'user']
     },
     {
         id: 2,

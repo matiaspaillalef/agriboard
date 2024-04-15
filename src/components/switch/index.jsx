@@ -1,6 +1,7 @@
 const Switch = (props) => {
   const { extra, color, ...rest } = props;
   return (
+    <>
     <input
       type="checkbox"
       className={`relative h-5 w-10 appearance-none rounded-[20px] bg-[#e0e5f2] outline-none transition duration-[0.5s] 
@@ -41,6 +42,7 @@ const Switch = (props) => {
       name="weekly"
       {...rest}
     />
+    </>
   );
 };
 

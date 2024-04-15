@@ -8,7 +8,7 @@ import Image from "next/image";
 const SimpleSlider = (props) => {
     const { slides, slidesToShow, dots, infinite, speed, fade, autoplay, arrow } = props;
 
-    console.log(slides);
+    //console.log(slides);
 
     var settings = {
         dots: dots !== undefined ? dots : false,

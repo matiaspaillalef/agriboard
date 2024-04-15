@@ -98,7 +98,7 @@ const Sidebar = ({ open, onClose }) => {
               <ul className="px-8 rounded-[8px] bg-lightPrimary bg-clip-border shadow-3xl shadow-shadow-500 dark:bg-navy-900 dark:text-white dark:shadow-none items-center p-5">
                 {menuItem.children.map((subItem) => (
                   <li key={subItem.id} className="mb-1 leading-8">
-                    <Link href={subItem.url} className={`text-sm text-gray-700 hover:text-navy-700 dark:hover:text-white ${isCurrentPage(subItem.url) ? 'font-semibold text-navy-700' : ''}`}>
+                    <Link href={subItem.url} className={`text-sm text-gray-700 hover:text-navy-700 dark:hover:text-white ${isCurrentPage(subItem.url) ? 'font-semibold text-navy-700 dark:text-white' : ''}`}>
                       {subItem.name}
                     </Link>
                     {isCurrentPage(subItem.url) && (
