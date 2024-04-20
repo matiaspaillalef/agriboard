@@ -15,7 +15,7 @@ import {
 } from "@material-tailwind/react";
 
 import CardTableCompany from "@/components/card/CardTableCompany";
-import CardTableRLegal from "@/components/card/CardTableRLegal";
+import CardTableRLegal from "../../../../components/card/cardTableRLegal";
 import { StateCL } from "@/app/data/dataStates";
 
 import { DataCompany } from "@/app/data/dataCompany";
