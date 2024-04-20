@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
+import ExportarExcel from "@/components/button/ButtonExportExcel";
+import ExportarPDF from "@/components/button/ButtonExportPDF";
 import {
   Button,
   Dialog,
@@ -17,6 +19,7 @@ const CardTableUsers = ({
   omitirColumns = [],
   title,
   actions,
+  tableId,
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
@@ -27,6 +30,10 @@ const CardTableUsers = ({
   const [open, setOpen] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState(null); // Estado para almacenar los datos del usuario seleccionado para editar
+
+  //Estado para la paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const handleOpen = (user) => {
     setSelectedUser(user); // Actualiza el estado con los datos del usuario seleccionado
@@ -61,6 +68,28 @@ const CardTableUsers = ({
 
     fetchData();
   }, []);
+
+  const handlerSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    const filteredData = data.filter((item) =>
+      Object.keys(item).some((key) => item[key].toString().toLowerCase().includes(value))
+    );
+    setInitialData(filteredData);
+    setCurrentPage(1); // Resetear a la primera página después de la búsqueda
+  };
+
+  const totalPages = Math.ceil(initialData.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
     <>
@@ -124,6 +153,25 @@ const CardTableUsers = ({
               <h4 className="text-xl font-bold text-navy-700 dark:text-white">
                 {title}
               </h4>
+              <div className="mb-3 flex gap-5 ">
+                <ExportarExcel
+                  data={initialData}
+                  filename="usuarios"
+                  sheetname="usuarios"
+                  titlebutton="Exportar a excel"
+                />
+                <ExportarPDF
+                  data={initialData}
+                  filename="usuarios"
+                  titlebutton="Exportar a PDF"
+                />
+                <input
+                  type="search"
+                  placeholder="Buscar"
+                  className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
+                  onKeyUp={handlerSearch}
+                />
+              </div>
             </div>
           )}
           <div className="h-full overflow-x-scroll max-h-dvh">
@@ -133,6 +181,7 @@ const CardTableUsers = ({
               variant="simple"
               color="gray-500"
               mb="24px"
+              id="tablaUsuarios"
             >
               {thead && (
                 <thead>
@@ -163,7 +212,7 @@ const CardTableUsers = ({
                 </thead>
               )}
               <tbody role="rowgroup">
-                {initialData.map((row, index) => (
+                {currentItems.map((row, index) => (
                   <tr key={index} role="row">
                     {Object.keys(row).map((key, rowIndex) => {
                       if (omitirColumns.includes(key)) {
@@ -181,17 +230,15 @@ const CardTableUsers = ({
                         >
                           <div className="text-base font-medium text-navy-700 dark:text-white">
                             {key === "state" ? (
-
                               row[key] === 1 ? (
                                 <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3">
                                   Activo
                                 </p>
                               ) : (
                                 <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3">
-                                    Inactivo
+                                  Inactivo
                                 </p>
                               )
-
                             ) : (
                               formatNumber(row[key])
                             )}
@@ -254,18 +301,86 @@ const CardTableUsers = ({
                 ))}
               </tbody>
             </table>
+
+            <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center gap-5">
+                <p className="text-sm text-gray-800 dark:text-white">
+                  Mostrando {indexOfFirstItem + 1} a{" "}
+                  {indexOfLastItem > initialData.length
+                    ? initialData.length
+                    : indexOfLastItem}{" "}
+                  de {initialData.length} usuarios
+                </p>
+              </div>
+              <div className="flex items-center gap-5">
+                <button
+                  type="button"
+                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && 'hidden'}`}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                {pagination.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`${
+                      currentPage === page ? "font-semibold text-navy-500 dark:text-navy-300" : ""
+                    }`}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           <Dialog
             open={open}
             handler={handleOpen}
             size="xs"
-            className="p-5 lg:max-w-[25%]"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
           >
             <button
               type="button"
               onClick={handleOpen}
-              className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-900 rounded-md"
+              className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -283,7 +398,7 @@ const CardTableUsers = ({
               </svg>
             </button>
             {/* Aquí va el contenido del modal para editar usuario */}
-            <DialogHeader>Editar usario</DialogHeader>
+            <DialogHeader className="dark:text-white">Editar usario</DialogHeader>
             <DialogBody>
               <form action=" " method="POST">
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
@@ -405,7 +520,7 @@ const CardTableUsers = ({
                   <div className="flex flex-col gap-3">
                     <button
                       type="submit"
-                      className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+                      className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
                       onClick={handleOpen} // Aquí va la función que envía los datos al backend para crear el usuario y cerrar el modal
                     >
                       Crear usuario

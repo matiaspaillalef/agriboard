@@ -25,6 +25,8 @@
     "bootstrap-icons": "^1.11.3",
     "framer-motion": "^11.0.28",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
     "mysql2": "^3.9.2",
     "net": "^1.0.2",
     "next": "14.1.0",
@@ -40,6 +42,8 @@
     "react-table": "^7.8.0",
     "slick-carousel": "^1.8.1",
     "tls": "^0.0.1",
+    "xlsx": "^0.18.5",
+    "xlsx-populate": "^1.21.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
