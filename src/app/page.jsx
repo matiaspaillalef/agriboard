@@ -44,6 +44,35 @@ function LoginPage() {
     }
   });
 
+  const onSubmitLogin = (e) => {
+    e.preventDefault();
+    //router.push("/dashboard");
+    console.log("Login");
+
+    const apiCont = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/v1/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: "prueba",
+            password: "123",
+          }),
+        });
+        const data = await res.json();
+        console.log(data);
+        router.push("/dashboard");
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    apiCont();
+
+  };
+
   return (
     <div className="relative float-right h-full min-h-screen w-full !bg-white dark:!bg-navy-900">
       <div className="mx-auto flex min-h-full w-full flex-col justify-start pt-12 md:max-w-[75%] lg:h-screen lg:max-w-[1013px] lg:px-8 lg:pt-0 xl:h-[100vh] xl:max-w-[1383px] xl:px-0 xl:pl-[70px]">
@@ -57,7 +86,7 @@ function LoginPage() {
                 {" "}
                 Ingresa tu email y password para ingresar.
               </p>
-              <form onSubmit={onSubmit} className="w-full">
+              <form onSubmit={onSubmitLogin} className="w-full">
                 {error && (
                   <p className="bg-red-500 text-lg text-white p-3 rounded mb-2">
                     {error}
@@ -129,7 +158,11 @@ function LoginPage() {
                   </a>
                 </div>
 
-                <button className="linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200">
+                <button 
+                className="linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+                ///onClick={}
+                //onSubmit={onSubmitLogin}
+                >
                   Login
                 </button>
               </form>

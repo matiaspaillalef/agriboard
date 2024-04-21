@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
+import "@/assets/css/Table.css";
 import {
   Button,
   Dialog,
@@ -20,6 +21,8 @@ const CardTableUsers = ({
   title,
   actions,
   tableId,
+  downloadBtn,
+  SearchInput,
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
@@ -72,7 +75,9 @@ const CardTableUsers = ({
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
     const filteredData = data.filter((item) =>
-      Object.keys(item).some((key) => item[key].toString().toLowerCase().includes(value))
+      Object.keys(item).some((key) =>
+        item[key].toString().toLowerCase().includes(value)
+      )
     );
     setInitialData(filteredData);
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
@@ -148,32 +153,45 @@ const CardTableUsers = ({
         </div>
       ) : (
         <>
-          {title && (
-            <div className="relative flex items-center justify-between">
-              <h4 className="text-xl font-bold text-navy-700 dark:text-white">
+          <div
+            className={`relative flex items-center ${
+              title ? "justify-between" : "justify-end"
+            } `}
+          >
+            {title && (
+              <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
                 {title}
               </h4>
-              <div className="mb-3 flex gap-5 ">
-                <ExportarExcel
-                  data={initialData}
-                  filename="usuarios"
-                  sheetname="usuarios"
-                  titlebutton="Exportar a excel"
-                />
-                <ExportarPDF
-                  data={initialData}
-                  filename="usuarios"
-                  titlebutton="Exportar a PDF"
-                />
+            )}
+
+            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+              {downloadBtn && (
+                <>
+                  <ExportarExcel
+                    data={initialData}
+                    filename="usuarios"
+                    sheetname="usuarios"
+                    titlebutton="Exportar a excel"
+                  />
+                  <ExportarPDF
+                    data={initialData}
+                    filename="usuarios"
+                    titlebutton="Exportar a PDF"
+                  />
+                </>
+              )}
+
+              {SearchInput && (
                 <input
                   type="search"
                   placeholder="Buscar"
                   className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
                   onKeyUp={handlerSearch}
                 />
-              </div>
+              )}
             </div>
-          )}
+          </div>
+
           <div className="h-full overflow-x-scroll max-h-dvh">
             <table
               role="table"
@@ -301,73 +319,76 @@ const CardTableUsers = ({
                 ))}
               </tbody>
             </table>
-
-            <div className="flex items-center justify-between mt-5">
-              <div className="flex items-center gap-5">
-                <p className="text-sm text-gray-800 dark:text-white">
-                  Mostrando {indexOfFirstItem + 1} a{" "}
-                  {indexOfLastItem > initialData.length
-                    ? initialData.length
-                    : indexOfLastItem}{" "}
-                  de {initialData.length} usuarios
-                </p>
-              </div>
-              <div className="flex items-center gap-5">
-                <button
-                  type="button"
-                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && 'hidden'}`}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
+          </div>
+          <div className="flex items-center justify-between mt-5">
+            <div className="flex items-center gap-5">
+              <p className="text-sm text-gray-800 dark:text-white">
+                Mostrando {indexOfFirstItem + 1} a{" "}
+                {indexOfLastItem > initialData.length
+                  ? initialData.length
+                  : indexOfLastItem}{" "}
+                de {initialData.length} usuarios
+              </p>
+            </div>
+            <div className="flex items-center gap-5">
+              <button
+                type="button"
+                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                  currentPage === 1 && "hidden"
+                }`}
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </button>
-                {pagination.map((page) => (
-                  <button
-                    key={page}
-                    type="button"
-                    className={`${
-                      currentPage === page ? "font-semibold text-navy-500 dark:text-navy-300" : ""
-                    }`}
-                    onClick={() => handlePageChange(page)}
-                  >
-                    {page}
-                  </button>
-                ))}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              {pagination.map((page) => (
                 <button
+                  key={page}
                   type="button"
-                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  className={`${
+                    currentPage === page
+                      ? "font-semibold text-navy-500 dark:text-navy-300"
+                      : ""
+                  }`}
+                  onClick={() => handlePageChange(page)}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  {page}
                 </button>
-              </div>
+              ))}
+              <button
+                type="button"
+                className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -398,7 +419,9 @@ const CardTableUsers = ({
               </svg>
             </button>
             {/* Aquí va el contenido del modal para editar usuario */}
-            <DialogHeader className="dark:text-white">Editar usario</DialogHeader>
+            <DialogHeader className="dark:text-white">
+              Editar usario
+            </DialogHeader>
             <DialogBody>
               <form action=" " method="POST">
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">

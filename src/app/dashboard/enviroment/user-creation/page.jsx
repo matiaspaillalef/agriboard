@@ -202,10 +202,10 @@ const UserCreationPage = () => {
             <CardTableUsers
               data={dataUsers}
               thead="Username, Nombre, Apellido, Correo, Rol, Password, Estado, Acciones"
-              title="Usuarios"
+              downloadBtn={true}
+              SearchInput={true}
               omitirColumns={["id"]}
               actions={true}
-              tableId="tableUsers"
             />
           </div>
         </div>

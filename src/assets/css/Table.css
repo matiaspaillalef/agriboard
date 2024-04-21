@@ -1,0 +1,21 @@
+@media screen and (max-width: 768px) {
+    .buttonsActions {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .buttonsActions button {
+        flex: 0 0 calc(50% - calc(0.5rem / 2));
+        padding-inline: 5px;
+    }
+
+    .buttonsActions button svg {
+        display: none !important;
+    }
+
+    .buttonsActions input {
+        flex: 0 0 100%;
+    }
+
+}

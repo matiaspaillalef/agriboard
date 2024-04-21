@@ -365,6 +365,9 @@ const EmpresaPage = () => {
                     thead="Logo, Rut, R. Social, Giro, Dirección, Región, Ciudad, Telefóno, Web, Caja, Estado"
                     actions={true}
                     omitirColumns={["id"]}
+                    SearchInput={true}
+                    downloadBtn={true}
+                    orientation={"landscape"} // Cambiar a portrait si es necesario, pero esto da la orientación de la hoja de descarga
                   />
                 </TabPanel>
                 <TabPanel key="representante" value="representante">
@@ -455,6 +458,8 @@ const EmpresaPage = () => {
                     thead="Rut, Nombre, Email, Telefóno, Estado"
                     actions={true}
                     omitirColumns={["id"]}
+                    SearchInpunt={true}
+                    downloadBtn={true}
                   />
                 </TabPanel>
               </TabsBody>

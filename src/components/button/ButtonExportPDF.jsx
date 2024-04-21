@@ -1,10 +1,11 @@
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-const ExportarPDF = ({ data, filename, titlebutton }) => {
+
+const ExportarPDF = ({ data, filename, titlebutton, orientation }) => {
   const exportToPDF = () => {
  // Crear un nuevo documento PDF
- const doc = new jsPDF();
+ const doc = new jsPDF(orientation);
 
  const logo = new Image();
  logo.src = process.env.NEXT_PUBLIC_CURRENT_URL + '/agrisoft_logo.png';
@@ -15,20 +16,46 @@ const ExportarPDF = ({ data, filename, titlebutton }) => {
 
    // Calcular la altura de la imagen del logo
    const logoHeight = 20;
+   const tableVerticalPosition = logoHeight + 20;
 
-   // Definir las columnas y filas para el contenido del PDF
-   const columns = Object.keys(data[0]);
-   const rows = data.map((obj) => Object.values(obj));
+ // Definir las columnas y filas para el contenido del PDF
+ const columns = Object.keys(data[0]);
+ const rows = data.map((obj) => {
+   return Object.values(obj).map((value) => {
+     // Verificar si el valor es una URL de imagen
+     if (typeof value === 'string' && (value.endsWith('.png') || value.endsWith('.jpg') || value.endsWith('.jpeg'))) {
+       // Devolver el texto HTML que contiene la etiqueta <img>
+       return value;
+     } else {
+       // Convertir el valor a una cadena de texto
+       return value.toString();
+     }
+   });
+ });
+
+  console.log(rows);
 
    // Calcular la posición vertical para la tabla
-   const tableVerticalPosition = logoHeight + 20; // Ajusta este valor según sea necesario
+// Ajusta este valor según sea necesario
 
    // Agregar el contenido al PDF
    doc.autoTable({
-     head: [columns],
-     body: rows,
-     startY: tableVerticalPosition, // Establecer la posición vertical de la tabla
-   });
+    head: [columns],
+    body: rows,
+    startY: tableVerticalPosition,
+    didDrawCell: function(data) {
+      const value = data.cell.raw;
+      if (typeof value === 'string' && (value.endsWith('.png') || value.endsWith('.jpg') || value.endsWith('.jpeg'))) {
+       
+        const img = new Image();
+        img.src = value;
+        img.onload = function() {
+
+          doc.addImage(img, 'PNG', 10, 10, 20, 20);
+        };
+      }
+    }
+  });
 
    // Obtener la fecha y hora actual para incluir en el nombre del archivo
    const currentDate = new Date();
