@@ -1,27 +1,34 @@
-'use client'
+"use client";
 
-import { useState} from "react";
+import { useState } from "react";
 
 import Image from "next/image";
-import Avatar from "@/assets/img/avatars/avatar7.png"
+import Avatar from "@/assets/img/avatars/avatar7.png";
 
 import WeatherMini from "../weather/WatherMini";
 import Breadcrumb from "../breadcrumbs";
 import TitlePage from "../titlePage";
 
-
 const Navbar = (props) => {
-
   const { onOpenSidenav } = props;
   const [darkmode, setDarkmode] = useState(false);
+
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  // Obtener el valor almacenado en sessionStorage
+  const userDataString = sessionStorage.getItem("userData");
+  const userData = JSON.parse(userDataString);
 
   return (
     <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
       <div className="ml-[6px]">
-
         <div className="h-6 w-[224px] pt-1">
-
-
           <Breadcrumb />
         </div>
 
@@ -30,23 +37,16 @@ const Navbar = (props) => {
 
       <div className="relative mt-[3px] flex h-[61px] w-[355px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:w-[395px] md:flex-grow-0 md:gap-1 xl:w-[395px] xl:gap-2">
         <div className="flex h-full items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px] leading-3 px-5 gap-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-6 h-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 0 1 3.15 0v1.5m-3.15 0 .075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 0 1 3.15 0V15M6.9 7.575a1.575 1.575 0 1 0-3.15 0v8.175a6.75 6.75 0 0 0 6.75 6.75h2.018a5.25 5.25 0 0 0 3.712-1.538l1.732-1.732a5.25 5.25 0 0 0 1.538-3.712l.003-2.024a.668.668 0 0 1 .198-.471 1.575 1.575 0 1 0-2.228-2.228 3.818 3.818 0 0 0-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0 1 16.35 15m.002 0h-.002"
-            />
-          </svg>
+          👋
           <div className="flex flex-col">
-            <p className="font-dm text-xs font-medium text-gray-600">Bienvenido</p>
-            <h4 className="text-l font-bold text-navy-700 dark:text-white">Matias Paillalef</h4>
+            <p className="font-dm text-xs font-medium text-gray-600">
+              Bienvenido
+            </p>
+            <h4 className="text-l font-bold text-navy-700 dark:text-white">
+              {userData
+                ? userData.dataUser.name + " " + userData.dataUser.lastName
+                : "No identificado"}
+            </h4>
           </div>
         </div>
 
@@ -54,7 +54,10 @@ const Navbar = (props) => {
           <WeatherMini />
         </span>
 
-        <span className="flex cursor-pointer text-xl text-gray-600 dark:text-white xl:hidden" onClick={onOpenSidenav}>
+        <span
+          className="flex cursor-pointer text-xl text-gray-600 dark:text-white xl:hidden"
+          onClick={onOpenSidenav}
+        >
           <svg
             stroke="currentColor"
             fill="none"
@@ -100,20 +103,12 @@ const Navbar = (props) => {
         </div>
         <div className="relative flex">
           <div className="flex">
-            <Image src={Avatar} alt="Elon Musk" width={40} height={40} className="rounded-full" />
-          </div>
-          <div className="py-2 top-8 -left-[180px] w-max absolute z-10 origin-top-right transition-all duration-300 ease-in-out scale-0">
-            <div className="flex h-48 w-56 flex-col justify-start rounded-[20px] bg-white bg-cover bg-no-repeat shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:text-white dark:shadow-none">
-              <div className="mt-3 ml-4">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-bold text-navy-700 dark:text-white">👋 Hey, Adela</p>
-                </div>
-              </div>
-              <div className="mt-3 h-px w-full bg-gray-200 dark:bg-white/20 ">
-              </div>
-              <div className="mt-3 ml-4 flex flex-col">
-                <a href=" " className="text-sm text-gray-800 dark:text-white hover:dark:text-white">Profile Settings</a><a href=" " className="mt-3 text-sm text-gray-800 dark:text-white hover:dark:text-white">Newsletter Settings</a><a href=" " className="mt-3 text-sm font-medium text-red-500 hover:text-red-500">Log Out</a>
-              </div>
+            <div className="flex items-center justify-center w-10 h-10 bg-lightPrimary rounded-full shadow-xl shadow-shadow-500 dark:bg-navy-900 dark:text-white">
+              {getInitials(
+                userData
+                  ? userData.dataUser.name + " " + userData.dataUser.lastName
+                  : "Agrisoft Software"
+              )}
             </div>
           </div>
         </div>

@@ -20,6 +20,8 @@ import { StateCL } from "@/app/data/dataStates";
 
 import { DataCompany } from "@/app/data/dataCompany";
 import { DataRLegal } from "@/app/data/dataRLegal";
+import { ProvitionalCL } from "@/app/data/dataProvisionals";
+
 import Rut from "@/components/validateRUT";
 
 const EmpresaPage = () => {
@@ -327,9 +329,12 @@ const EmpresaPage = () => {
                               Caja
                             </label>
                             <select className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white">
-                              <option value="Los Andes">Los Andes</option>
-                              <option value="La araucana">La Araucana</option>
-                              <option value="Los Héroes">Los Héroes</option>
+                              {ProvitionalCL.map((caja) => (
+                                <option key={caja.id} value={caja.name}>
+                                  {caja.name}
+                                </option>
+                              ))}
+
                             </select>
                           </div>
                           <div className="flex flex-col gap-3 ">

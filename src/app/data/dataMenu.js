@@ -21,31 +21,16 @@ export const primaryMenu = [
             },
             {
                 id: 2,
-                name: 'Control de acceso',
-                url: '/dashboard/enviroment/access-control'
-            },
-            {
-                id: 3,
-                name: 'Ubicación geográfica',
-                url: '/dashboard/enviroment/geographic-location'
-            },
-            {
-                id: 4,
-                name: 'Instituciones provisionales',
-                url: '/dashboard/enviroment/provisional-institutions'
-            },
-            {
-                id: 5,
                 name: 'Creación de roles',
                 url: '/dashboard/enviroment/role-creation'
             },
             {
-                id: 6,
+                id: 3,
                 name: 'Creación de usuarios',
                 url: '/dashboard/enviroment/user-creation'
             },
             {
-                id: 7,
+                id: 4,
                 name: 'Creación de menú',
                 url: '/dashboard/enviroment/menu-creation'
             },
@@ -56,6 +41,58 @@ export const primaryMenu = [
         id: 3,
         name: 'Producción',
         url: '/dashboard/production',
+        children: [
+            {
+                id: 1,
+                name: 'Campo',
+                url: '/dashboard/production/ground'
+            },
+            {
+                id: 2,
+                name: 'Sectors / Cuarteles',
+                url: '/dashboard/production/sectors-barracks'
+            },
+            {
+                id: 3,
+                name: 'Atributos de sector',
+                url: '/dashboard/production/sector attributes'
+            },
+            {
+                id: 4,
+                name: 'Especies',
+                url: '/dashboard/production/species'
+            },
+            {
+                id: 5,
+                name: 'Variedades',
+                url: '/dashboard/production/varieties'
+            },
+            {
+                id: 6,
+                name: 'Ciclos',
+                url: '/dashboard/production/cycles'
+            },
+            {
+                id: 7,
+                name: 'Lotes',
+                url: '/dashboard/production/lots'
+            },
+            {
+                id: 8,
+                name: 'Plantaciones',
+                url: '/dashboard/production/plantations'
+            },
+            {
+                id: 9,
+                name: 'Cosechas',
+                url: '/dashboard/production/harvests'
+            },
+            {
+                id: 10,
+                name: 'Inventario',
+                url: '/dashboard/production/inventory'
+            }
+        ],
         icon: TableCellsIcon,
     },
     {

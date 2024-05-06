@@ -3,8 +3,10 @@
 // Importa el componente SpeedInsights Vercel
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NextResponse } from "next/server";
+import { useRouter } from "next/navigation";
+
 
 import Link from "next/link";
 import LineChart from "@/components/charts/LineChart";
@@ -31,7 +33,7 @@ const opcionesDeFormato = {
 // Formatea la fecha actual según las opciones de formato
 const fechaFormateada = fechaActual.toLocaleDateString('es-ES', opcionesDeFormato);
 
-const dashboard = () => {
+const dashboard = ({ isLoggedIn }) => {
 
     const [data, setData] = useState([]);
 

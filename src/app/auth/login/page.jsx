@@ -7,7 +7,6 @@ import Checkbox from "@/components/checkbox";
 import FixedPlugin from "@/components/fixedPlugin/FixedPlugin";
 import SimpleSlider from "@/components/slide";
 import Image from "next/image";
-import { withAuth } from "./middleware/middleware";
 
 import { SlideWelcome } from "@/app/data/dataSlide";
 
@@ -18,7 +17,6 @@ import Slide1 from "@/assets/img/slides/slide-avocado.png";
 import Slide2 from "@/assets/img/slides/slide-potatos.jpg";
 import Slide3 from "@/assets/img/slides/slide-blueberries.jpg";
 import Slide4 from "@/assets/img/slides/slide-apple.jpg";
-import { name } from "xlsx-populate/lib/RichTextFragment";
 
 function LoginPage(props) {
   const { login } = props;
@@ -31,71 +29,49 @@ function LoginPage(props) {
   } = useForm();
 
   const router = useRouter();
-  const [error, setError] = useState(null);  
+  const [error, setError] = useState(null);
 
   const onSubmitLogin = (e) => {
     e.preventDefault();
 
     const apiCont = async () => {
-  try {
-    const username = e.target.username.value;
-    const password = e.target.password.value;
+      try {
+        const username = e.target.username.value;
+        const password = e.target.password.value;
 
-    let res;
+        const res = await fetch("http://localhost:4000/api/v1/signin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: username,
+            username: username,
+            password: password,
+          }),
+        });
 
-    // Verificar si estás en un entorno de desarrollo o producción
+        //console.log(res);
+        if (res.ok) {
+          const data = await res.json();
 
-    //process.env.NODE_ENV === 'development'
-    if (process.env.NEXT_PUBLIC_NODE_ENV === 'development') {
-      // Simular respuesta de API local para entorno de desarrollo
-      const mockData = {
-        token: '87873983798379837938',
-        email: 'agrisoft@agrisoft.cl',
-        username: 'Agrisoft Software',
-        name: 'Agrisoft',
-        lastName: 'Software',
-        role: 'superadmin'
-      };
+          sessionStorage.setItem("userData", JSON.stringify(data));
+          localStorage.setItem("isLoggedIn", true);
+          localStorage.setItem("authToken", data.token);
+          router.push("/dashboard");
+        } else {
+          const errorData = await res.json();
+          setError(errorData.error);
+          console.error("Error al iniciar sesión:", res.status);
+        }
+      } catch (error) {
+        console.error("Error de red:", error);
+      }
+    };
 
-      res = {
-        ok: true,
-        json: () => Promise.resolve(mockData)
-      };
-
-    } else {
-      // En producción, realizar la llamada a la API real
-      res = await fetch("http://localhost:4000/api/v1/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: username,
-          username: username,
-          password: password,
-        }),
-      });
-    }
-
-    if (res.ok) {
-      const data = await res.json();
-
-      sessionStorage.setItem("userData", JSON.stringify(data));
-      sessionStorage.setItem("isLoggedIn", true);
-      localStorage.setItem("authToken", data.token);
-      router.push("/dashboard");
-    } else {
-      const errorData = await res.json();
-      setError(errorData.error);
-      console.error("Error al iniciar sesión:", res.status);
-    }
-  } catch (error) {
-    console.error("Error de red:", error);
-  }
-};
     apiCont();
   };
-
+  if (loggedIn == false) {
     return (
       <div className="relative float-right h-full min-h-screen w-full !bg-white dark:!bg-navy-900">
         <div className="mx-auto flex min-h-full w-full flex-col justify-start pt-12 md:max-w-[75%] lg:h-screen lg:max-w-[1013px] lg:px-8 lg:pt-0 xl:h-[100vh] xl:max-w-[1383px] xl:px-0 xl:pl-[70px]">
@@ -227,5 +203,5 @@ function LoginPage(props) {
       </div>
     );
   }
-
-export default withAuth(LoginPage);
+}
+export default LoginPage;
