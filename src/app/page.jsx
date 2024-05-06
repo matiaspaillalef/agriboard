@@ -18,7 +18,6 @@ import Slide1 from "@/assets/img/slides/slide-avocado.png";
 import Slide2 from "@/assets/img/slides/slide-potatos.jpg";
 import Slide3 from "@/assets/img/slides/slide-blueberries.jpg";
 import Slide4 from "@/assets/img/slides/slide-apple.jpg";
-import { name } from "xlsx-populate/lib/RichTextFragment";
 
 function LoginPage(props) {
   const { login } = props;
@@ -50,11 +49,13 @@ function LoginPage(props) {
       // Simular respuesta de API local para entorno de desarrollo
       const mockData = {
         token: '87873983798379837938',
-        email: 'agrisoft@agrisoft.cl',
-        username: 'Agrisoft Software',
-        name: 'Agrisoft',
-        lastName: 'Software',
-        role: 'superadmin'
+        dataUser:{
+          email: 'agrisoft@agrisoft.cl',
+          username: 'Agrisoft Software',
+          name: 'Agrisoft',
+          lastName: 'Software',
+          role: 'superadmin'
+        }
       };
 
       res = {
