@@ -53,7 +53,8 @@ const Sidebar = ({ open, onClose }) => {
 
       <CustomImage />
 
-      <div className="mt-[58px] mb-7 h-px bg-gray-300 dark:bg-white/30"></div>
+<div className="scrolling h-[600px] overflow-y-scroll mt-[50px] border-t border-bg-lightPrimary">
+
 
       <div className="px-8 py-8">
         <div className="!z-5 relative flex rounded-[8px] bg-lightPrimary bg-clip-border shadow-3xl shadow-shadow-500 dark:bg-navy-900 dark:text-white dark:shadow-none !flex-row flex-grow items-center p-5">
@@ -159,7 +160,7 @@ const Sidebar = ({ open, onClose }) => {
           </button>
         </li>
       </ul>
-
+      </div>
       <p className="px-8 py-8 text-xs mb-0">
         &copy; {new Date().getFullYear()} Agrisoft Software
       </p>

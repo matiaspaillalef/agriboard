@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import Image from "next/image";
 import Avatar from "@/assets/img/avatars/avatar7.png";
@@ -12,6 +12,25 @@ import TitlePage from "../titlePage";
 const Navbar = (props) => {
   const { onOpenSidenav } = props;
   const [darkmode, setDarkmode] = useState(false);
+
+  useEffect(() => {
+    const darkmodeSession = sessionStorage.getItem("darkmode");
+    if (darkmodeSession) {
+      setDarkmode(JSON.parse(darkmodeSession));
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    if (darkmode) {
+      document.body.classList.remove("dark");
+      sessionStorage.setItem("darkmode", JSON.stringify(false));
+      setDarkmode(false);
+    } else {
+      document.body.classList.add("dark");
+      sessionStorage.setItem("darkmode", JSON.stringify(true));
+      setDarkmode(true);
+    }
+  };
 
   const getInitials = (name) => {
     return name
@@ -78,7 +97,7 @@ const Navbar = (props) => {
         </span>
         <div
           className="cursor-pointer text-gray-600"
-          onClick={() => {
+          /*onClick={() => {
             if (darkmode) {
               document.body.classList.remove("dark");
               setDarkmode(false);
@@ -86,7 +105,8 @@ const Navbar = (props) => {
               document.body.classList.add("dark");
               setDarkmode(true);
             }
-          }}
+          }}*/
+          onClick={toggleDarkMode}
         >
           <svg
             stroke="currentColor"

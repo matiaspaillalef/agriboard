@@ -1,8 +1,9 @@
 const Checkbox = (props) => {
-  const { extra, color, ...rest } = props;
+  const { extra, color, checked,name, ...rest } = props;
   return (
     <input
       type="checkbox"
+      checked={checked}
       className={`defaultCheckbox relative flex h-[20px] min-h-[20px] w-[20px] min-w-[20px] appearance-none items-center 
       justify-center rounded-md border border-gray-300 text-white/0 outline-none transition duration-[0.2s]
       checked:border-none checked:text-white hover:cursor-pointer dark:border-white/10 ${
@@ -36,7 +37,7 @@ const Checkbox = (props) => {
           ? "checked:border-none checked:bg-gray-500 dark:checked:bg-gray-400"
           : "checked:bg-brand-500 dark:checked:bg-brand-400"
       } ${extra}`}
-      name="weekly"
+      name={name ? name : "checkbox"}
       {...rest}
     />
   );

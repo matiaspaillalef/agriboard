@@ -14,9 +14,11 @@ export default function FixedPlugin(props) {
     if (darkmode) {
       document.body.classList.remove("dark");
       setDarkmode(false);
+      sessionStorage.setItem("darkmode", JSON.stringify(false));
     } else {
       document.body.classList.add("dark");
       setDarkmode(true);
+      sessionStorage.setItem("darkmode", JSON.stringify(true));
     }
   };
 

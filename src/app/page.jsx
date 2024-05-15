@@ -19,9 +19,25 @@ import Slide2 from "@/assets/img/slides/slide-potatos.jpg";
 import Slide3 from "@/assets/img/slides/slide-blueberries.jpg";
 import Slide4 from "@/assets/img/slides/slide-apple.jpg";
 
+const URLAPI = process.env.NEXT_PUBLIC_API_URL;
+
 function LoginPage(props) {
   const { login } = props;
   const [loggedIn, setLoggedIn] = useState(login);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const toggleDarkMode = () => {
+    if (darkmode) {
+      document.body.classList.remove("dark");
+      sessionStorage.setItem("darkmode", JSON.stringify(false));
+      setDarkmode(false);
+    } else {
+      document.body.classList.add("dark");
+      sessionStorage.setItem("darkmode", JSON.stringify(true));
+      setDarkmode(true);
+    }
+  };
+
 
   const {
     register,
@@ -32,70 +48,69 @@ function LoginPage(props) {
   const router = useRouter();
   const [error, setError] = useState(null);  
 
-  const onSubmitLogin = (e) => {
-    e.preventDefault();
-
-    const apiCont = async () => {
-  try {
-    const username = e.target.username.value;
-    const password = e.target.password.value;
-
-    let res;
-
-    // Verificar si estás en un entorno de desarrollo o producción
-
-    //process.env.NODE_ENV === 'development'
-    if (process.env.NEXT_PUBLIC_NODE_ENV === 'development') {
-      // Simular respuesta de API local para entorno de desarrollo
-      const mockData = {
-        token: '87873983798379837938',
-        dataUser:{
-          email: 'agrisoft@agrisoft.cl',
-          username: 'Agrisoft Software',
-          name: 'Agrisoft',
-          lastName: 'Software',
-          role: 'superadmin'
-        }
-      };
-
-      res = {
-        ok: true,
-        json: () => Promise.resolve(mockData)
-      };
-
-    } else {
-      // En producción, realizar la llamada a la API real
-      res = await fetch("http://localhost:4000/api/v1/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: username,
-          username: username,
-          password: password,
-        }),
-      });
+  const onSubmitLogin = async (data) => {
+    try {
+      const username = data.username;
+      const password = data.password;
+  
+      let res;
+  
+      // Si el checkbox está marcado, guarda los detalles de inicio de sesión en localStorage
+      if (rememberMe) {
+        localStorage.setItem("Logged", true);
+      }
+  
+      // Verificar si estás en un entorno de desarrollo o producción
+      if (process.env.NEXT_PUBLIC_NODE_ENV === 'development') {
+        // Simular respuesta de API local para entorno de desarrollo
+        const mockData = {
+          token: '87873983798379837938',
+          dataUser:{
+            email: 'agrisoft@agrisoft.cl',
+            username: 'Agrisoft Software',
+            name: 'Agrisoft',
+            lastName: 'Software',
+            role: 'superadmin'
+          }
+        };
+  
+        res = {
+          ok: true,
+          json: () => Promise.resolve(mockData)
+        };
+  
+      } else {
+        // En producción, realizar la llamada a la API real
+        res = await fetch(URLAPI + '/api/v1/signin', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: username,
+            username: username,
+            password: password,
+          }),
+        });
+      }
+  
+      if (res.ok) {
+        const userData = await res.json();
+  
+        sessionStorage.setItem("userData", JSON.stringify(userData));
+        sessionStorage.setItem("isLoggedIn", true);
+        localStorage.setItem("authToken", userData.token);
+        router.push("/dashboard");
+      } else {
+        const errorData = await res.json();
+        setError(errorData.error);
+        console.error("Error al iniciar sesión:", res.status);
+      }
+    } catch (error) {
+      console.error("Error de red:", error);
     }
-
-    if (res.ok) {
-      const data = await res.json();
-
-      sessionStorage.setItem("userData", JSON.stringify(data));
-      sessionStorage.setItem("isLoggedIn", true);
-      localStorage.setItem("authToken", data.token);
-      router.push("/dashboard");
-    } else {
-      const errorData = await res.json();
-      setError(errorData.error);
-      console.error("Error al iniciar sesión:", res.status);
-    }
-  } catch (error) {
-    console.error("Error de red:", error);
-  }
-};
-    apiCont();
   };
+  
 
     return (
       <div className="relative float-right h-full min-h-screen w-full !bg-white dark:!bg-navy-900">
@@ -110,7 +125,7 @@ function LoginPage(props) {
                   {" "}
                   Ingresa tu email y password para ingresar.
                 </p>
-                <form onSubmit={onSubmitLogin} className="w-full">
+                <form onSubmit={handleSubmit(onSubmitLogin)} className="w-full">
                   {error && (
                     <p className="bg-red-500 text-lg text-white p-3 rounded mb-2">
                       {error}
@@ -169,7 +184,11 @@ function LoginPage(props) {
 
                   <div className="mb-4 flex items-center justify-between px-2">
                     <div className="flex items-center">
-                      <Checkbox />
+                      <Checkbox 
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      name="rememberMe"
+                      />
                       <p className="ml-2 text-sm font-medium text-navy-700 dark:text-white">
                         Recordarme
                       </p>
