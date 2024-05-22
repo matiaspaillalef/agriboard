@@ -12,6 +12,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
+import { deleteUser }  from "@/app/api/ApisConfig";
 
 const CardTableUsers = ({
   data,
@@ -45,18 +46,24 @@ const CardTableUsers = ({
     //console.log("Usuario seleccionado", user);
   };
 
-  const handlerRemove = (index) => {
-    //console.log("Eliminar usuario", index);
+  const  handlerRemove =  async (index,id) => {
+    
     try {
-      // Realiza la petición DELETE al backend
-      /*if (!response.ok) {
-        throw new Error("Error al eliminar el usuario");
-      }*/
+      
+      const deleteUSer = await deleteUser(id);
+      console.log(deleteUSer);
 
       // Elimina la fila del front-end
-      const updatedData = [...initialData];
-      updatedData.splice(index, 1);
-      setInitialData(updatedData); // Actualiza el estado con los datos sin la fila eliminada
+      if(deleteUSer == "OK") {
+
+        const updatedData = [...initialData];
+        updatedData.splice(index, 1);
+        setInitialData(updatedData); // Actualiza el estado con los datos sin la fila eliminada
+
+      }else {
+        //aqui el else mati :P
+      }
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -247,7 +254,7 @@ const CardTableUsers = ({
                           } ${columnsClasses[rowIndex] || "text-left"}`}
                         >
                           <div className="text-base font-medium text-navy-700 dark:text-white">
-                            {key === "state" ? (
+                            {key === "estado" ? (
                               row[key] === 1 ? (
                                 <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3">
                                   Activo
@@ -296,7 +303,7 @@ const CardTableUsers = ({
                         <button
                           id="remove"
                           type="button"
-                          onClick={() => handlerRemove(index)}
+                          onClick={() => handlerRemove(index,row.userId)}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

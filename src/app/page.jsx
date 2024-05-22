@@ -80,6 +80,7 @@ function LoginPage(props) {
         };
   
       } else {
+
         // En producción, realizar la llamada a la API real
         res = await fetch(URLAPI + '/api/v1/signin', {
           method: "POST",
@@ -87,30 +88,41 @@ function LoginPage(props) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email: username,
-            username: username,
+            usuario: username,
             password: password,
           }),
         });
       }
   
       if (res.ok) {
+        
         const userData = await res.json();
-  
-        sessionStorage.setItem("userData", JSON.stringify(userData));
-        sessionStorage.setItem("isLoggedIn", true);
-        localStorage.setItem("authToken", userData.token);
-        router.push("/dashboard");
+
+        if(userData.code == 'OK') {
+
+          sessionStorage.setItem("userData", JSON.stringify(userData));
+          sessionStorage.setItem("isLoggedIn", true);
+          router.push("/dashboard");
+
+        } else {
+
+          setError(userData.mensaje);
+          console.error("Error al iniciar sesión:", userData.mensaje);
+          sessionStorage.clear();
+
+        }
+
       } else {
+        sessionStorage.clear();
         const errorData = await res.json();
         setError(errorData.error);
         console.error("Error al iniciar sesión:", res.status);
       }
     } catch (error) {
+      sessionStorage.clear();
       console.error("Error de red:", error);
     }
   };
-  
 
     return (
       <div className="relative float-right h-full min-h-screen w-full !bg-white dark:!bg-navy-900">

@@ -22,7 +22,7 @@ export function withAuth(Component) {
                 return () => clearTimeout(timeout);
             } else {
                 // Si está logeado y trata de acceder a la ruta principal, redirigir a la página actual
-                    router.push('/dashboard');
+                    //router.push('/dashboard');
 
                 const timeout = setTimeout(() => {
                     setLoading(false);

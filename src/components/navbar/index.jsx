@@ -63,7 +63,7 @@ const Navbar = (props) => {
             </p>
             <h4 className="text-l font-bold text-navy-700 dark:text-white">
               {userData
-                ? userData.dataUser.name + " " + userData.dataUser.lastName
+                ? userData.nombre + " " + userData.apellido
                 : "No identificado"}
             </h4>
           </div>
@@ -126,7 +126,7 @@ const Navbar = (props) => {
             <div className="flex items-center justify-center w-10 h-10 bg-lightPrimary rounded-full shadow-xl shadow-shadow-500 dark:bg-navy-900 dark:text-white">
               {getInitials(
                 userData
-                  ? userData.dataUser.name + " " + userData.dataUser.lastName
+                  ? userData.nombre + " " + userData.apellido
                   : "Agrisoft Software"
               )}
             </div>
