@@ -11,9 +11,10 @@ import {
 import { useForm } from "react-hook-form";
 import { createUser }  from "@/app/api/ApisConfig";
 
-const ModalUserCreation = () => {
+const ModalUserCreation = (props) => {
 
   const [open, setOpen] = useState(false);
+  const {datoscombos} = props;
 
     const {
         register,
@@ -138,21 +139,6 @@ const ModalUserCreation = () => {
               </div>
             </div>
             <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-              <div className="flex flex-col gap-3 ">
-                <label
-                  htmlFor="userName"
-                  className="text-sm font-semibold text-gray-800 dark:text-white"
-                >
-                  Username
-                </label>
-                <input
-                  type="text"
-                  name="userName"
-                  id="userName"
-                  {...register("userName")}
-                  className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                />
-              </div>
               <div className="flex flex-col gap-3">
                 <label
                   htmlFor="userPassword"
@@ -199,9 +185,9 @@ const ModalUserCreation = () => {
                   {...register("menuRol")}
                   className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                 >
-                  <option value="superadmin">Superadmin</option>
-                  <option value="admin">Admin</option>
-                  <option value="user">User</option>
+                  {datoscombos.map((rol,index) => { 
+                    return (<option key={index} value={rol.id_rol}>{rol.descripcion}</option>)
+                  })}
                 </select>
               </div>
               <div className="flex flex-col gap-3">

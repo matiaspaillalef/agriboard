@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
+import { useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
   Button,
@@ -12,7 +13,8 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { deleteUser }  from "@/app/api/ApisConfig";
+import { deleteUser,updateUser }  from "@/app/api/ApisConfig";
+
 
 const CardTableUsers = ({
   data,
@@ -24,10 +26,18 @@ const CardTableUsers = ({
   tableId,
   downloadBtn,
   SearchInput,
+  datoscombos
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
     : "";
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
 
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
@@ -45,6 +55,48 @@ const CardTableUsers = ({
 
     //console.log("Usuario seleccionado", user);
   };
+
+  
+  const  onUpdateUser =  async (data) => {
+
+    try {
+      
+      const updateUserApi = await updateUser(data);
+
+      // Elimina la fila del front-end
+      if (updateUserApi === "OK") {
+        // Actualizar los datos en el frontend
+        console.log("datoscombos" ,datoscombos);
+        let { userPassword, ...userDataWithoutPassword } = data;
+        //userDataWithoutPassword = { ...userDataWithoutPassword, menuRol: "algo" };
+        let id_rol  = userDataWithoutPassword.menuRol;
+
+        datoscombos.forEach(value => {
+
+          if (value.id_rol == id_rol) {
+            userDataWithoutPassword = { ...userDataWithoutPassword, menuRol: value.descripcion };
+
+          }
+          
+        });
+
+        const updatedData = initialData.map((user) =>
+         user.userId === selectedUser.userId ? { ...userDataWithoutPassword } : user
+        );
+        setInitialData(updatedData);
+        setOpen(!open); // Cerrar el modal si es necesario
+      }else {
+        //aqui el else mati :P
+      }
+      
+    } catch (error) {
+      console.error(error);
+      // Manejo de errores
+    }
+
+};
+
+  
 
   const  handlerRemove =  async (index,id) => {
     
@@ -430,7 +482,13 @@ const CardTableUsers = ({
               Editar usario
             </DialogHeader>
             <DialogBody>
-              <form action=" " method="POST">
+              <form onSubmit={handleSubmit(onUpdateUser)} method="POST">
+                <input
+                 type="hidden"
+                 name="id"
+                 {...register("id")}
+                 defaultValue={selectedUser ? selectedUser.userId : ""}
+                />
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                   <div className="flex flex-col gap-3 ">
                     <label
@@ -443,7 +501,8 @@ const CardTableUsers = ({
                       type="text"
                       name="name"
                       id="name"
-                      defaultValue={selectedUser ? selectedUser.name : ""}
+                      defaultValue={selectedUser ? selectedUser.nombre : ""}
+                      {...register("name")}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
                   </div>
@@ -458,27 +517,13 @@ const CardTableUsers = ({
                       type="text"
                       name="lastName"
                       id="lastName"
-                      defaultValue={selectedUser ? selectedUser.lastName : ""}
+                      {...register("lastName")}
+                      defaultValue={selectedUser ? selectedUser.apellido : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
                   </div>
                 </div>
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3 ">
-                    <label
-                      htmlFor="userName"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      name="userName"
-                      id="userName"
-                      defaultValue={selectedUser ? selectedUser.username : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
                   <div className="flex flex-col gap-3">
                     <label
                       htmlFor="userPassword"
@@ -490,6 +535,7 @@ const CardTableUsers = ({
                       type="password"
                       name="userPassword"
                       id="userPassword"
+                      {...register("userPassword")}
                       defaultValue={selectedUser ? selectedUser.password : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
@@ -508,7 +554,8 @@ const CardTableUsers = ({
                       type="email"
                       name="userEmail"
                       id="userEmail"
-                      defaultValue={selectedUser ? selectedUser.email : ""}
+                      {...register("userEmail")}
+                      defaultValue={selectedUser ? selectedUser.mail : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
                   </div>
@@ -522,12 +569,13 @@ const CardTableUsers = ({
                     <select
                       name="menuRol"
                       id="menuRol"
-                      defaultValue={selectedUser ? selectedUser.rol : ""}
+                      {...register("menuRol")}
+                      defaultValue={selectedUser ? selectedUser.id_rol : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      <option value="superadmin">Superadmin</option>
-                      <option value="admin">Admin</option>
-                      <option value="user">User</option>
+                    {datoscombos.map((rol,index) => { 
+                      return (<option key={index} value={rol.id_rol}>{rol.descripcion}</option>)
+                    })}
                     </select>
                   </div>
                   <div className="flex flex-col gap-3">
@@ -540,10 +588,11 @@ const CardTableUsers = ({
                     <select
                       name="menuState"
                       id="menuState"
-                      defaultValue={selectedUser ? selectedUser.state : 0}
+                      {...register("menuState")}
+                      defaultValue={selectedUser ? selectedUser.estado : 0}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      <option value="0">Inactivo</option>
+                      <option value="2">Inactivo</option>
                       <option value="1">Activo</option>
                     </select>
                   </div>
@@ -551,9 +600,9 @@ const CardTableUsers = ({
                     <button
                       type="submit"
                       className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                      onClick={handleOpen} // Aquí va la función que envía los datos al backend para crear el usuario y cerrar el modal
+                      onSubmit={onUpdateUser} // Aquí va la función que envía los datos al backend para crear el usuario y cerrar el modal
                     >
-                      Crear usuario
+                      Editar Usuario
                     </button>
                   </div>
                 </div>
