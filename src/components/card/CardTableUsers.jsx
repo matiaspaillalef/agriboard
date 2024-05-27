@@ -13,8 +13,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { deleteUser,updateUser }  from "@/app/api/ApisConfig";
-
+import { deleteUser, updateUser } from "@/app/api/ApisConfig";
 
 const CardTableUsers = ({
   data,
@@ -26,7 +25,7 @@ const CardTableUsers = ({
   tableId,
   downloadBtn,
   SearchInput,
-  datoscombos
+  datoscombos,
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
@@ -35,87 +34,82 @@ const CardTableUsers = ({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm();
-
 
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState(null); // Estado para almacenar los datos del usuario seleccionado para editar
+  const [updateMessage, setUpdateMessage] = useState(null); // Estado para manejar el mensaje de actualización
 
   //Estado para la paginación
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const handleOpen = (user) => {
+    reset();
     setSelectedUser(user); // Actualiza el estado con los datos del usuario seleccionado
     setOpen(!open);
 
     //console.log("Usuario seleccionado", user);
   };
 
-  
-  const  onUpdateUser =  async (data) => {
-
+  const onUpdateUser = async (data) => {
     try {
-      
       const updateUserApi = await updateUser(data);
 
       // Elimina la fila del front-end
       if (updateUserApi === "OK") {
         // Actualizar los datos en el frontend
-        console.log("datoscombos" ,datoscombos);
+        //console.log("datoscombos" ,datoscombos);
         let { userPassword, ...userDataWithoutPassword } = data;
         //userDataWithoutPassword = { ...userDataWithoutPassword, menuRol: "algo" };
-        let id_rol  = userDataWithoutPassword.menuRol;
+        let id_rol = userDataWithoutPassword.menuRol;
 
-        datoscombos.forEach(value => {
-
+        datoscombos.forEach((value) => {
           if (value.id_rol == id_rol) {
-            userDataWithoutPassword = { ...userDataWithoutPassword, menuRol: value.descripcion };
-
+            userDataWithoutPassword = {
+              ...userDataWithoutPassword,
+              menuRol: value.descripcion,
+            };
           }
-          
         });
 
         const updatedData = initialData.map((user) =>
-         user.userId === selectedUser.userId ? { ...userDataWithoutPassword } : user
+          user.userId === selectedUser.userId
+            ? { ...userDataWithoutPassword }
+            : user
         );
+
         setInitialData(updatedData);
-        setOpen(!open); // Cerrar el modal si es necesario
-      }else {
-        //aqui el else mati :P
+        setUpdateMessage("Usuario actualizado");
+        //setOpen(!open); // Cerrar el modal si es necesario
+        
+      } else {
+        setUpdateMessage("No se pudo actualizar el usuario");
       }
-      
     } catch (error) {
       console.error(error);
       // Manejo de errores
     }
+  };
 
-};
-
-  
-
-  const  handlerRemove =  async (index,id) => {
-    
+  const handlerRemove = async (index, id) => {
     try {
-      
       const deleteUSer = await deleteUser(id);
-      console.log(deleteUSer);
+      c; //onsole.log(deleteUSer);
 
       // Elimina la fila del front-end
-      if(deleteUSer == "OK") {
-
+      if (deleteUSer == "OK") {
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
-        setInitialData(updatedData); // Actualiza el estado con los datos sin la fila eliminada
-
-      }else {
+        setInitialData(updatedData);
+      } else {
         //aqui el else mati :P
       }
-
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -123,13 +117,22 @@ const CardTableUsers = ({
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setLoading(false);
-    };
+    if (updateMessage) {
+      const timer = setTimeout(() => {
+        setUpdateMessage(null);
+        setOpen(false); 
+        reset();
+      }, 3000);
 
-    fetchData();
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [updateMessage]);
+
+  useEffect(() => {
+    if (data && Object.keys(data).length > 0) {
+      setLoading(false);
+    }
+  }, [data]);
 
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -306,8 +309,9 @@ const CardTableUsers = ({
                           } ${columnsClasses[rowIndex] || "text-left"}`}
                         >
                           <div className="text-base font-medium text-navy-700 dark:text-white">
-                            {key === "estado" ? (
-                              row[key] === 1 ? (
+                            {key === "estado" || key === "menuState" ? (
+                              //console.log(key),
+                              row[key] == 1 ? (
                                 <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3">
                                   Activo
                                 </p>
@@ -355,7 +359,7 @@ const CardTableUsers = ({
                         <button
                           id="remove"
                           type="button"
-                          onClick={() => handlerRemove(index,row.userId)}
+                          onClick={() => handlerRemove(index, row.userId)}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -482,12 +486,21 @@ const CardTableUsers = ({
               Editar usario
             </DialogHeader>
             <DialogBody>
+              {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
+                <div
+                  className={`bg-${
+                    updateMessage.includes("actualizado") ? "green" : "red"
+                  }-500 text-white text-center py-2 fixed top-0 left-0 right-0`}
+                >
+                  {updateMessage}
+                </div>
+              )}
               <form onSubmit={handleSubmit(onUpdateUser)} method="POST">
                 <input
-                 type="hidden"
-                 name="id"
-                 {...register("id")}
-                 defaultValue={selectedUser ? selectedUser.userId : ""}
+                  type="hidden"
+                  name="id"
+                  {...register("id")}
+                  defaultValue={selectedUser ? selectedUser.userId : ""}
                 />
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                   <div className="flex flex-col gap-3 ">
@@ -573,9 +586,13 @@ const CardTableUsers = ({
                       defaultValue={selectedUser ? selectedUser.id_rol : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                    {datoscombos.map((rol,index) => { 
-                      return (<option key={index} value={rol.id_rol}>{rol.descripcion}</option>)
-                    })}
+                      {datoscombos.map((rol, index) => {
+                        return (
+                          <option key={index} value={rol.id_rol}>
+                            {rol.descripcion}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                   <div className="flex flex-col gap-3">
