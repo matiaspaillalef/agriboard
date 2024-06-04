@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const URLAPI = process.env.NEXT_PUBLIC_API_CONFIG_URL;
+const URLAPI = process.env.NEXT_PUBLIC_API_URL;
 const APIKEY = process.env.NEXT_PUBLIC_JWT_SECRET;
 
 const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
@@ -14,7 +14,7 @@ export const getDataUser = async () => {
             expiresIn: 30000
         });
 
-        const res = await fetch(URLAPI + '/api/v1/configuration/usuarios/getUsuarios', {
+        const res = await fetch(URLAPI + '/api/v1/configuracion/usuarios/getUsuarios', {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export const deleteUser = async (idUser) => {
     try {
                 
 
-        const res = await fetch(URLAPI + '/api/v1/configuration/usuarios/deleteUser', {
+        const res = await fetch(URLAPI + '/api/v1/configuracion/usuarios/eliminarUsuarios', {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -70,7 +70,7 @@ export const deleteUser = async (idUser) => {
 export const createUser = async (data) => {
     try {
 
-        const res = await fetch(URLAPI + '/api/v1/configuration/usuarios/createUser', {
+        const res = await fetch(URLAPI + '/api/v1/configuracion/usuarios/crearUsuarios', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -103,7 +103,7 @@ export const createUser = async (data) => {
 export const updateUser = async (data) => {
     try {
         
-        const res = await fetch(URLAPI + '/api/v1/configuration/usuarios/updateUser', {
+        const res = await fetch(URLAPI + '/api/v1/configuracion/usuarios/actualizarUsuarios', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -141,7 +141,7 @@ export const getRoles = async () => {
             expiresIn: 30000
         });
 
-        const res = await fetch(URLAPI + '/api/v1/configuration/usuarios/getRoles', {
+        const res = await fetch(URLAPI + '/api/v1/configuracion/usuarios/getRoles', {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

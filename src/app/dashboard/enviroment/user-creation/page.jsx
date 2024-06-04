@@ -2,7 +2,7 @@
 //import { useState, useRef } from "react";
 import CardTableUsers from "@/components/card/CardTableUsers";
 
-import { getDataUser, getRoles }  from "@/app/api/ApisConfig";
+import { getDataUser, getRoles }  from "@/app/api/ConfiguracionApi";
 import { BsFileEarmarkCheck } from "react-icons/bs";
 import ModalUserCreation from "@/components/modal/ModalUserCreation";
 

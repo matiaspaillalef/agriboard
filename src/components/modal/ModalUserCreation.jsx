@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from "@material-tailwind/react";
 import { useForm } from "react-hook-form";
-import { createUser }  from "@/app/api/ApisConfig";
+import { createUser }  from "@/app/api/ConfiguracionApi";
 
 const ModalUserCreation = (props) => {
 

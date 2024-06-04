@@ -8,6 +8,7 @@ import FixedPlugin from "@/components/fixedPlugin/FixedPlugin";
 import SimpleSlider from "@/components/slide";
 import Image from "next/image";
 import { withAuth } from "./middleware/middleware";
+import { auth }  from "@/app/api/LoginApi";
 
 import { SlideWelcome } from "@/app/data/dataSlide";
 
@@ -53,74 +54,34 @@ function LoginPage(props) {
       const username = data.username;
       const password = data.password;
   
-      let res;
   
       // Si el checkbox está marcado, guarda los detalles de inicio de sesión en localStorage
       if (rememberMe) {
         localStorage.setItem("Logged", true);
       }
   
-      // Verificar si estás en un entorno de desarrollo o producción
-      if (process.env.NEXT_PUBLIC_NODE_ENV === 'development') {
-        // Simular respuesta de API local para entorno de desarrollo
-        const mockData = {
-          token: '87873983798379837938',
-          dataUser:{
-            email: 'agrisoft@agrisoft.cl',
-            username: 'Agrisoft Software',
-            name: 'Agrisoft',
-            lastName: 'Software',
-            role: 'superadmin'
-          }
-        };
-  
-        res = {
-          ok: true,
-          json: () => Promise.resolve(mockData)
-        };
-  
-      } else {
+      const userData = await auth(username,password);
+      console.log(userData);
 
-        // En producción, realizar la llamada a la API real
-        res = await fetch(URLAPI + '/api/v1/signin', {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            usuario: username,
-            password: password,
-          }),
-        });
-      }
-  
-      if (res.ok) {
-        
-        const userData = await res.json();
+      if(userData.code == 'OK') {
 
-        if(userData.code == 'OK') {
-
-          sessionStorage.setItem("userData", JSON.stringify(userData));
-          sessionStorage.setItem("isLoggedIn", true);
-          router.push("/dashboard");
-
-        } else {
-
-          setError(userData.mensaje);
-          console.error("Error al iniciar sesión:", userData.mensaje);
-          sessionStorage.clear();
-
-        }
+        sessionStorage.setItem("userData", JSON.stringify(userData));
+        sessionStorage.setItem("isLoggedIn", true);
+        router.push("/dashboard");
 
       } else {
+
+        setError(userData.mensaje);
+        console.error("Error al iniciar sesión:", userData.mensaje);
         sessionStorage.clear();
-        const errorData = await res.json();
-        setError(errorData.error);
-        console.error("Error al iniciar sesión:", res.status);
+
       }
+
     } catch (error) {
+
       sessionStorage.clear();
       console.error("Error de red:", error);
+      
     }
   };
 

@@ -13,7 +13,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { deleteUser, updateUser } from "@/app/api/ApisConfig";
+import { deleteUser, updateUser } from "@/app/api/ConfiguracionApi";
 
 const CardTableUsers = ({
   data,
@@ -100,8 +100,7 @@ const CardTableUsers = ({
   const handlerRemove = async (index, id) => {
     try {
       const deleteUSer = await deleteUser(id);
-      c; //onsole.log(deleteUSer);
-
+      
       // Elimina la fila del front-end
       if (deleteUSer == "OK") {
         const updatedData = [...initialData];
