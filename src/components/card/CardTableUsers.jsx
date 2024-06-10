@@ -6,6 +6,7 @@ import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
+import { EyeIcon, EyeSlashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Dialog,
@@ -13,7 +14,12 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { deleteUser, updateUser } from "@/app/api/ConfiguracionApi";
+import {
+  deleteUser as deleteUserApi,
+  updateUser,
+  createUser,
+  getDataUser
+} from "@/app/api/ConfiguracionApi";
 
 const CardTableUsers = ({
   data,
@@ -49,31 +55,63 @@ const CardTableUsers = ({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [isEdit, setIsEdit] = useState(false);
+  const [formData, setFormData] = useState({}); // Guarda los datos del usuario al editar
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [openAlert, setOpenAlert] = useState(false);
+
+  const [userToDelete, setUserToDelete] = useState({
+    index: null,
+    id: null,
+    nombre: "",
+    apellido: "",
+  });
+
+  const handleOpenNewUser = () => {
+    setIsEdit(false);
+    handleOpen();
+  };
+
+  const handleOpenEditUser = (user) => {
+    //console.log("Datos del usuario al editar:", user);
+    //console.log("Contraseña cifrada:", user.password);
+    setIsEdit(true);
+    setFormData(user);
+    setSelectedUser(user);
+    handleOpen(user);
+  };
+
+  //console.log("Datos del usuario al editar:", selectedUser);
+
   const handleOpen = (user) => {
     reset();
     setSelectedUser(user); // Actualiza el estado con los datos del usuario seleccionado
     setOpen(!open);
-
-    //console.log("Usuario seleccionado", user);
   };
 
   const onUpdateUser = async (data) => {
+    console.log("Datos del usuario a actualizar:", data);
     try {
       const updateUserApi = await updateUser(data);
 
       // Elimina la fila del front-end
       if (updateUserApi === "OK") {
-        // Actualizar los datos en el frontend
-        //console.log("datoscombos" ,datoscombos);
-        let { userPassword, ...userDataWithoutPassword } = data;
-        //userDataWithoutPassword = { ...userDataWithoutPassword, menuRol: "algo" };
-        let id_rol = userDataWithoutPassword.menuRol;
+
+        //let { userPassword, ...userDataWithoutPassword } = data; //Acá sacamos password del objeto data
+        let userDataWithoutPassword = { ...data };
+
+        //console.log(data);
+        //console.log(userDataWithoutPassword);
+        let id_rol = data.menuRol;
 
         datoscombos.forEach((value) => {
           if (value.id_rol == id_rol) {
             userDataWithoutPassword = {
               ...userDataWithoutPassword,
               menuRol: value.descripcion,
+              id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
             };
           }
         });
@@ -85,9 +123,8 @@ const CardTableUsers = ({
         );
 
         setInitialData(updatedData);
-        setUpdateMessage("Usuario actualizado");
-        //setOpen(!open); // Cerrar el modal si es necesario
-        
+        setUpdateMessage("Usuario actualizadocorrectamente");
+        setOpen(false);
       } else {
         setUpdateMessage("No se pudo actualizar el usuario");
       }
@@ -97,17 +134,76 @@ const CardTableUsers = ({
     }
   };
 
-  const handlerRemove = async (index, id) => {
+  const handleOpenAlert = (index, id, nombre, apellido) => {
+    setUserToDelete({ index, id, nombre, apellido });
+    setOpenAlert(true);
+  };
+
+  //console.log("Datos del usuario a eliminar:", userToDelete.nombre);
+
+  const handleCloseAlert = () => {
+    setOpenAlert(false);
+    setUserToDelete({ index: null, id: null, nombre: "", apellido: "" });
+  };
+
+  const handlerRemove = async () => {
+    const { index, id } = userToDelete;
+
     try {
-      const deleteUSer = await deleteUser(id);
-      
-      // Elimina la fila del front-end
-      if (deleteUSer == "OK") {
+      //if (userConfirmed) {
+      const deleteUser = await deleteUserApi(id);
+
+      // Elimina la fila del front-end si la eliminación fue exitosa
+      if (deleteUser === "OK") {
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
+        setOpenAlert(false);
+        setUpdateMessage("Usuario eliminado correctamente");
       } else {
-        //aqui el else mati :P
+        setUpdateMessage("Error al eliminar el usuario. Inténtalo nuevamente.");
+      }
+    } catch (error) {
+      console.error(error);
+      // Manejo de errores
+      setUpdateMessage("Ocurrió un error al intentar eliminar el usuario.");
+    }
+  };
+
+  // Creación de usuario
+  const onSubmitForm = async (data) => {
+    try {
+      const createUserapi = await createUser(data);
+      // Agrega la fila del front-end
+      if (createUserapi == "OK") {
+        //const newUser = { ...data };
+        //let { userPassword, ...newUser } = data; // agregamos al fornt el nuevo usuario sin la password
+
+        let id_rol = data.menuRol;
+
+        datoscombos.forEach((value) => {
+          if (value.id_rol == id_rol) {
+            data = {
+              ...data,
+              menuRol: value.descripcion,
+              id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
+            };
+          }
+        });
+
+        const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
+
+        setInitialData(updatedData);
+
+        //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
+        const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
+        //console.log(newDataFetch);
+        setInitialData(newDataFetch);
+
+        setOpen(false);
+        setUpdateMessage("Usuario creado correctamente");
+      } else {
+        setUpdateMessage("Error al crear el usuario");
       }
     } catch (error) {
       console.error(error);
@@ -115,13 +211,16 @@ const CardTableUsers = ({
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   useEffect(() => {
     if (updateMessage) {
       const timer = setTimeout(() => {
         setUpdateMessage(null);
-        setOpen(false); 
         reset();
-      }, 3000);
+      }, 4000);
 
       return () => clearTimeout(timer);
     }
@@ -159,58 +258,45 @@ const CardTableUsers = ({
 
   return (
     <>
+      {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
+        <div
+          className={`bg-${
+            updateMessage.includes("correctamente") ? "green" : "red"
+          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          style={{ zIndex: 999999 }}
+        >
+          {updateMessage}
+        </div>
+      )}
+      <div className="mb-3 flex gap-5 ">
+        <Button
+          onClick={handleOpenNewUser}
+          variant="gradient"
+          className="max-w-[300px] linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
+            />
+          </svg>
+          Nuevo usuario
+        </Button>
+      </div>
       {loading ? (
         <div role="status" className="max-w-full animate-pulse p-0">
           {/* Titulo */}
           <div
             className={`h-[22px] dark:bg-gray-200 bg-gray-400 w-1/2 rounded-sm pb-[10px] mb-5`}
           ></div>
-
-          {/* Mapeamos la props del thead */}
-          {columnLabels && (
-            <div className="flex gap-3 mb-2">
-              {columnLabels.map((label, index) => {
-                if (omitirColumns.includes(label)) {
-                  return null; // Omitir la columna si está en omitirColumns
-                }
-
-                const widthClass =
-                  columnLabels.length > 6
-                    ? `w-1/2`
-                    : `w-${columnLabels.length}/12`;
-                return (
-                  <div
-                    className={`h-[17px] dark:bg-gray-200 bg-gray-400 ${widthClass} rounded-sm pb-[10px]`}
-                    key={index}
-                  ></div>
-                );
-              })}
-            </div>
-          )}
-          {/* Mapeamos los items de la información */}
-          {initialData.map((item, index) => {
-            const numPropiedades = Object.keys(item).length;
-
-            return (
-              <div className="flex gap-3 mb-2" key={index}>
-                {Object.keys(item).map((propiedad, idx) => {
-                  if (omitirColumns.includes(propiedad)) {
-                    return null; // Omitir la columna si está en omitirColumns
-                  }
-
-                  const widthClass =
-                    numPropiedades > 6 ? `w-1/2` : `w-${numPropiedades}/12`;
-
-                  return (
-                    <div
-                      className={`h-[40px] dark:bg-gray-200 bg-gray-400 ${widthClass} rounded-sm pb-[10px]`}
-                      key={idx}
-                    ></div>
-                  );
-                })}
-              </div>
-            );
-          })}
         </div>
       ) : (
         <>
@@ -297,6 +383,11 @@ const CardTableUsers = ({
                       if (omitirColumns.includes(key)) {
                         return null; // Omitir la columna si está en omitirColumns
                       }
+
+                      if (key === "password" || key === "userPassword") {
+                        return null; // No renderizar el <td> si la clave es "password"
+                      }
+
                       return (
                         <td
                           key={rowIndex}
@@ -319,8 +410,10 @@ const CardTableUsers = ({
                                   Inactivo
                                 </p>
                               )
-                            ) : (
+                            ) : key !== "password" ? (
                               formatNumber(row[key])
+                            ) : (
+                              "" // No mostrar la contraseña
                             )}
                           </div>
                         </td>
@@ -338,7 +431,8 @@ const CardTableUsers = ({
                         <button
                           type="button"
                           className="text-sm font-semibold text-gray-800 dark:text-white"
-                          onClick={() => handleOpen(row)}
+                          //onClick={() => handleOpen(row)}
+                          onClick={() => handleOpenEditUser(row)}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -358,7 +452,16 @@ const CardTableUsers = ({
                         <button
                           id="remove"
                           type="button"
-                          onClick={() => handlerRemove(index, row.userId)}
+                          onClick={() =>{
+                            //console.log(row);
+                            handleOpenAlert(
+                              index,
+                              row.userId,
+                              row.nombre ? row.nombre : row.name,
+                              row.apellido ? row.apellido : row.lastName
+                            )
+                          }
+                          }
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -480,25 +583,18 @@ const CardTableUsers = ({
                 />
               </svg>
             </button>
-            {/* Aquí va el contenido del modal para editar usuario */}
             <DialogHeader className="dark:text-white">
-              Editar usario
+              {isEdit ? "Editar Usuario" : "Crear Usuario"}
             </DialogHeader>
             <DialogBody>
-              {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
-                <div
-                  className={`bg-${
-                    updateMessage.includes("actualizado") ? "green" : "red"
-                  }-500 text-white text-center py-2 fixed top-0 left-0 right-0`}
-                >
-                  {updateMessage}
-                </div>
-              )}
-              <form onSubmit={handleSubmit(onUpdateUser)} method="POST">
+              <form
+                onSubmit={handleSubmit(isEdit ? onUpdateUser : onSubmitForm)}
+                method="POST"
+              >
                 <input
                   type="hidden"
-                  name="id"
-                  {...register("id")}
+                  name="userId"
+                  {...register("userId")}
                   defaultValue={selectedUser ? selectedUser.userId : ""}
                 />
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
@@ -513,7 +609,7 @@ const CardTableUsers = ({
                       type="text"
                       name="name"
                       id="name"
-                      defaultValue={selectedUser ? selectedUser.nombre : ""}
+                      defaultValue={selectedUser ? (selectedUser.nombre ? selectedUser.nombre : selectedUser.name) : ""}
                       {...register("name")}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
@@ -530,12 +626,12 @@ const CardTableUsers = ({
                       name="lastName"
                       id="lastName"
                       {...register("lastName")}
-                      defaultValue={selectedUser ? selectedUser.apellido : ""}
+                      defaultValue={selectedUser ? (selectedUser.apellido ? selectedUser.apellido : selectedUser.lastName ) : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
                   </div>
                 </div>
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-1">
                   <div className="flex flex-col gap-3">
                     <label
                       htmlFor="userPassword"
@@ -543,15 +639,35 @@ const CardTableUsers = ({
                     >
                       Contraseña
                     </label>
-                    <input
-                      type="password"
-                      name="userPassword"
-                      id="userPassword"
-                      {...register("userPassword")}
-                      defaultValue={selectedUser ? selectedUser.password : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="userPassword"
+                        id="userPassword"
+                        {...register("userPassword")}
+                        defaultValue={selectedUser ? (selectedUser.password ? selectedUser.password : selectedUser.userPassword) : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                      >
+                        {showPassword ? (
+                          <EyeIcon className="h-5 w-5 text-gray-400" />
+                        ) : (
+                          <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                        )}
+                      </button>
+                    </div>
                   </div>
+                  {isEdit && (
+                    <small className="text-xs text-red-500">
+                      * La contraseña se muestra encriptada por temas de
+                      seguridad, puede reemplazar por una nueva, la que luego se
+                      mostrará encriptada.
+                    </small>
+                  )}
                 </div>
 
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
@@ -567,7 +683,7 @@ const CardTableUsers = ({
                       name="userEmail"
                       id="userEmail"
                       {...register("userEmail")}
-                      defaultValue={selectedUser ? selectedUser.mail : ""}
+                      defaultValue={selectedUser ? (selectedUser.mail ? selectedUser.mail : selectedUser.userEmail) : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
                   </div>
@@ -582,7 +698,7 @@ const CardTableUsers = ({
                       name="menuRol"
                       id="menuRol"
                       {...register("menuRol")}
-                      defaultValue={selectedUser ? selectedUser.id_rol : ""}
+                      defaultValue={selectedUser ? (selectedUser.id_rol ? selectedUser.id_rol : selectedUser.menuRol) : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
                       {datoscombos.map((rol, index) => {
@@ -605,7 +721,7 @@ const CardTableUsers = ({
                       name="menuState"
                       id="menuState"
                       {...register("menuState")}
-                      defaultValue={selectedUser ? selectedUser.estado : 0}
+                      defaultValue={selectedUser ? (selectedUser.estado ? selectedUser.estado : selectedUser.menuState) : 0}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
                       <option value="2">Inactivo</option>
@@ -616,14 +732,46 @@ const CardTableUsers = ({
                     <button
                       type="submit"
                       className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                      onSubmit={onUpdateUser} // Aquí va la función que envía los datos al backend para crear el usuario y cerrar el modal
+                      //onSubmit={onUpdateUser}
+                      onSubmit={isEdit ? onUpdateUser : onSubmitForm} // Aquí va la función que envía los datos al backend para crear el usuario y cerrar el modal
                     >
-                      Editar Usuario
+                      {isEdit ? "Editar Usuario" : "Crear Usuario"}
                     </button>
                   </div>
                 </div>
               </form>
             </DialogBody>
+          </Dialog>
+
+          <Dialog
+            open={openAlert}
+            handler={handleCloseAlert}
+            size="xs"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+          >
+            <>
+              <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
+                ¿Seguro que desea eliminar usuario{" "}
+                <strong className="font-bold">
+                  {userToDelete.nombre} {userToDelete.apellido} {console.log(userToDelete)}
+                </strong>
+                ?
+              </h2>
+              <button
+                type="button"
+                onClick={handleCloseAlert}
+                className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
+              >
+                <XMarkIcon className="text-white w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={handlerRemove}
+                className="bg-red-500 text-white flex items-center justify-center px-4 py-2 rounded m-auto"
+              >
+                <XMarkIcon className="text-white w-5 h-5" /> Eliminar
+              </button>
+            </>
           </Dialog>
         </>
       )}

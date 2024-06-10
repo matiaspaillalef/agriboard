@@ -61,7 +61,7 @@ function LoginPage(props) {
       }
   
       const userData = await auth(username,password);
-      console.log(userData);
+      //console.log(userData);
 
       if(userData.code == 'OK') {
 

@@ -220,6 +220,15 @@ const ModalUserCreation = (props) => {
           </form>
         </DialogBody>
       </Dialog>
+
+      <div id="confirmModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <p>¿Estás seguro de que deseas eliminar este usuario?</p>
+    <button id="confirmBtn">Aceptar</button>
+    <button id="cancelBtn">Cancelar</button>
+  </div>
+</div>
     </>
   );
 };

@@ -10,9 +10,9 @@ const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
 export const getDataUser = async () => {
     try {
 
-        const token = jwt.sign({ uid: "agrisoft" }, process.env.JWT_SECRET, {
+        /*const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
             expiresIn: 30000
-        });
+        });*/
 
         const res = await fetch(URLAPI + '/api/v1/configuracion/usuarios/getUsuarios', {
             method: "GET",
@@ -23,14 +23,13 @@ export const getDataUser = async () => {
             cache: 'no-store'
         });
         
-        if (res.ok) {
         
+        if (res.ok) {
             const userData = await res.json();
-    
-            if(userData.code == 'OK') {
-    
+
+            if (userData.code === 'OK') {
+           
                 return userData.usuarios;
-    
             }
         }
 
@@ -101,6 +100,8 @@ export const createUser = async (data) => {
 }
 
 export const updateUser = async (data) => {
+
+    //console.log(data);
     try {
         
         const res = await fetch(URLAPI + '/api/v1/configuracion/usuarios/actualizarUsuarios', {
@@ -110,7 +111,7 @@ export const updateUser = async (data) => {
                 'x-api-key' : token
               },
             body: JSON.stringify({
-                id: data.id,
+                id: data.userId,
                 name: data.name,
                 lastName: data.lastName,
                 userEmail: data.userEmail,
