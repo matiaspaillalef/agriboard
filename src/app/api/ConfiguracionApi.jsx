@@ -166,3 +166,67 @@ export const getRoles = async () => {
         console.error(err);
     }
 }
+
+//Empresa
+
+export const getDataCompanies = async () => {
+    try {
+
+        /*const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
+            expiresIn: 30000
+        });*/
+
+        const res = await fetch(URLAPI + '/api/v1/configuracion/empresas/getEmpresas', {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                'x-api-key' : token
+              },
+            cache: 'no-store'
+        });
+        
+        
+        if (res.ok) {
+            const companiesData = await res.json();
+
+            if (companiesData.code === 'OK') {
+           
+                return companiesData.companies;
+            }
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+
+
+export const deleteCompany = async (id) => {
+    try {
+                
+
+        const res = await fetch(URLAPI + '/api/v1/configuracion/empresas/deleteCompany', {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              'x-api-key' : token
+            },
+            body: JSON.stringify({
+                id: id
+            }),
+            cache: 'no-store'
+        });
+        
+        if (res.ok) {
+        
+            const companyData = await res.json();
+    
+            return companyData.code;
+
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+}

@@ -29,11 +29,11 @@ export const primaryMenu = [
                 name: 'Creación de usuarios',
                 url: '/dashboard/enviroment/user-creation'
             },
-            {
+            /*{
                 id: 4,
                 name: 'Creación de menú',
                 url: '/dashboard/enviroment/menu-creation'
-            },
+            },*/
         ],
         icon: Cog8ToothIcon,
     },

@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
+import { useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
-import { StateCL } from "@/app/data/dataStates";
-import { ProvitionalCL } from "@/app/data/dataProvisionals";
-import Rut from "../validateRUT";
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Dialog,
@@ -15,12 +14,19 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { set } from "react-hook-form";
+import {
+  deleteCompany as deleteCompanyApi,
+  updateUser,
+  createUser,
+  getDataCompanies,
+} from "@/app/api/ConfiguracionApi";
 
-//console.log(StateCL);
+import { ProvitionalCL } from "@/app/data/dataProvisionals";
+import Rut from "@/components/validateRUT";
+import { StateCL } from "@/app/data/dataStates";
 
 const CardTableCompany = ({
-  data,
+  data: originalData,
   thead,
   columnsClasses = [],
   omitirColumns = [],
@@ -29,26 +35,49 @@ const CardTableCompany = ({
   tableId,
   downloadBtn,
   SearchInput,
-  orientation
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
     : "";
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+
+  //modificamos la visual de los datos de la caja de compensación
+  /*const getCompensationBoxName = (compensationBoxNumber) => {
+    const found = ProvitionalCL.find(item => item.id == compensationBoxNumber);
+    return found ? found.name : 'No encontrado';
+  };*/
+
+  const data = originalData.map((item) => ({
+    ...item,
+    //compensation_box: getCompensationBoxName(item.compensation_box),
+    compensation_box: ProvitionalCL.find(
+      (box) => box.id == item.compensation_box
+    )?.name,
+    state: StateCL.find((state) => state.region_number == item.state)?.region,
+  }));
+
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
-  const [rut, setRut] = useState("");
-  const [rutValido, setRutValido] = useState(true);
-
-  const [selectedRegion, setSelectedRegion] = useState();
-  const [selectedCity, setSelectedCity] = useState("");
-  const [selectedCaja, setSelectedCaja] = useState();
+  const [selectedItem, setSelectedItem] = useState(null); // Estado para almacenar los datos del item seleccionado para editar
+  const [updateMessage, setUpdateMessage] = useState(null); // Estado para manejar el mensaje de actualización
 
   //Estado para la paginación
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const [isEdit, setIsEdit] = useState(false);
+  const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
+
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
 
   const handleRegionChange = (event) => {
     const region = event.target.value;
@@ -69,65 +98,171 @@ const CardTableCompany = ({
     }
   };
 
-  const [selectedUser, setSelectedUser] = useState(null); // Estado para almacenar los datos del usuario seleccionado para editar
+  const [openAlert, setOpenAlert] = useState(false);
 
-  const handleOpen = (user) => {
-    setSelectedUser(user); // Actualiza el estado con los datos del usuario seleccionado
-    setOpen(!open);
+  const [itemToDelete, setItemToDelete] = useState({
+    index: null,
+    id: null,
+    name_company: "",
+  });
 
-    setRut(user.rut);
-    setSelectedCaja(user.caja);
+  console.log("Datos delte:", itemToDelete);
 
-    StateCL.map((state) => {
-      if (state.region === user.region) {
-        setSelectedRegion(state.region_number);
-        setSelectedCity(user.ciudad);
-      }
-    });
-
-    const regiones = StateCL.map((state) => state.region);
-    const selectedRegionData = regiones.find(
-      (region) => region === user.region
-    );
-
-    // Si se encuentra la región, puedes obtener sus datos completos
-    if (selectedRegionData) {
-      const regionCompleta = StateCL.find(
-        (state) => state.region === selectedRegionData
-      );
-      // Aquí puedes hacer lo que necesites con la región encontrada
-    }
+  const handleOpenNewUser = () => {
+    setIsEdit(false);
+    handleOpen();
   };
 
-  //console.log(selectedUser.caja);
-  //console.log(selectedUser.rut);
+  const handleOpenEditUser = (user) => {
+    console.log("Datos del usuario al editar:", user);
+    setSelectedRegion(user.state);
+    setIsEdit(true);
+    setFormData(user);
+    setSelectedItem(user);
+    handleOpen(user);
+  };
 
-  const handlerRemove = (index) => {
-    //console.log("Eliminar usuario", index);
+  //console.log("Datos del usuario al editar:", selectedItem);
+
+  const handleOpen = (user) => {
+    reset();
+    setSelectedItem(user); // Actualiza el estado con los datos del usuario seleccionado
+    setOpen(!open);
+  };
+
+  const onUpdateUser = async (data) => {
+    console.log("Datos de la empresa a actualizar:", data);
     try {
-      // Realiza la petición DELETE al backend
-      /*if (!response.ok) {
-        throw new Error("Error al eliminar el usuario");
-      }*/
+      const updateUserApi = await updateUser(data);
 
       // Elimina la fila del front-end
-      const updatedData = [...initialData];
-      updatedData.splice(index, 1);
-      setInitialData(updatedData); // Actualiza el estado con los datos sin la fila eliminada
+      if (updateUserApi === "OK") {
+        //let { userPassword, ...userDataWithoutPassword } = data; //Acá sacamos password del objeto data
+        let userDataWithoutPassword = { ...data };
+
+        //console.log(data);
+        //console.log(userDataWithoutPassword);
+        let id_rol = data.menuRol;
+
+        datoscombos.forEach((value) => {
+          if (value.id_rol == id_rol) {
+            userDataWithoutPassword = {
+              ...userDataWithoutPassword,
+              menuRol: value.descripcion,
+              id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
+            };
+          }
+        });
+
+        const updatedData = initialData.map((user) =>
+          user.userId === selectedItem.userId
+            ? { ...userDataWithoutPassword }
+            : user
+        );
+
+        setInitialData(updatedData);
+        setUpdateMessage("Empresa actualizado correctamente");
+        setOpen(false);
+      } else {
+        setUpdateMessage("No se pudo actualizar la empresa");
+      }
     } catch (error) {
       console.error(error);
       // Manejo de errores
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setLoading(false);
-    };
+  const handleOpenAlert = (index, id, name_company) => {
+    setItemToDelete({ index, id, name_company });
+    setOpenAlert(true);
+  };
 
-    fetchData();
-  }, []);
+  const handleCloseAlert = () => {
+    setOpenAlert(false);
+    setItemToDelete({ index: null, id: null, name_company: "" });
+  };
+
+  const handlerRemove = async () => {
+    const { index, id } = itemToDelete;
+
+    try {
+      //if (userConfirmed) {
+      const deleteCompany = await deleteCompanyApi(id);
+
+      // Elimina la fila del front-end si la eliminación fue exitosa
+      if (deleteCompany === "OK") {
+        const updatedData = [...initialData];
+        updatedData.splice(index, 1);
+        setInitialData(updatedData);
+        setOpenAlert(false);
+        setUpdateMessage("Empresa eliminado correctamente");
+      } else {
+        setUpdateMessage("Error al eliminar el empresa. Inténtalo nuevamente.");
+      }
+    } catch (error) {
+      console.error(error);
+      // Manejo de errores
+      setUpdateMessage("Ocurrió un error al intentar eliminar el empresa.");
+    }
+  };
+
+  // Creación de empresa
+  const onSubmitForm = async (data) => {
+    try {
+      const createUserapi = await createUser(data);
+      // Agrega la fila del front-end
+      if (createUserapi == "OK") {
+        //const newUser = { ...data };
+
+        let id_rol = data.menuRol;
+
+        datoscombos.forEach((value) => {
+          if (value.id_rol == id_rol) {
+            data = {
+              ...data,
+              menuRol: value.descripcion,
+              id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
+            };
+          }
+        });
+
+        const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
+
+        setInitialData(updatedData);
+
+        //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
+        const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
+        //console.log(newDataFetch);
+        setInitialData(newDataFetch);
+
+        setOpen(false);
+        setUpdateMessage("Empresa creado correctamente");
+      } else {
+        setUpdateMessage("Error al crear el empresa");
+      }
+    } catch (error) {
+      console.error(error);
+      // Manejo de errores
+    }
+  };
+
+
+  useEffect(() => {
+    if (updateMessage) {
+      const timer = setTimeout(() => {
+        setUpdateMessage(null);
+        reset();
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [updateMessage]);
+
+  useEffect(() => {
+    if (data && Object.keys(data).length > 0) {
+      setLoading(false);
+    }
+  }, [data]);
 
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -155,64 +290,40 @@ const CardTableCompany = ({
 
   return (
     <>
+      {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
+        <div
+          className={`bg-${
+            updateMessage.includes("correctamente") ? "green" : "red"
+          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          style={{ zIndex: 999999 }}
+        >
+          {updateMessage}
+        </div>
+      )}
+      <div className="mb-3 flex gap-5 ">
+        <Button
+          onClick={handleOpenNewUser}
+          variant="gradient"
+          className="max-w-[300px] linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
+        >
+          <PlusIcon className="w-5 h-5" />
+          Nueva empresa
+        </Button>
+      </div>
       {loading ? (
         <div role="status" className="max-w-full animate-pulse p-0">
           {/* Titulo */}
           <div
             className={`h-[22px] dark:bg-gray-200 bg-gray-400 w-1/2 rounded-sm pb-[10px] mb-5`}
           ></div>
-
-          {/* Mapeamos la props del thead */}
-          {columnLabels && (
-            <div className="flex gap-3 mb-2">
-              {columnLabels.map((label, index) => {
-                if (omitirColumns.includes(label)) {
-                  return null; // Omitir la columna si está en omitirColumns
-                }
-
-                const widthClass =
-                  columnLabels.length > 6
-                    ? `w-1/2`
-                    : `w-${columnLabels.length}/12`;
-                return (
-                  <div
-                    className={`h-[17px] dark:bg-gray-200 bg-gray-400 ${widthClass} rounded-sm pb-[10px]`}
-                    key={index}
-                  ></div>
-                );
-              })}
-            </div>
-          )}
-          {/* Mapeamos los items de la información */}
-          {initialData.map((item, index) => {
-            const numPropiedades = Object.keys(item).length;
-
-            return (
-              <div className="flex gap-3 mb-2" key={index}>
-                {Object.keys(item).map((propiedad, idx) => {
-                  if (omitirColumns.includes(propiedad)) {
-                    return null; // Omitir la columna si está en omitirColumns
-                  }
-
-                  const widthClass =
-                    numPropiedades > 6 ? `w-1/2` : `w-${numPropiedades}/12`;
-
-                  return (
-                    <div
-                      className={`h-[40px] dark:bg-gray-200 bg-gray-400 ${widthClass} rounded-sm pb-[10px]`}
-                      key={idx}
-                    ></div>
-                  );
-                })}
-              </div>
-            );
-          })}
         </div>
       ) : (
         <>
-          <div className={`relative flex items-center ${
+          <div
+            className={`relative flex items-center ${
               title ? "justify-between" : "justify-end"
-            } `}>
+            } `}
+          >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
                 {title}
@@ -232,7 +343,6 @@ const CardTableCompany = ({
                     data={initialData}
                     filename="empresas"
                     titlebutton="Exportar a PDF"
-                    orientation={orientation}
                   />
                 </>
               )}
@@ -255,6 +365,7 @@ const CardTableCompany = ({
               variant="simple"
               color="gray-500"
               mb="24px"
+              id="tablaEmpresas"
             >
               {thead && (
                 <thead>
@@ -281,7 +392,7 @@ const CardTableCompany = ({
                           </th>
                         );
                       })}
-
+                    {/* Aquí se renderiza la columna Actions si actions es true */}
                     {actions && (
                       <th
                         colSpan={1}
@@ -289,26 +400,30 @@ const CardTableCompany = ({
                         className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                       >
                         <p className="text-xs tracking-wide text-gray-600">
-                          Acciones
+                          Actions
                         </p>
                       </th>
                     )}
                   </tr>
                 </thead>
               )}
+
               <tbody role="rowgroup">
-                {initialData.map((row, index) => (
+                {currentItems.map((row, index) => (
                   <tr key={index} role="row">
                     {Object.keys(row).map((key, rowIndex) => {
                       if (omitirColumns.includes(key)) {
                         return null; // Omitir la columna si está en omitirColumns
                       }
 
+                      if (key === "password" || key === "userPassword") {
+                        return null; // No renderizar el <td> si la clave es "password"
+                      }
+
                       return (
                         <td
                           key={rowIndex}
                           role="cell"
-                          style={{ whiteSpace: "nowrap" }}
                           className={`pt-[14px] pb-3 text-[14px] px-5 ${
                             index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
@@ -316,8 +431,9 @@ const CardTableCompany = ({
                           } ${columnsClasses[rowIndex] || "text-left"}`}
                         >
                           <div className="text-base font-medium text-navy-700 dark:text-white">
-                            {key === "estado" ? (
-                              row[key] === 1 ? (
+                            {key === "status" ? (
+                              //console.log(key),
+                              row[key] == 1 ? (
                                 <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3">
                                   Activo
                                 </p>
@@ -326,15 +442,10 @@ const CardTableCompany = ({
                                   Inactivo
                                 </p>
                               )
-                            ) : key === "logo" ? (
-                              <img
-                                className="bg-lightPrimary p-1 rounded-md border border-solid border-navy-900 dark:border-white"
-                                src={row[key]}
-                                alt="Logo"
-                                style={{ maxWidth: "40px" }}
-                              />
-                            ) : (
+                            ) : key !== "password" ? (
                               formatNumber(row[key])
+                            ) : (
+                              "" // No mostrar la contraseña
                             )}
                           </div>
                         </td>
@@ -349,49 +460,54 @@ const CardTableCompany = ({
                             : ""
                         }`}
                       >
-                        <>
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            onClick={() => handleOpen(row)}
+                        <button
+                          type="button"
+                          className="text-sm font-semibold text-gray-800 dark:text-white"
+                          //onClick={() => handleOpen(row)}
+                          onClick={() => handleOpenEditUser(row)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-6 h-6"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.5}
-                              stroke="currentColor"
-                              className="w-6 h-6"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            id="remove"
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            onClick={() => handlerRemove(index)}
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          id="remove"
+                          type="button"
+                          onClick={() => {
+                            //console.log(row);
+                            handleOpenAlert(
+                              index,
+                              row.id,
+                              row.name_company ? row.name_company : ""
+                            );
+                          }}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-6 h-6"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.5}
-                              stroke="currentColor"
-                              className="w-6 h-6"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                              />
-                            </svg>
-                          </button>
-                        </>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                            />
+                          </svg>
+                        </button>
                       </td>
                     )}
                   </tr>
@@ -406,7 +522,7 @@ const CardTableCompany = ({
                 {indexOfLastItem > initialData.length
                   ? initialData.length
                   : indexOfLastItem}{" "}
-                de {initialData.length} usuarios
+                de {initialData.length} empresas
               </p>
             </div>
             <div className="flex items-center gap-5">
@@ -474,13 +590,13 @@ const CardTableCompany = ({
           <Dialog
             open={open}
             handler={handleOpen}
-            size="md"
-            className="p-5 lg:max-w-[25%]"
+            size="xs"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
           >
             <button
               type="button"
               onClick={handleOpen}
-              className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-900 rounded-md"
+              className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -497,117 +613,92 @@ const CardTableCompany = ({
                 />
               </svg>
             </button>
-            {/* Aquí va el contenido del modal para editar usuario */}
-            <DialogHeader>Editar empresa</DialogHeader>
+            <DialogHeader className="dark:text-white">
+              {isEdit ? "Editar Empresa" : "Crear Empresa"}
+            </DialogHeader>
             <DialogBody>
-              <form action=" " method="POST">
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+              <form
+                onSubmit={handleSubmit(isEdit ? onUpdateUser : onSubmitForm)}
+                method="POST"
+              >
+                <input
+                  type="hidden"
+                  name="id"
+                  {...register("id")}
+                  defaultValue={selectedItem ? selectedItem.id : ""}
+                />
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <div className="flex flex-col gap-3 ">
                     <label
-                      htmlFor="logo"
+                      htmlFor="name_company"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Logo
+                      Nombre Empresa
                     </label>
                     <input
-                      type="file"
-                      name="logo"
-                      id="logo"
+                      type="text"
+                      name="name_company"
+                      id="name_company"
+                      defaultValue={
+                        selectedItem ? selectedItem.name_company : ""
+                      }
+                      {...register("name_company")}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
                   </div>
-                </div>
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3 ">
+                  <div className="flex flex-col gap-3">
                     <label
                       htmlFor="rut"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Rut
-                    </label>
-
-                    <Rut
-                      value={rut}
-                      onChange={(e) => setRut(e.target.value)}
-                      onValid={setRutValido}
-                    >
-                      <input
-                        type="text"
-                        name="rut"
-                        id="rut"
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </Rut>
-                    {!rutValido && (
-                      <span className="text-red-500 text-xs">
-                        El rut es inválido
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-3 ">
-                    <label
-                      htmlFor="razon_social"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Razón social
+                      RUT
                     </label>
                     <input
                       type="text"
-                      name="razon_social"
-                      id="razon_social"
-                      defaultValue={selectedUser?.razon_social}
+                      name="rut"
+                      id="rut"
+                      {...register("rut")}
+                      defaultValue={selectedItem ? selectedItem.rut : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
                   </div>
                 </div>
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3 ">
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-1">
+                  <div className="flex flex-col gap-3">
                     <label
                       htmlFor="giro"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
                       Giro
                     </label>
-                    <input
-                      type="text"
-                      name="giro"
-                      id="giro"
-                      defaultValue={selectedUser?.giro}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-3 ">
-                    <label
-                      htmlFor="address"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Dirección
-                    </label>
-                    <input
-                      type="text"
-                      name="address"
-                      id="address"
-                      defaultValue={selectedUser?.address}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="giro"
+                        id="giro"
+                        {...register("giro")}
+                        defaultValue={selectedItem ? selectedItem.giro : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
                   </div>
                 </div>
+
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3 ">
+                  <div className="flex flex-col gap-3">
                     <label
-                      htmlFor="region"
+                      htmlFor="state"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
                       Región
                     </label>
                     <select
-                      name="region"
-                      id="region"
-                      //defaultValue={selectedRegion}
-                      value={selectedRegion}
+                      name="state"
+                      id="state"
+                      //value={selectedRegion}
                       onChange={handleRegionChange}
+                      {...register("state")}
+                      defaultValue={selectedItem ? selectedItem.state : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
                       {StateCL.map((state) => (
@@ -620,18 +711,22 @@ const CardTableCompany = ({
                       ))}
                     </select>
                   </div>
-                  <div className="flex flex-col gap-3 ">
+
+                  <div className="flex flex-col gap-3">
                     <label
-                      htmlFor="ciudad"
+                      htmlFor="city"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
                       Ciudad
                     </label>
                     <select
-                      name="ciudad"
-                      id="ciudad"
-                      value={selectedCity}
+                      type="text"
+                      name="city"
+                      id="city"
+                      //value={selectedCity}
                       onChange={(event) => setSelectedCity(event.target.value)}
+                      {...register("city")}
+                      defaultValue={selectedItem ? selectedItem.city : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
                       {selectedRegion &&
@@ -646,88 +741,251 @@ const CardTableCompany = ({
                   </div>
                 </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3 ">
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-1">
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="address"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Dirección
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="address"
+                        id="address"
+                        {...register("address")}
+                        defaultValue={selectedItem ? selectedItem.address : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  <div className="flex flex-col gap-3">
                     <label
                       htmlFor="phone"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Telefóno
+                      Teléfono
                     </label>
-                    <input
-                      type="text"
-                      name="phone"
-                      id="phone"
-                      defaultValue={selectedUser?.phone}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        name="phone"
+                        id="phone"
+                        {...register("phone")}
+                        defaultValue={selectedItem ? selectedItem.phone : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-3 ">
+                  <div className="flex flex-col gap-3">
                     <label
                       htmlFor="web"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
                       Web
                     </label>
-                    <input
-                      type="url"
-                      name="web"
-                      id="web"
-                      defaultValue={selectedUser?.web}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
+                    <div className="relative">
+                      <input
+                        type="url"
+                        name="web"
+                        id="web"
+                        {...register("web")}
+                        defaultValue={selectedItem ? selectedItem.web : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3 ">
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                  <div className="flex flex-col gap-3">
                     <label
-                      htmlFor="caja"
+                      htmlFor="state"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Caja
+                      Caja de compensación
                     </label>
                     <select
-                      name="caja"
-                      defaultValue={selectedUser?.caja}
+                      name="compensation_box"
+                      id="compensation_box"
+                      //onChange={handleRegionChange}
+                      {...register("compensation_box")}
+                      defaultValue={
+                        selectedItem ? selectedItem.compensation_box : ""
+                      }
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {ProvitionalCL.map((caja) => (
-                        <option key={caja.id} value={caja.name}>
-                          {caja.name}
+                      {ProvitionalCL.map((box) => (
+                        <option key={box.id} value={box.id}>
+                          {box.name}
                         </option>
                       ))}
                     </select>
                   </div>
-                  <div className="flex flex-col gap-3 ">
+                </div>
+
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  <div className="flex flex-col gap-3">
                     <label
-                      htmlFor="estado"
+                      htmlFor="legal_representative_name"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Nombre R. Legal
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="legal_representative_name"
+                        id="legal_representative_name"
+                        {...register("legal_representative_name")}
+                        defaultValue={
+                          selectedItem
+                            ? selectedItem.legal_representative_name
+                            : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="legal_representative_rut"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      RUT R. Legal
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="legal_representative_rut"
+                        id="legal_representative_rut"
+                        {...register("legal_representative_rut")}
+                        defaultValue={
+                          selectedItem
+                            ? selectedItem.legal_representative_rut
+                            : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="legal_representative_phone"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Teléfono R. Legal
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="legal_representative_phone"
+                        id="legal_representative_phone"
+                        {...register("legal_representative_phone")}
+                        defaultValue={
+                          selectedItem
+                            ? selectedItem.legal_representative_phone
+                            : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="legal_representative_email"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Email R. Legal
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="legal_representative_email"
+                        id="legal_representative_email"
+                        {...register("legal_representative_email")}
+                        defaultValue={
+                          selectedItem
+                            ? selectedItem.legal_representative_email
+                            : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="status"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
                       Estado
                     </label>
                     <select
-                      defaultValue={selectedUser?.estado}
+                      name="status"
+                      id="status"
+                      {...register("status")}
+                      defaultValue={selectedItem ? selectedItem.status : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      <option value="1">Activo</option>
                       <option value="0">Inactivo</option>
+                      <option value="1">Activo</option>
                     </select>
                   </div>
-                </div>
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                   <div className="flex flex-col gap-3">
                     <button
                       type="submit"
-                      className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                      onClick={handleOpen}
+                      className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+                      //onSubmit={onUpdateUser}
+                      onSubmit={isEdit ? onUpdateUser : onSubmitForm}
                     >
-                      Editar empresa
+                      {isEdit ? "Editar Empresa" : "Crear Empresa"}
                     </button>
                   </div>
                 </div>
               </form>
             </DialogBody>
+          </Dialog>
+
+          <Dialog
+            open={openAlert}
+            handler={handleCloseAlert}
+            size="xs"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+          >
+            <>
+              <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
+                ¿Seguro que desea eliminar la empresa{" "}
+                <strong className="font-bold">
+                  {itemToDelete.name_company}
+                  {console.log(itemToDelete)}
+                </strong>
+                ?
+              </h2>
+              <button
+                type="button"
+                onClick={handleCloseAlert}
+                className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
+              >
+                <XMarkIcon className="text-white w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={handlerRemove}
+                className="bg-red-500 text-white flex items-center justify-center px-4 py-2 rounded m-auto"
+              >
+                <XMarkIcon className="text-white w-5 h-5" /> Eliminar
+              </button>
+            </>
           </Dialog>
         </>
       )}

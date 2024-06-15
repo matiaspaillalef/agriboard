@@ -1,18 +1,18 @@
 export const ProvitionalCL = [
     {
-        "id": 1,
+        id: 1,
         name: 'Los Andes',
     },
     {
-        "id": 2,
+        id: 2,
         name: 'La Araucana',
     },
     {
-        "id": 3,
+        id: 3,
         name: '18',
     },
     {
-        "id": 4,
+        id: 4,
         name: 'Los Héroes',
     }
 ];

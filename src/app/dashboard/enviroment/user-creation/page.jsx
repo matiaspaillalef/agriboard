@@ -1,5 +1,3 @@
-//"use client";
-//import { useState, useRef } from "react";
 import CardTableUsers from "@/components/card/CardTableUsers";
 
 import { getDataUser, getRoles }  from "@/app/api/ConfiguracionApi";
