@@ -200,7 +200,83 @@ export const getDataCompanies = async () => {
     }
 }
 
+export const createCompany = async (data) => {
+    try {
+        const res = await fetch(URLAPI + '/api/v1/configuracion/empresas/createCompany', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'x-api-key': token
+            },
+            body: JSON.stringify({
+                name_company: data.name_company,
+                rut: data.rut,
+                giro: data.giro,
+                state: data.state,
+                city: data.city,
+                address: data.address,
+                phone: data.phone,
+                web: data.web,
+                compensation_box: data.compensation_box,
+                legal_representative_name: data.legal_representative_name,
+                legal_representative_rut: data.legal_representative_rut,
+                legal_representative_phone: data.legal_representative_phone,
+                legal_representative_email: data.legal_representative_email,
+                status: data.status
+            }),
+            cache: 'no-store'
+        });
 
+        if (res.ok) {
+            const companyData = await res.json();
+            return companyData.code;
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+export const updateCompany = async (data) => {
+
+    //console.log(data);
+    try {
+        
+        const res = await fetch(URLAPI + '/api/v1/configuracion/empresas/updateCompany', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'x-api-key' : token
+              },
+            body: JSON.stringify({
+                id: data.id,
+                name_company: data.name_company,
+                rut: data.rut,
+                giro: data.giro,
+                state: data.state,
+                city: data.city,
+                address: data.address,
+                phone: data.phone,
+                web: data.web,
+                compensation_box: data.compensation_box,
+                legal_representative_name: data.legal_representative_name,
+                legal_representative_rut: data.legal_representative_rut,
+                legal_representative_phone: data.legal_representative_phone,
+                legal_representative_email: data.legal_representative_email,
+                status: data.status
+            }),
+            cache: 'no-store'
+        });
+        
+        if (res.ok) {
+            const companyData = await res.json();
+            return companyData.code;
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+}
 
 export const deleteCompany = async (id) => {
     try {

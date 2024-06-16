@@ -16,8 +16,8 @@ import {
 } from "@material-tailwind/react";
 import {
   deleteCompany as deleteCompanyApi,
-  updateUser,
-  createUser,
+  updateCompany,
+  createCompany,
   getDataCompanies,
 } from "@/app/api/ConfiguracionApi";
 
@@ -26,7 +26,7 @@ import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
 
 const CardTableCompany = ({
-  data: originalData,
+  data,
   thead,
   columnsClasses = [],
   omitirColumns = [],
@@ -47,21 +47,7 @@ const CardTableCompany = ({
     formState: { errors },
   } = useForm();
 
-  //modificamos la visual de los datos de la caja de compensación
-  /*const getCompensationBoxName = (compensationBoxNumber) => {
-    const found = ProvitionalCL.find(item => item.id == compensationBoxNumber);
-    return found ? found.name : 'No encontrado';
-  };*/
-
-  const data = originalData.map((item) => ({
-    ...item,
-    //compensation_box: getCompensationBoxName(item.compensation_box),
-    compensation_box: ProvitionalCL.find(
-      (box) => box.id == item.compensation_box
-    )?.name,
-    state: StateCL.find((state) => state.region_number == item.state)?.region,
-  }));
-
+  console.log(data);
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -76,8 +62,11 @@ const CardTableCompany = ({
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
 
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("XV");
+  const [selectedCity, setSelectedCity] = useState("Arica");
+
+  const [rut, setRut] = useState("");
+  const [rutValido, setRutValido] = useState(false);
 
   const handleRegionChange = (event) => {
     const region = event.target.value;
@@ -94,7 +83,11 @@ const CardTableCompany = ({
       // Establecer la primera comuna como la seleccionada por defecto
       if (comunas && comunas.length > 0) {
         setSelectedCity(comunas[0].name);
+      } else {
+        setSelectedCity(""); // Resetear la ciudad seleccionada si no hay comunas
       }
+    } else {
+      setSelectedCity(""); // Resetear la ciudad seleccionada si no se encuentra la región seleccionada
     }
   };
 
@@ -106,15 +99,13 @@ const CardTableCompany = ({
     name_company: "",
   });
 
-  console.log("Datos delte:", itemToDelete);
-
   const handleOpenNewUser = () => {
     setIsEdit(false);
     handleOpen();
   };
 
   const handleOpenEditUser = (user) => {
-    console.log("Datos del usuario al editar:", user);
+    setRutValido(true); //Se pasa en true ya que si leventa la ventada de editar es por que los datos ya fueron validados
     setSelectedRegion(user.state);
     setIsEdit(true);
     setFormData(user);
@@ -122,46 +113,25 @@ const CardTableCompany = ({
     handleOpen(user);
   };
 
-  //console.log("Datos del usuario al editar:", selectedItem);
-
   const handleOpen = (user) => {
     reset();
     setSelectedItem(user); // Actualiza el estado con los datos del usuario seleccionado
     setOpen(!open);
   };
 
-  const onUpdateUser = async (data) => {
-    console.log("Datos de la empresa a actualizar:", data);
+  const onUpdateItem = async (data) => {
+    //console.log("Datos de la empresa a actualizar:", data);
     try {
-      const updateUserApi = await updateUser(data);
+      const updateCompanyApi = await updateCompany(data);
 
       // Elimina la fila del front-end
-      if (updateUserApi === "OK") {
-        //let { userPassword, ...userDataWithoutPassword } = data; //Acá sacamos password del objeto data
-        let userDataWithoutPassword = { ...data };
-
-        //console.log(data);
-        //console.log(userDataWithoutPassword);
-        let id_rol = data.menuRol;
-
-        datoscombos.forEach((value) => {
-          if (value.id_rol == id_rol) {
-            userDataWithoutPassword = {
-              ...userDataWithoutPassword,
-              menuRol: value.descripcion,
-              id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
-            };
-          }
-        });
-
-        const updatedData = initialData.map((user) =>
-          user.userId === selectedItem.userId
-            ? { ...userDataWithoutPassword }
-            : user
+      if (updateCompanyApi === "OK") {
+        const updatedData = initialData.map((item) =>
+          item.id == data.id ? { ...data } : item
         );
 
         setInitialData(updatedData);
-        setUpdateMessage("Empresa actualizado correctamente");
+        setUpdateMessage("Empresa actualizada correctamente");
         setOpen(false);
       } else {
         setUpdateMessage("No se pudo actualizar la empresa");
@@ -169,6 +139,7 @@ const CardTableCompany = ({
     } catch (error) {
       console.error(error);
       // Manejo de errores
+      setUpdateMessage("Error al intentar actualizar la empresa");
     }
   };
 
@@ -209,29 +180,16 @@ const CardTableCompany = ({
   // Creación de empresa
   const onSubmitForm = async (data) => {
     try {
-      const createUserapi = await createUser(data);
+      const createUserapi = await createCompany(data);
+
       // Agrega la fila del front-end
       if (createUserapi == "OK") {
-        //const newUser = { ...data };
-
-        let id_rol = data.menuRol;
-
-        datoscombos.forEach((value) => {
-          if (value.id_rol == id_rol) {
-            data = {
-              ...data,
-              menuRol: value.descripcion,
-              id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
-            };
-          }
-        });
-
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
 
-        //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
+        //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
+        const newDataFetch = await getDataCompanies(); // Actualizar la lista de usuarios
         //console.log(newDataFetch);
         setInitialData(newDataFetch);
 
@@ -245,7 +203,6 @@ const CardTableCompany = ({
       // Manejo de errores
     }
   };
-
 
   useEffect(() => {
     if (updateMessage) {
@@ -416,10 +373,6 @@ const CardTableCompany = ({
                         return null; // Omitir la columna si está en omitirColumns
                       }
 
-                      if (key === "password" || key === "userPassword") {
-                        return null; // No renderizar el <td> si la clave es "password"
-                      }
-
                       return (
                         <td
                           key={rowIndex}
@@ -443,7 +396,19 @@ const CardTableCompany = ({
                                 </p>
                               )
                             ) : key !== "password" ? (
-                              formatNumber(row[key])
+                              // Mostrar el valor formateado, excepto la contraseña
+                              key === "compensation_box" ? (
+                                // Transformar el ID de caja de compensación a su nombre correspondiente
+                                ProvitionalCL.find((box) => box.id == row[key])
+                                  ?.name || "-"
+                              ) : key === "state" ? (
+                                // Transformar el número de región a su nombre correspondiente
+                                StateCL.find(
+                                  (state) => state.region_number == row[key]
+                                )?.region || "-"
+                              ) : (
+                                formatNumber(row[key])
+                              )
                             ) : (
                               "" // No mostrar la contraseña
                             )}
@@ -618,7 +583,7 @@ const CardTableCompany = ({
             </DialogHeader>
             <DialogBody>
               <form
-                onSubmit={handleSubmit(isEdit ? onUpdateUser : onSubmitForm)}
+                onSubmit={handleSubmit(isEdit ? onUpdateItem : onSubmitForm)}
                 method="POST"
               >
                 <input
@@ -639,6 +604,7 @@ const CardTableCompany = ({
                       type="text"
                       name="name_company"
                       id="name_company"
+                      required={true}
                       defaultValue={
                         selectedItem ? selectedItem.name_company : ""
                       }
@@ -653,14 +619,26 @@ const CardTableCompany = ({
                     >
                       RUT
                     </label>
-                    <input
-                      type="text"
-                      name="rut"
-                      id="rut"
-                      {...register("rut")}
-                      defaultValue={selectedItem ? selectedItem.rut : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
+                    <Rut
+                      //value={rut}
+                      onChange={(e) => setRut(e.target.value)}
+                      onValid={setRutValido}
+                    >
+                      <input
+                        type="text"
+                        name="rut"
+                        id="rut"
+                        required={true}
+                        {...register("rut")}
+                        defaultValue={selectedItem ? selectedItem.rut : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </Rut>
+                    {!rutValido && (
+                      <span className="text-red-500 text-xs">
+                        El rut es inválido
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-1">
@@ -675,6 +653,7 @@ const CardTableCompany = ({
                       <input
                         type="text"
                         name="giro"
+                        required={true}
                         id="giro"
                         {...register("giro")}
                         defaultValue={selectedItem ? selectedItem.giro : ""}
@@ -695,10 +674,10 @@ const CardTableCompany = ({
                     <select
                       name="state"
                       id="state"
-                      //value={selectedRegion}
-                      onChange={handleRegionChange}
+                      required={true}
                       {...register("state")}
                       defaultValue={selectedItem ? selectedItem.state : ""}
+                      onChange={handleRegionChange}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
                       {StateCL.map((state) => (
@@ -720,7 +699,6 @@ const CardTableCompany = ({
                       Ciudad
                     </label>
                     <select
-                      type="text"
                       name="city"
                       id="city"
                       //value={selectedCity}
@@ -772,7 +750,7 @@ const CardTableCompany = ({
                     </label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="tel"
                         name="phone"
                         id="phone"
                         {...register("phone")}
@@ -812,7 +790,7 @@ const CardTableCompany = ({
                     <select
                       name="compensation_box"
                       id="compensation_box"
-                      //onChange={handleRegionChange}
+                      required={true}
                       {...register("compensation_box")}
                       defaultValue={
                         selectedItem ? selectedItem.compensation_box : ""
@@ -859,7 +837,12 @@ const CardTableCompany = ({
                       RUT R. Legal
                     </label>
                     <div className="relative">
-                      <input
+                    <Rut
+                      //value={rut}
+                      onChange={(e) => setRut(e.target.value)}
+                      onValid={setRutValido}
+                    >
+                     <input
                         type="text"
                         name="legal_representative_rut"
                         id="legal_representative_rut"
@@ -871,6 +854,13 @@ const CardTableCompany = ({
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
                       />
+                    </Rut>
+                    {!rutValido && (
+                      <span className="text-red-500 text-xs">
+                        El rut es inválido
+                      </span>
+                    )}
+                      
                     </div>
                   </div>
                 </div>
@@ -885,7 +875,7 @@ const CardTableCompany = ({
                     </label>
                     <div className="relative">
                       <input
-                        type="text"
+                        type="tel"
                         name="legal_representative_phone"
                         id="legal_representative_phone"
                         {...register("legal_representative_phone")}
@@ -933,6 +923,7 @@ const CardTableCompany = ({
                     <select
                       name="status"
                       id="status"
+                      required={true}
                       {...register("status")}
                       defaultValue={selectedItem ? selectedItem.status : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -945,8 +936,8 @@ const CardTableCompany = ({
                     <button
                       type="submit"
                       className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                      //onSubmit={onUpdateUser}
-                      onSubmit={isEdit ? onUpdateUser : onSubmitForm}
+                      //onSubmit={onUpdateItem}
+                      onSubmit={isEdit ? onUpdateItem : onSubmitForm}
                     >
                       {isEdit ? "Editar Empresa" : "Crear Empresa"}
                     </button>
@@ -967,7 +958,6 @@ const CardTableCompany = ({
                 ¿Seguro que desea eliminar la empresa{" "}
                 <strong className="font-bold">
                   {itemToDelete.name_company}
-                  {console.log(itemToDelete)}
                 </strong>
                 ?
               </h2>
