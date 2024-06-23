@@ -34,6 +34,8 @@ const path = usePathname();
           return "Gestión de personas";
         case "reports":
           return "Reportes";
+        case "positions":
+          return "Cargos";
         default:
           return segment;
       }

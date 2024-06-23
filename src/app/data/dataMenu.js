@@ -99,7 +99,56 @@ export const primaryMenu = [
         id: 4,
         name: 'Gestión de personas',
         url: '/dashboard/people-management',
-        icon: UserGroupIcon,
+        children: [
+            {
+                id: 1,
+                name: 'Parametrización de personal',
+                url: '#',
+                children: [
+                    {
+                        id: 1,
+                        name: 'Contratistas',
+                        url: '/dashboard/people-management/contractors'
+                    },
+                    {
+                        id: 2,
+                        name: 'Cargos',
+                        url: '/dashboard/people-management/positions'
+                    },
+                    {
+                        id: 3,
+                        name: 'Grupos',
+                        url: '/dashboard/people-management/groups'
+                    },
+                    {
+                        id: 4,
+                        name: 'Cuadrillas',
+                        url: '/dashboard/people-management/squads'
+                    },
+                    {
+                        id: 5,
+                        name: 'Turnos',
+                        url: '/dashboard/people-management/turns'
+                    },
+                    {
+                        id: 6,
+                        name: 'Registro de trabajadores',
+                        url: '/dashboard/people-management/workers'
+                    },
+                    {
+                        id: 7,
+                        name: 'Mensajes',
+                        url: '/dashboard/people-management/messages'
+                    },
+                ]
+            },
+            {
+                id: 2,
+                name: 'Carga de asistencia',
+                url: '/dashboard/people-management/attendance'
+            }
+        ],
+        icon: UserGroupIcon
     },
     {
         id: 5,

@@ -1,19 +1,19 @@
-.hidden_submenu ul {
+.hidden_submenu  > ul {
     animation: fade-out .5s forwards;
 }
 
-.show_submenu ul {
+.show_submenu > ul {
     animation: fade-in .5s forwards;
     visibility: visible;
     opacity: 1;
 }
 
-.hidden_submenu button p svg {
+.hidden_submenu > button p svg {
     transform: rotate(0deg);
     transition: transform .5s ease-in-out;
 }
 
-.show_submenu button p svg {
+.show_submenu > button p svg {
     transform: rotate(180deg);
     transition: transform .5s ease-in-out;
 }
