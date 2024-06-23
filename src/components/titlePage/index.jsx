@@ -51,6 +51,9 @@ const TitlePage = () => {
         case "positions":
             translatedSegment = "Cargos";
             break;
+        case "contractors":
+            translatedSegment = "Contratistas";
+            break;
         default:
             translatedSegment = segment;
             break;

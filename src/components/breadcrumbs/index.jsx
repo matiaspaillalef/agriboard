@@ -36,6 +36,8 @@ const path = usePathname();
           return "Reportes";
         case "positions":
           return "Cargos";
+        case "contractors":
+          return "Contratistas";
         default:
           return segment;
       }
