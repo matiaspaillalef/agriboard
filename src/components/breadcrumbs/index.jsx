@@ -38,6 +38,10 @@ const path = usePathname();
           return "Cargos";
         case "contractors":
           return "Contratistas";
+        case "groups":
+          return "Grupos";
+        case "shifts":
+          return "Turnos";
         default:
           return segment;
       }

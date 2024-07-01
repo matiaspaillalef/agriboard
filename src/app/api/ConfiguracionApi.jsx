@@ -407,7 +407,7 @@ export const deletePosition = async (id) => {
   }
 };
 
-// Contractors - Positions
+// Management People - Positions
 
 export const getDataContractors = async () => {
   try {
@@ -460,7 +460,7 @@ export const createContractor = async (data) => {
       }
     );
 
-    console.log(res);
+    //console.log(res);
 
     if (res.ok) {
       const contractorData = await res.json();
@@ -531,3 +531,251 @@ export const deleteContractor = async (id) => {
     console.error(err);
   }
 };
+
+// Management People - Groups
+
+export const getDataGroups = async () => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/groups/getGroups",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    //console.log(res);
+    if (res.ok) {
+      const groupsData = await res.json();
+
+      if (groupsData.code === "OK") {
+        return groupsData.groups;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createGroup = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/groups/createGroup",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const groupData = await res.json();
+      return groupData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const updateGroup = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/groups/updateGroup",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const groupData = await res.json();
+      return groupData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const deleteGroup = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/groups/deleteGroup",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const groupData = await res.json();
+      return groupData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+//Management People - Shifts
+
+export const getDataShifts = async () => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/shifts/getShifts",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const shiftsData = await res.json();
+
+      if (shiftsData.code === "OK") {
+        return shiftsData.shifts;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createShift = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/shifts/createShift",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          monday_opening_time: data.monday_opening_time,
+          monday_closing_time: data.monday_closing_time,
+          tuesday_opening_time: data.tuesday_opening_time,
+          tuesday_closing_time: data.tuesday_closing_time,
+          wednesday_opening_time: data.wednesday_opening_time,
+          wednesday_closing_time: data.wednesday_closing_time,
+          thursday_opening_time: data.thursday_opening_time,
+          thursday_closing_time: data.thursday_closing_time,
+          friday_opening_time: data.friday_opening_time,
+          friday_closing_time: data.friday_closing_time,
+          saturday_opening_time: data.saturday_opening_time,
+          saturday_closing_time: data.saturday_closing_time,
+          sunday_opening_time: data.sunday_opening_time,
+          sunday_closing_time: data.sunday_closing_time,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const shiftData = await res.json();
+      return shiftData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
+export const updateShift = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/shifts/updateShift",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          monday_opening_time: data.monday_opening_time,
+          monday_closing_time: data.monday_closing_time,
+          tuesday_opening_time: data.tuesday_opening_time,
+          tuesday_closing_time: data.tuesday_closing_time,
+          wednesday_opening_time: data.wednesday_opening_time,
+          wednesday_closing_time: data.wednesday_closing_time,
+          thursday_opening_time: data.thursday_opening_time,
+          thursday_closing_time: data.thursday_closing_time,
+          friday_opening_time: data.friday_opening_time,
+          friday_closing_time: data.friday_closing_time,
+          saturday_opening_time: data.saturday_opening_time,
+          saturday_closing_time: data.saturday_closing_time,
+          sunday_opening_time: data.sunday_opening_time,
+          sunday_closing_time: data.sunday_closing_time,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const shiftData = await res.json();
+      return shiftData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const deleteShift = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/shifts/deleteShift",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const shiftData = await res.json();
+      return shiftData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}

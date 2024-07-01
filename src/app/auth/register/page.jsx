@@ -32,7 +32,7 @@ function RegisterPage() {
     }
   });
 
-  console.log(errors);
+  //console.log(errors);
 
   return (
     <div className="h-[calc(100vh-7rem)] flex justify-center items-center">

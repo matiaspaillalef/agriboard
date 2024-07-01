@@ -128,7 +128,7 @@ export const primaryMenu = [
                     {
                         id: 5,
                         name: 'Turnos',
-                        url: '/dashboard/people-management/turns'
+                        url: '/dashboard/people-management/shifts'
                     },
                     {
                         id: 6,
