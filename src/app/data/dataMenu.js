@@ -132,7 +132,7 @@ export const primaryMenu = [
                     },
                     {
                         id: 6,
-                        name: 'Registro de trabajadores',
+                        name: 'Trabajadores',
                         url: '/dashboard/people-management/workers'
                     },
                     {

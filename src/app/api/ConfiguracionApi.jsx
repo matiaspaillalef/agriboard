@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { date } from "zod";
 
 const URLAPI = process.env.NEXT_PUBLIC_API_URL;
 const APIKEY = process.env.NEXT_PUBLIC_JWT_SECRET;
@@ -711,7 +712,6 @@ export const createShift = async (data) => {
   }
 }
 
-
 export const updateShift = async (data) => {
   try {
     const res = await fetch(
@@ -776,6 +776,142 @@ export const deleteShift = async (id) => {
       return shiftData.code;
     }
   } catch (err) {
+    console.error(err);
+  }
+}
+
+//Management People - Workers
+export const getDataWorkers = async () => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/workers/getWorkers",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const workersData = await res.json();
+
+      if (workersData.code === "OK") {
+        return workersData.workers;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createWorker = async (data) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/workers/createWorker",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          rut: data.rut,
+          name: data.name,
+          lastname: data.lastname,
+          lastname2: data.lastname2,
+          born_date: data.born_date,
+          gender: data.gender,
+          state_civil: data.state_civil,
+          state: data.state,
+          city: data.city,
+          address: data.address,
+          phone: data.phone,
+          phone_company: data.phone_company,
+          date_admission: data.date_admission,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData.code;
+    }
+  }
+  catch (err) {
+    console.error(err);
+  }
+}
+
+export const updateWorker = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/workers/updateWorker",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          rut: data.rut,
+          name: data.name,
+          lastname: data.lastname,
+          lastname2: data.lastname2,
+          born_date: data.born_date,
+          gender: data.gender,
+          state_civil: data.state_civil,
+          state: data.state,
+          city: data.city,
+          address: data.address,
+          phone: data.phone,
+          phone_company: data.phone_company,
+          date_admission: data.date_admission,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData.code;
+    }
+  }
+  catch (err) {
+    console.error(err);
+  }
+}
+
+export const deleteWorker = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/workers/deleteWorker",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData.code;
+    }
+  }
+  catch (err) {
     console.error(err);
   }
 }

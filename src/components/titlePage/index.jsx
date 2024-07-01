@@ -60,6 +60,9 @@ const TitlePage = () => {
         case "shifts":
             translatedSegment = "Turnos";
             break;
+        case "workers":
+            translatedSegment = "Trabajadores";
+            break;
         default:
             translatedSegment = segment;
             break;

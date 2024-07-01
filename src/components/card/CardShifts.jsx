@@ -6,7 +6,7 @@ import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
-import { PlusIcon, XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, XMarkIcon, ChevronDownIcon, EyeIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Dialog,
@@ -405,7 +405,6 @@ const CardTableShifts = ({
 
                     
                     <td
-                    colSpan={columnLabels.length}
                     className={`pt-[14px] pb-3 text-[14px] px-5 ${
                       index % 2 !== 0
                         ? "bg-lightPrimary dark:bg-navy-900"
@@ -414,11 +413,10 @@ const CardTableShifts = ({
                     >
                     <button
                       type="button"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                      //onClick={() => handleOpen(row)}
+                      className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-white cursor-pointer"
                       onClick={() => handleShowSchedule(row)}
                     >
-                      Ver horarios
+                      <EyeIcon className="w-5 h-5"></EyeIcon> Ver horarios
                     </button>
 
                     </td>

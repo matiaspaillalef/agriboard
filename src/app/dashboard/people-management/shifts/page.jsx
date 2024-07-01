@@ -4,7 +4,7 @@ import { getDataShifts } from "@/app/api/ConfiguracionApi";
 const PeopleManagementShifts = async () => {
   
     const dataShifts = await getDataShifts();
-    console.log(dataShifts);
+    //console.log(dataShifts);
   
     return (
       <>
