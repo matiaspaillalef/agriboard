@@ -44,6 +44,8 @@ const path = usePathname();
           return "Turnos";
         case "workers":
           return "Trabajadores";
+        case "squads":
+          return "Cuadrillas";
         default:
           return segment;
       }

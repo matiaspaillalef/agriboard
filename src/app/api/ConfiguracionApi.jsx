@@ -915,3 +915,116 @@ export const deleteWorker = async (id) => {
     console.error(err);
   }
 }
+
+// Management People - Squads
+
+export const getDataSquads = async () => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/squads/getSquads",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    console.log(res);
+    if (res.ok) {
+      const SquadsData = await res.json();
+      console.log(SquadsData);
+      if (SquadsData.code === "OK") {
+        return SquadsData.Squads;
+      }
+      else if (SquadsData.code === "ERROR") {
+        return SquadsData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createSquad = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/Squads/createSquad",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const SquadData = await res.json();
+      return SquadData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const updateSquad = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/Squads/updateSquad",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const SquadData = await res.json();
+      return SquadData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const deleteSquad = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/Squads/deleteSquad",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const SquadData = await res.json();
+      return SquadData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
