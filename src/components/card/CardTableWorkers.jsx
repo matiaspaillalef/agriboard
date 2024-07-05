@@ -556,7 +556,7 @@ const CardTableWorkers = ({
                 ))}
               </tbody>
             </table>
-          </div>
+          </div> 
           <div className="flex items-center justify-between mt-5">
             <div className="flex items-center gap-5">
               <p className="text-sm text-gray-800 dark:text-white">
@@ -633,7 +633,7 @@ const CardTableWorkers = ({
             open={open}
             handler={handleOpen}
             size="xs"
-            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
           >
             <button
               type="button"

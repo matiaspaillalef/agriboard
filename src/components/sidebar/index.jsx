@@ -135,7 +135,7 @@ const Sidebar = ({ open, onClose }) => {
           </li>
         </ul>
       </div>
-      <p className="px-8 py-8 text-xs mb-0">&copy; {new Date().getFullYear()} Agrisoft Software</p>
+      <p className="px-8 py-8 text-xs mb-0 text-navy-700 dark:text-white">&copy; {new Date().getFullYear()} Agrisoft Software</p>
     </div>
   );
 };

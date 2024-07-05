@@ -6,7 +6,15 @@ import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
-import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  XMarkIcon,
+  TrashIcon,
+  PencilSquareIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/outline";
 import {
   Button,
   Dialog,
@@ -19,6 +27,7 @@ import {
   updateSquad,
   createSquad,
   getDataSquads,
+  getDataGroups,
 } from "@/app/api/ConfiguracionApi";
 
 const CardTableSquads = ({
@@ -66,6 +75,8 @@ const CardTableSquads = ({
     name: "",
   });
 
+  const [groups, setGroups] = useState([]);
+
   const handleOpenNewUser = () => {
     setIsEdit(false);
     handleOpen();
@@ -104,7 +115,9 @@ const CardTableSquads = ({
     } catch (error) {
       console.error(error);
       // Manejo de errores
-      setUpdateMessage("Error al intentar actualizar el cuadrilla. Inténtalo nuevamente.");
+      setUpdateMessage(
+        "Error al intentar actualizar el cuadrilla. Inténtalo nuevamente."
+      );
     }
   };
 
@@ -115,7 +128,7 @@ const CardTableSquads = ({
 
   const handleCloseAlert = () => {
     setOpenAlert(false);
-    setItemToDelete({ index: null, id: null, name : "" });
+    setItemToDelete({ index: null, id: null, name: "" });
   };
 
   const handlerRemove = async () => {
@@ -134,7 +147,9 @@ const CardTableSquads = ({
         setOpenAlert(false);
         setUpdateMessage("cuadrilla eliminado correctamente");
       } else {
-        setUpdateMessage("Error al eliminar el cuadrilla. Inténtalo nuevamente.");
+        setUpdateMessage(
+          "Error al eliminar el cuadrilla. Inténtalo nuevamente."
+        );
       }
     } catch (error) {
       console.error(error);
@@ -155,11 +170,11 @@ const CardTableSquads = ({
         setInitialData(updatedData);
 
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataSquads(); 
+        const newDataFetch = await getDataSquads();
 
         setInitialData(newDataFetch);
         setOpen(false);
-        setUpdateMessage("cuadrilla creado correctamente");
+        setUpdateMessage("cuadrilla creada correctamente");
       } else {
         setUpdateMessage("Error al crear el cuadrilla");
       }
@@ -185,6 +200,21 @@ const CardTableSquads = ({
       setLoading(false);
     }
   }, [data]);
+
+  useEffect(() => {
+    // Obtener los grupos cuando el componente se monte
+    const fetchGroups = async () => {
+      try {
+        const groupsData = await getDataGroups();
+        setGroups(groupsData);
+;
+      } catch (error) {
+        console.error("Error al obtener los grupos", error);
+      }
+    };
+
+    fetchGroups();
+  }, []);
 
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -219,16 +249,11 @@ const CardTableSquads = ({
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   if (!data || data.length === 0) {
-    return (
-      <div>
-        No hay datos disponibles.
-      </div>
-    );
+    return <div>No hay datos disponibles.</div>;
   }
 
   return (
     <>
-
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
           className={`bg-${
@@ -271,7 +296,12 @@ const CardTableSquads = ({
               </h4>
             )}
 
-            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+          <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+
+              <button className="max-w-[300px] linear mt-2 w-fit px-5 rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-900 dark:text-white items-center justify-center flex gap-2 normal-case">
+                <UserGroupIcon width="20" height="20" />  Asignar trabajadores
+              </button>
+
               {downloadBtn && (
                 <>
                   <ExportarExcel
@@ -356,6 +386,26 @@ const CardTableSquads = ({
                       if (omitirColumns.includes(key)) {
                         return null; // Omitir la columna si está en omitirColumns
                       }
+                      
+                      //Acá mapeamos los id del grupo para trernos el nombre de la DB groups
+                      if(key === "group"){
+                        const group = groups.find((group) => group.id == row[key]);
+                        return (
+                          <td
+                            key={rowIndex}
+                            role="cell"
+                            className={`pt-[14px] pb-3 text-[14px] px-5 ${
+                              index % 2 !== 0
+                                ? "bg-lightPrimary dark:bg-navy-900"
+                                : ""
+                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                          >
+                            <div className="text-base font-medium text-navy-700 dark:text-white">
+                              {group ? group.name : ""}
+                            </div>
+                          </td>
+                        );
+                      }
 
                       return (
                         <td
@@ -379,9 +429,9 @@ const CardTableSquads = ({
                                   Inactivo
                                 </p>
                               )
-                            ) :
-                            formatNumber(row[key])
-                            }
+                            ) : (
+                              formatNumber(row[key])
+                            )}
                           </div>
                         </td>
                       );
@@ -401,23 +451,11 @@ const CardTableSquads = ({
                           //onClick={() => handleOpen(row)}
                           onClick={() => handleOpenEditUser(row)}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                            />
-                          </svg>
+                          <PencilSquareIcon className="w-6 h-6" />
                         </button>
                         <button
                           id="remove"
+                          className="text-sm font-semibold text-gray-800 dark:text-white"
                           type="button"
                           onClick={() => {
                             //console.log(row);
@@ -428,20 +466,7 @@ const CardTableSquads = ({
                             );
                           }}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                            />
-                          </svg>
+                          <TrashIcon className="w-6 h-6" />
                         </button>
                       </td>
                     )}
@@ -454,10 +479,10 @@ const CardTableSquads = ({
             <div className="flex items-center gap-5">
               <p className="text-sm text-gray-800 dark:text-white">
                 Mostrando {indexOfFirstItem + 1} a{" "}
-                {indexOfLastItem > initialData.length
-                  ? initialData.length
+                {indexOfLastItem > (initialData?.length ?? 0)
+                  ? initialData?.length ?? 0
                   : indexOfLastItem}{" "}
-                de {initialData.length} cuadrillas
+                de {initialData?.length ?? 0} cuadrillas
               </p>
             </div>
             <div className="flex items-center gap-5">
@@ -469,20 +494,7 @@ const CardTableSquads = ({
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <ChevronLeftIcon className="w-5 h-5" />
               </button>
               {pagination.map((page) => (
                 <button
@@ -500,56 +512,30 @@ const CardTableSquads = ({
               ))}
               <button
                 type="button"
-                className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                className="p-1 bg-gray-200 dark:bg-navy-900 text-navy-900 dark:text-white rounded-md"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <ChevronRightIcon className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          <Dialog
+        <Dialog
             open={open}
             handler={handleOpen}
             size="xs"
-            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
           >
             <button
               type="button"
               onClick={handleOpen}
-              className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md"
+              className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 text-navy-900 dark:text-white rounded-md"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              </svg>
+              <XMarkIcon className="w-5 h-5" />
             </button>
-            <DialogHeader className="dark:text-white">
-              {isEdit ? 'Editar cuadrilla' : 'Crear cuadrilla'}
+            <DialogHeader className="text-navy-900 dark:text-white">
+              {isEdit ? "Editar cuadrilla" : "Crear cuadrilla"}
             </DialogHeader>
             <DialogBody>
               <form
@@ -575,14 +561,38 @@ const CardTableSquads = ({
                       name="name"
                       id="name"
                       required={true}
-                      defaultValue={
-                        selectedItem ? selectedItem.name : ""
-                      }
+                      defaultValue={selectedItem ? selectedItem.name : ""}
                       {...register("name")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 text-navy-900 dark:text-white"
                     />
                   </div>
                 </div>
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="group"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Grupo
+                    </label>
+                    <select
+                      name="group"
+                      id="group"
+                      required={true}
+                      {...register("group")}
+                      defaultValue={selectedItem ? selectedItem.group : ""}
+                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 text-navy-900 dark:text-white"
+                    >
+                      <option value="">Selecciona un grupo</option>
+                      {groups.map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                   <div className="flex flex-col gap-3">
                     <label
@@ -597,7 +607,7 @@ const CardTableSquads = ({
                       required={true}
                       {...register("status")}
                       defaultValue={selectedItem ? selectedItem.status : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 text-navy-900 dark:text-white"
                     >
                       <option value="0">Inactivo</option>
                       <option value="1">Activo</option>
@@ -625,12 +635,9 @@ const CardTableSquads = ({
             className="p-5 lg:max-w-[25%] dark:bg-navy-900"
           >
             <>
-              <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
-                ¿Seguro que desea eliminar la cuadrilla {" "}
-                <strong className="font-bold">
-                  {itemToDelete.name}
-                </strong>
-                ?
+              <h2 className="text-center mb-7 text-xl mt-5 text-navy-900 dark:text-white">
+                ¿Seguro que desea eliminar la cuadrilla{" "}
+                <strong className="font-bold">{itemToDelete.name}</strong>?
               </h2>
               <button
                 type="button"

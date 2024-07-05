@@ -932,12 +932,10 @@ export const getDataSquads = async () => {
       }
     );
 
-    console.log(res);
     if (res.ok) {
       const SquadsData = await res.json();
-      console.log(SquadsData);
       if (SquadsData.code === "OK") {
-        return SquadsData.Squads;
+        return SquadsData.squads;
       }
       else if (SquadsData.code === "ERROR") {
         return SquadsData.mensaje;
