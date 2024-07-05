@@ -21,7 +21,9 @@ import {
   DialogHeader,
   DialogBody,
   DialogFooter,
+  Tooltip,
 } from "@material-tailwind/react";
+
 import {
   deleteSquad as deleteSquadApi,
   updateSquad,
@@ -138,12 +140,15 @@ const CardTableSquads = ({
     //console.log("Response code:", responseCode);
     if (responseCode === "OK") {
       // Manejar éxito
+      setUpdateMessage("Trabajadores asignados correctamente.");
       setTimeout(() => {
         setOpenAddWorkers(!openAddWorkers);
+        set;
       }, 2000);
       console.log("Trabajadores asignados correctamente.");
     } else {
       // Manejar error
+      setUpdateMessage("Error al asignar trabajadores.");
       console.error("Error al asignar trabajadores.");
     }
   };
@@ -153,7 +158,7 @@ const CardTableSquads = ({
   }, [workers]);
 
   const handleModalClose = () => {
-    setShowSelectedWorkers(false);;
+    setShowSelectedWorkers(false);
     setOpenAddWorkers(false);
   };
 
@@ -250,7 +255,7 @@ const CardTableSquads = ({
     }
   };
 
-  // Creación 
+  // Creación
   const onSubmitForm = async (data) => {
     try {
       const createSquadapi = await createSquad(data);
@@ -545,37 +550,58 @@ const CardTableSquads = ({
                             : ""
                         }`}
                       >
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-gray-800 dark:text-white"
-                          onClick={() => {
-                            handleAddWorkers(row);
-                          }}
+                        <Tooltip
+                          placement="bottom"
+                          className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
+                          content="Asignar trabajadores"
                         >
-                          <UserGroupIcon className="w-6 h-6" />
-                        </button>
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-gray-800 dark:text-white"
-                          //onClick={() => handleOpen(row)}
-                          onClick={() => handleOpenEditUser(row)}
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                            onClick={() => {
+                              handleAddWorkers(row);
+                            }}
+                            data-tooltip-target="tooltip"
+                          >
+                            <UserGroupIcon className="w-6 h-6" />
+                          </button>
+                        </Tooltip>
+
+                        <Tooltip
+                          placement="bottom"
+                          className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
+                          content="Editar cuadrilla"
                         >
-                          <PencilSquareIcon className="w-6 h-6" />
-                        </button>
-                        <button
-                          id="remove"
-                          className="text-sm font-semibold text-gray-800 dark:text-white"
-                          type="button"
-                          onClick={() => {
-                            handleOpenAlert(
-                              index,
-                              row.id,
-                              row.name ? row.name : ""
-                            );
-                          }}
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                            //onClick={() => handleOpen(row)}
+                            onClick={() => handleOpenEditUser(row)}
+                          >
+                            <PencilSquareIcon className="w-6 h-6" />
+                          </button>
+                        </Tooltip>
+
+                        <Tooltip
+                          placement="bottom"
+                          className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
+                          content="Eliminar cuadrilla"
                         >
-                          <TrashIcon className="w-6 h-6" />
-                        </button>
+                          <button
+                            id="remove"
+                            className="text-sm font-semibold text-gray-800 dark:text-white"
+                            type="button"
+                            onClick={() => {
+                              handleOpenAlert(
+                                index,
+                                row.id,
+                                row.name ? row.name : ""
+                              );
+                            }}
+                          >
+                            <TrashIcon className="w-6 h-6" />
+                          </button>
+                        </Tooltip>
                       </td>
                     )}
                   </tr>
@@ -767,7 +793,7 @@ const CardTableSquads = ({
           <Dialog
             open={openAddWorkers}
             handler={setOpenAddWorkers}
-            size="lg"
+            size="md"
             className="p-5 lg:max-w-[25%] dark:bg-navy-900"
           >
             <>
@@ -777,7 +803,7 @@ const CardTableSquads = ({
               <button
                 type="button"
                 //onClick={() => setOpenAddWorkers(false)}
-                onClick={handleModalClose} 
+                onClick={handleModalClose}
                 className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
               >
                 <XMarkIcon className="text-white w-5 h-5" />
@@ -805,7 +831,7 @@ const CardTableSquads = ({
                     htmlFor="showSelectedWorkers"
                     className="text-sm font-semibold"
                   >
-                    Ver trabajadores en la cuadrilla
+                    Ver asignados
                   </label>
                 </div>
                 <div className="flex flex-col gap-3">
@@ -822,29 +848,37 @@ const CardTableSquads = ({
               <table className="w-full">
                 <thead>
                   <tr>
-                    <th className="inputcheck"></th>
-                    <th className="text-left">ID</th>
-                    <th className="text-left">Nombre</th>
-                    <th className="text-left">RUT</th>
+                    <th className="inputcheck border-b-gray-200 border-b"></th>
+                    <th className="text-left border-b-gray-200 border-b">
+                      Nombre
+                    </th>
+                    <th className="text-left border-b-gray-200 border-b">
+                      RUT
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredWorkers.length > 0 ? (
-                    filteredWorkers.map((worker) => (
-                      <tr key={worker.id}>
-                        <td>
+                    filteredWorkers.map((worker, index) => (
+                      <tr
+                        key={worker.id}
+                        className={`pt-[14px] p-3 text-[14px] px-5 ${
+                          index % 2 !== 0
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
+                        }`}
+                      >
+                        <td className="py-2">
                           <input
                             type="checkbox"
                             className="!bg-center rounded-sm"
                             checked={worker.isSelected || false}
                             onChange={() => {
-                              console.log("Worker:", worker);
                               worker.isSelected = !worker.isSelected;
                               setWorkers([...workers]);
                             }}
                           />
                         </td>
-                        <td>{worker.id}</td>
                         <td>{worker.name + " " + worker.lastname}</td>
                         <td>{worker.rut}</td>
                       </tr>
