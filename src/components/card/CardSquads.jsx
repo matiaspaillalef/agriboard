@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
   PlusIcon,
@@ -28,6 +28,7 @@ import {
   createSquad,
   getDataSquads,
   getDataGroups,
+  getDataWorkers,
 } from "@/app/api/ConfiguracionApi";
 
 const CardTableSquads = ({
@@ -52,7 +53,6 @@ const CardTableSquads = ({
     formState: { errors },
   } = useForm();
 
-  console.log(data);
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -67,6 +67,9 @@ const CardTableSquads = ({
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
 
+  ///Modal agregar trabajadores
+  const [openAddWorkers, setOpenAddWorkers] = useState(false);
+
   const [openAlert, setOpenAlert] = useState(false);
 
   const [itemToDelete, setItemToDelete] = useState({
@@ -76,10 +79,100 @@ const CardTableSquads = ({
   });
 
   const [groups, setGroups] = useState([]);
+  const [workers, setWorkers] = useState([]);
+
+  const [selectSquad, setSelectSquad] = useState({
+    id: null,
+    name: "",
+  });
+
+  //Search Workers
+  const [showSelectedWorkers, setShowSelectedWorkers] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredWorkers, setFilteredWorkers] = useState(workers);
+
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchTerm(value);
+
+    const filtered = workers.filter(
+      (worker) =>
+        worker.name.toLowerCase().includes(value) ||
+        worker.lastname.toLowerCase().includes(value) ||
+        worker.rut.toLowerCase().includes(value)
+    );
+
+    setFilteredWorkers(filtered);
+  };
+
+  const handleCheckboxChange = (event) => {
+    setShowSelectedWorkers(event.target.checked);
+    if (event.target.checked) {
+      // Mostrar solo los trabajadores seleccionados en la cuadrilla
+      if (selectSquad.workers && selectSquad.workers.length > 0) {
+        const selectedWorkers = workers.filter((worker) =>
+          selectSquad.workers.includes(worker.id)
+        );
+        setFilteredWorkers(selectedWorkers);
+      } else {
+        // En caso de que no haya trabajadores seleccionados, muestra un mensaje o maneja la lógica según tu aplicación
+        setFilteredWorkers([]);
+      }
+    } else {
+      // Mostrar todos los trabajadores
+      setFilteredWorkers(workers);
+    }
+  };
+
+  const handleAssignWorkers = async () => {
+    const selectedWorkerIds = workers
+      .filter((worker) => worker.isSelected)
+      .map((worker) => worker.id);
+
+    const updatedSquad = {
+      ...selectSquad,
+      workers: selectedWorkerIds, // Agregamos los IDs de los trabajadores seleccionados
+    };
+
+    const responseCode = await updateSquad(updatedSquad);
+    //console.log("Response code:", responseCode);
+    if (responseCode === "OK") {
+      // Manejar éxito
+      setTimeout(() => {
+        setOpenAddWorkers(!openAddWorkers);
+      }, 2000);
+      console.log("Trabajadores asignados correctamente.");
+    } else {
+      // Manejar error
+      console.error("Error al asignar trabajadores.");
+    }
+  };
+
+  useEffect(() => {
+    setFilteredWorkers(workers);
+  }, [workers]);
+
+  const handleModalClose = () => {
+    setShowSelectedWorkers(false);;
+    setOpenAddWorkers(false);
+  };
 
   const handleOpenNewUser = () => {
     setIsEdit(false);
     handleOpen();
+  };
+  const handleAddWorkers = (squad) => {
+    setSelectSquad(squad);
+    setOpenAddWorkers(!openAddWorkers);
+
+    // Actualizar el estado de los trabajadores para marcar los ya asignados
+    const updatedWorkers = workers.map((worker) => ({
+      ...worker,
+      isSelected:
+        Array.isArray(squad.workers) && squad.workers.includes(worker.id),
+    }));
+
+    setWorkers(updatedWorkers);
   };
 
   const handleOpenEditUser = (user) => {
@@ -134,7 +227,6 @@ const CardTableSquads = ({
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
 
-    console.log(id);
     try {
       //if (userConfirmed) {
       const deleteSquad = await deleteSquadApi(id);
@@ -158,7 +250,7 @@ const CardTableSquads = ({
     }
   };
 
-  // Creación de empresa
+  // Creación 
   const onSubmitForm = async (data) => {
     try {
       const createSquadapi = await createSquad(data);
@@ -207,12 +299,21 @@ const CardTableSquads = ({
       try {
         const groupsData = await getDataGroups();
         setGroups(groupsData);
-;
       } catch (error) {
         console.error("Error al obtener los grupos", error);
       }
     };
 
+    const fetchWorkers = async () => {
+      try {
+        const workersData = await getDataWorkers();
+        setWorkers(workersData);
+      } catch (error) {
+        console.error("Error al obtener los trabajadores", error);
+      }
+    };
+
+    fetchWorkers();
     fetchGroups();
   }, []);
 
@@ -296,12 +397,7 @@ const CardTableSquads = ({
               </h4>
             )}
 
-          <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-
-              <button className="max-w-[300px] linear mt-2 w-fit px-5 rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-900 dark:text-white items-center justify-center flex gap-2 normal-case">
-                <UserGroupIcon width="20" height="20" />  Asignar trabajadores
-              </button>
-
+            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
               {downloadBtn && (
                 <>
                   <ExportarExcel
@@ -363,6 +459,7 @@ const CardTableSquads = ({
                           </th>
                         );
                       })}
+
                     {/* Aquí se renderiza la columna Actions si actions es true */}
                     {actions && (
                       <th
@@ -386,10 +483,12 @@ const CardTableSquads = ({
                       if (omitirColumns.includes(key)) {
                         return null; // Omitir la columna si está en omitirColumns
                       }
-                      
+
                       //Acá mapeamos los id del grupo para trernos el nombre de la DB groups
-                      if(key === "group"){
-                        const group = groups.find((group) => group.id == row[key]);
+                      if (key === "group") {
+                        const group = groups.find(
+                          (group) => group.id == row[key]
+                        );
                         return (
                           <td
                             key={rowIndex}
@@ -436,6 +535,7 @@ const CardTableSquads = ({
                         </td>
                       );
                     })}
+
                     {actions && (
                       <td
                         colSpan={columnLabels.length}
@@ -445,6 +545,15 @@ const CardTableSquads = ({
                             : ""
                         }`}
                       >
+                        <button
+                          type="button"
+                          className="text-sm font-semibold text-gray-800 dark:text-white"
+                          onClick={() => {
+                            handleAddWorkers(row);
+                          }}
+                        >
+                          <UserGroupIcon className="w-6 h-6" />
+                        </button>
                         <button
                           type="button"
                           className="text-sm font-semibold text-gray-800 dark:text-white"
@@ -458,7 +567,6 @@ const CardTableSquads = ({
                           className="text-sm font-semibold text-gray-800 dark:text-white"
                           type="button"
                           onClick={() => {
-                            //console.log(row);
                             handleOpenAlert(
                               index,
                               row.id,
@@ -521,7 +629,7 @@ const CardTableSquads = ({
             </div>
           </div>
 
-        <Dialog
+          <Dialog
             open={open}
             handler={handleOpen}
             size="xs"
@@ -653,6 +761,103 @@ const CardTableSquads = ({
               >
                 <XMarkIcon className="text-white w-5 h-5" /> Eliminar
               </button>
+            </>
+          </Dialog>
+
+          <Dialog
+            open={openAddWorkers}
+            handler={setOpenAddWorkers}
+            size="lg"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+          >
+            <>
+              <h2 className="text-left mb-7 font-medium text-xl mt-5 text-navy-900 dark:text-white">
+                Asignar trabajadores a <strong>{selectSquad.name}</strong>
+              </h2>
+              <button
+                type="button"
+                //onClick={() => setOpenAddWorkers(false)}
+                onClick={handleModalClose} 
+                className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
+              >
+                <XMarkIcon className="text-white w-5 h-5" />
+              </button>
+
+              <div className="mb-3 grid grid-cols-3 gap-5 lg:grid-cols-3 items-center">
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    placeholder="Buscar trabajadores..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    className="search w-full p-2 rounded-md border bg-white/0 dark:bg-navy-900 text-navy-900 dark:text-white border-gray-200 dark:border-white/10"
+                  />
+                </div>
+                <div className="flex flex-row gap-3">
+                  <input
+                    type="checkbox"
+                    id="showSelectedWorkers"
+                    className="!bg-center rounded-sm"
+                    checked={showSelectedWorkers}
+                    onChange={handleCheckboxChange}
+                  />
+                  <label
+                    htmlFor="showSelectedWorkers"
+                    className="text-sm font-semibold"
+                  >
+                    Ver trabajadores en la cuadrilla
+                  </label>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={handleAssignWorkers}
+                    className="linear w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+                  >
+                    Asignar trabajadores
+                  </button>
+                </div>
+              </div>
+
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="inputcheck"></th>
+                    <th className="text-left">ID</th>
+                    <th className="text-left">Nombre</th>
+                    <th className="text-left">RUT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredWorkers.length > 0 ? (
+                    filteredWorkers.map((worker) => (
+                      <tr key={worker.id}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            className="!bg-center rounded-sm"
+                            checked={worker.isSelected || false}
+                            onChange={() => {
+                              console.log("Worker:", worker);
+                              worker.isSelected = !worker.isSelected;
+                              setWorkers([...workers]);
+                            }}
+                          />
+                        </td>
+                        <td>{worker.id}</td>
+                        <td>{worker.name + " " + worker.lastname}</td>
+                        <td>{worker.rut}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="text-center">
+                        No hay trabajadores asignados a esta cuadrilla.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </>
           </Dialog>
         </>

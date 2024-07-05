@@ -958,6 +958,7 @@ export const createSquad = async (data) => {
         },
         body: JSON.stringify({
           name: data.name,
+          group: data.group,
           status: data.status,
         }),
         cache: "no-store",
@@ -986,7 +987,9 @@ export const updateSquad = async (data) => {
         body: JSON.stringify({
           id: data.id,
           name: data.name,
+          group: data.group,
           status: data.status,
+          workers: data.workers, // Añadimos la nueva propiedad
         }),
         cache: "no-store",
       }
@@ -999,7 +1002,9 @@ export const updateSquad = async (data) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
+
+
 
 export const deleteSquad = async (id) => {
   try {
