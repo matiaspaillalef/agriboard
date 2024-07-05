@@ -141,6 +141,11 @@ const CardTableSquads = ({
     if (responseCode === "OK") {
       // Manejar éxito
       setUpdateMessage("Trabajadores asignados correctamente.");
+
+      //Esto lo hago para cuando se reabra el modal quede con la data actualizada
+      const squadData = await getDataSquads();
+      setInitialData(squadData);
+
       setTimeout(() => {
         setOpenAddWorkers(!openAddWorkers);
         set;
@@ -166,6 +171,7 @@ const CardTableSquads = ({
     setIsEdit(false);
     handleOpen();
   };
+
   const handleAddWorkers = (squad) => {
     setSelectSquad(squad);
     setOpenAddWorkers(!openAddWorkers);
