@@ -3,15 +3,27 @@
 import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
+import * as XLSX from "xlsx";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { useForm } from "react-hook-form";
+import Link from "next/link";
 import "@/assets/css/Table.css";
-import { PlusIcon, XMarkIcon, EyeIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  XMarkIcon,
+  EyeIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon,
+  ArrowUpOnSquareIcon,
+} from "@heroicons/react/24/outline";
 import {
   Button,
   Dialog,
   DialogHeader,
   DialogBody,
+  Tooltip,
 } from "@material-tailwind/react";
 import {
   deleteWorker as deleteWorkerApi,
@@ -68,6 +80,12 @@ const CardTableWorkers = ({
   const [rut, setRut] = useState("");
   const [rutValido, setRutValido] = useState(false);
 
+  const [openImport, setOpenImport] = useState(false);
+
+  const handleOpenImport = () => {
+    setOpenImport(!openImport);
+  };
+
   const handleRegionChange = (event) => {
     const region = event.target.value;
     setSelectedRegion(region);
@@ -99,6 +117,102 @@ const CardTableWorkers = ({
     name: "",
     lastname: "",
   });
+
+  const fileInputRef = useRef(null);
+  const [file, setFile] = useState(null);
+
+  const handleImportClick = (e) => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+  };
+
+  const handleFileUpload = async () => {
+    if (!file) {
+      setUpdateMessage("Por favor, selecciona un archivo primero.");
+      return;
+    }
+
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const worksheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[worksheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+    const excelDateToJSDate = (serial) => {
+      const utc_days = Math.floor(serial - 25569);
+      const utc_value = utc_days * 86400;
+      const date_info = new Date(utc_value * 1000);
+      const fractional_day = serial - Math.floor(serial) + 0.0000001;
+      let total_seconds = Math.floor(86400 * fractional_day);
+      const seconds = total_seconds % 60;
+
+      total_seconds -= seconds;
+      const hours = Math.floor(total_seconds / (60 * 60));
+      const minutes = Math.floor(total_seconds / 60) % 60;
+
+      return new Date(
+        Date.UTC(
+          date_info.getFullYear(),
+          date_info.getMonth(),
+          date_info.getDate(),
+          hours,
+          minutes,
+          seconds
+        )
+      );
+    };
+
+    const transformKeys = (data) => {
+      return data.map((item) => {
+        return {
+          name: item.Nombre,
+          lastname: item["Apellido paterno"],
+          lastname2: item["Apellido materno"],
+          rut: item.rut,
+          address: item["Dirección"],
+          born_date: excelDateToJSDate(item["Fecha de nacimiento"])
+            .toISOString()
+            .split("T")[0],
+          city: item.Ciudad,
+          date_admission: excelDateToJSDate(item["Fecha de ingreso"])
+            .toISOString()
+            .split("T")[0],
+          gender: item.Género,
+          phone: item["Teléfono"],
+          phone_company: item["Teléfono empresa"],
+          state: item.Estado,
+          state_civil: item["Estado civil"],
+          status: item.status,
+        };
+      });
+    };
+
+    const transformedData = transformKeys(jsonData);
+
+    let success = true;
+    for (const worker of transformedData) {
+      const createWorkerResult = await createWorker(worker);
+      //console.log(createWorkerResult);
+
+      if (createWorkerResult !== "OK") {
+        success = false;
+        setUpdateMessage("Error al importar trabajadores");
+        break;
+      }
+    }
+
+    if (success) {
+      const newDataFetch = await getDataWorkers();
+      setUpdateMessage("Trabajadores importados correctamente");
+      setFile(null); // Limpiar el archivo seleccionado
+      setInitialData(newDataFetch);
+      setOpenImport(false);
+    }
+  };
 
   const handleOpenShowUser = (user) => {
     console.log(user);
@@ -282,6 +396,37 @@ const CardTableWorkers = ({
     return date.split("T")[0]; // Solo toma la parte de la fecha antes de la 'T'
   };
 
+  // Formato de fecha
+  function formatDateView(fecha) {
+    // Dividir la fecha en partes
+    const partes = fecha.split("-");
+    const anio = partes[0];
+    const mes = partes[1];
+    const dia = partes[2];
+
+    // Array con los nombres de los meses
+    const meses = [
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre",
+    ];
+
+    // Obtener el nombre del mes
+    const nombreMes = meses[parseInt(mes, 10) - 1];
+
+    // Formatear la fecha
+    return `${dia} de ${nombreMes} de ${anio}`;
+  }
+
   // Función para manejar la validación de la fecha de nacimiento
   const handleDateChange = (e) => {
     const selectedDate = new Date(e.target.value);
@@ -331,7 +476,7 @@ const CardTableWorkers = ({
           {updateMessage}
         </div>
       )}
-      <div className="mb-3 flex gap-5 ">
+      <div className="mb-3 flex gap-5 justify-between items-center">
         <Button
           onClick={handleOpenNewUser}
           variant="gradient"
@@ -340,6 +485,15 @@ const CardTableWorkers = ({
           <PlusIcon className="w-5 h-5" />
           Nuevo trabajador
         </Button>
+        <div className="mb-3 flex gap-5 ">
+          <button
+            onClick={handleOpenImport}
+            className="import-button linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] px-[25px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
+          >
+            <ArrowUpOnSquareIcon className="w-5 h-5" />
+            Importar trabajadores
+          </button>
+        </div>
       </div>
       {loading ? (
         <div role="status" className="max-w-full animate-pulse p-0">
@@ -494,69 +648,62 @@ const CardTableWorkers = ({
                             : ""
                         }`}
                       >
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-gray-800 dark:text-white"
-                          onClick={() => handleOpenShowUser(row)}
+                        <Tooltip
+                          placement="bottom"
+                          content="Ver trabajador"
+                          className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                         >
-                          <EyeIcon className="w-6 h-6" />
-                        </button>
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-gray-800 dark:text-white"
-                          //onClick={() => handleOpen(row)}
-                          onClick={() => handleOpenEditUser(row)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                            onClick={() => handleOpenShowUser(row)}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          id="remove"
-                          type="button"
-                          onClick={() => {
-                            //console.log(row);
-                            handleOpenAlert(
-                              index,
-                              row.id,
-                              row.name ? row.name : "",
-                              row.lastname ? row.lastname : ""
-                            );
-                          }}
+                            <EyeIcon className="w-6 h-6" />
+                          </button>
+                        </Tooltip>
+
+                        <Tooltip
+                          placement="bottom"
+                          content="Editar trabajador"
+                          className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                            onClick={() => handleOpenEditUser(row)}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                            />
-                          </svg>
-                        </button>
+                            <PencilSquareIcon className="w-6 h-6" />
+                          </button>
+                        </Tooltip>
+
+                        <Tooltip
+                          placement="bottom"
+                          content="Eliminar trabajdor"
+                          className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
+                        >
+                          <button
+                            id="remove"
+                            type="button"
+                            onClick={() => {
+                              //console.log(row);
+                              handleOpenAlert(
+                                index,
+                                row.id,
+                                row.name ? row.name : "",
+                                row.lastname ? row.lastname : ""
+                              );
+                            }}
+                          >
+                            <TrashIcon className="w-6 h-6" />
+                          </button>
+                        </Tooltip>
                       </td>
                     )}
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div> 
+          </div>
           <div className="flex items-center justify-between mt-5">
             <div className="flex items-center gap-5">
               <p className="text-sm text-gray-800 dark:text-white">
@@ -576,20 +723,7 @@ const CardTableWorkers = ({
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <ChevronLeftIcon className="w-5 h-5" />
               </button>
               {pagination.map((page) => (
                 <button
@@ -611,20 +745,7 @@ const CardTableWorkers = ({
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <ChevronRightIcon className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -663,353 +784,358 @@ const CardTableWorkers = ({
                 : "Nuevo trabajador"}
             </DialogHeader>
             <DialogBody>
-              <form
-                onSubmit={handleSubmit(isEdit ? onUpdateItem : onSubmitForm)}
-                method="POST"
-              >
-                <input
-                  type="hidden"
-                  name="id"
-                  {...register("id")}
-                  defaultValue={selectedItem ? selectedItem.id : ""}
-                />
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3 ">
-                    <label
-                      htmlFor="name"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Nombre
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      readOnly={openShowUser}
-                      required={true}
-                      defaultValue={selectedItem ? selectedItem.name : ""}
-                      {...register("name")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="lastname"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Apellido paterno
-                    </label>
-                    <input
-                      type="text"
-                      name="lastname"
-                      id="lastname"
-                      readOnly={openShowUser}
-                      required={true}
-                      defaultValue={selectedItem ? selectedItem.lastname : ""}
-                      {...register("lastname")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="lastname2"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Apellido materno
-                    </label>
-                    <input
-                      type="text"
-                      name="lastname2"
-                      id="lastname2"
-                      readOnly={openShowUser}
-                      required={true}
-                      defaultValue={selectedItem ? selectedItem.lastname2 : ""}
-                      {...register("lastname2")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="rut"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      RUT
-                    </label>
-                    <Rut
-                      //value={rut}
-                      onChange={(e) => setRut(e.target.value)}
-                      onValid={setRutValido}
-                    >
+              {!openShowUser ? (
+                <form
+                  onSubmit={handleSubmit(isEdit ? onUpdateItem : onSubmitForm)}
+                  method="POST"
+                >
+                  <input
+                    type="hidden"
+                    name="id"
+                    {...register("id")}
+                    defaultValue={selectedItem ? selectedItem.id : ""}
+                  />
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3 ">
+                      <label
+                        htmlFor="name"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Nombre
+                      </label>
                       <input
                         type="text"
-                        name="rut"
-                        id="rut"
+                        name="name"
+                        id="name"
                         readOnly={openShowUser}
                         required={true}
-                        {...register("rut")}
-                        defaultValue={selectedItem ? selectedItem.rut : ""}
+                        defaultValue={selectedItem ? selectedItem.name : ""}
+                        {...register("name")}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
-                    </Rut>
-                    {!rutValido && (
-                      <span className="text-red-500 text-xs">
-                        El rut es inválido
-                      </span>
-                    )}
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="born_date"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Fecha de nacimiento
-                    </label>
-                    <div className="relative">
+
+                  <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="lastname"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Apellido paterno
+                      </label>
                       <input
-                        type="date"
-                        name="born_date"
+                        type="text"
+                        name="lastname"
+                        id="lastname"
                         readOnly={openShowUser}
                         required={true}
-                        max={getCurrentDate()}
-                        id="born_date"
-                        {...register("born_date")}
+                        defaultValue={selectedItem ? selectedItem.lastname : ""}
+                        {...register("lastname")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="lastname2"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Apellido materno
+                      </label>
+                      <input
+                        type="text"
+                        name="lastname2"
+                        id="lastname2"
+                        readOnly={openShowUser}
+                        required={true}
                         defaultValue={
-                          selectedItem
-                            ? formatDateToInput(selectedItem.born_date)
-                            : ""
+                          selectedItem ? selectedItem.lastname2 : ""
                         }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                        onChange={handleDateChange}
+                        {...register("lastname2")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="gender"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Género
-                    </label>
-                    <div className="relative">
-                      <select
-                        name="gender"
-                        id="gender"
-                        disabled={openShowUser}
-                        required={true}
-                        {...register("gender")}
-                        defaultValue={selectedItem ? selectedItem.gender : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                  <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="rut"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        <option value="Masculino">Masculino</option>
-                        <option value="Femenino">Femenino</option>
-                        <option value="Otro">Otro</option>
-                      </select>
+                        RUT
+                      </label>
+                      <Rut
+                        //value={rut}
+                        onChange={(e) => setRut(e.target.value)}
+                        onValid={setRutValido}
+                      >
+                        <input
+                          type="text"
+                          name="rut"
+                          id="rut"
+                          readOnly={openShowUser}
+                          required={true}
+                          {...register("rut")}
+                          defaultValue={selectedItem ? selectedItem.rut : ""}
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                        />
+                      </Rut>
+                      {!rutValido && (
+                        <span className="text-red-500 text-xs">
+                          El rut es inválido
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="born_date"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Fecha de nacimiento
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          name="born_date"
+                          readOnly={openShowUser}
+                          required={true}
+                          max={getCurrentDate()}
+                          id="born_date"
+                          {...register("born_date")}
+                          defaultValue={
+                            selectedItem
+                              ? formatDateToInput(selectedItem.born_date)
+                              : ""
+                          }
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                          onChange={handleDateChange}
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="state_civil"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Estado civil
-                    </label>
-                    <div className="relative">
-                      <select
-                        name="state_civil"
-                        id="state_civil"
-                        disabled={openShowUser}
-                        required={true}
-                        {...register("state_civil")}
-                        defaultValue={
-                          selectedItem ? selectedItem.state_civil : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="Soltero">Soltero</option>
-                        <option value="Casado">Casado</option>
-                        <option value="Divorciado">Divorciado</option>
-                        <option value="Viudo">Viudo</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="state"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Región
-                    </label>
-                    <select
-                      name="state"
-                      id="state"
-                      disabled={openShowUser}
-                      required={true}
-                      {...register("state")}
-                      defaultValue={selectedItem ? selectedItem.state : ""}
-                      onChange={handleRegionChange}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {StateCL.map((state) => (
-                        <option
-                          key={state.region_number}
-                          value={state.region_number}
+                  <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="gender"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Género
+                      </label>
+                      <div className="relative">
+                        <select
+                          name="gender"
+                          id="gender"
+                          disabled={openShowUser}
+                          required={true}
+                          {...register("gender")}
+                          defaultValue={selectedItem ? selectedItem.gender : ""}
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                         >
-                          {state.region}
-                        </option>
-                      ))}
-                    </select>
+                          <option value="Masculino">Masculino</option>
+                          <option value="Femenino">Femenino</option>
+                          <option value="Otro">Otro</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="state_civil"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estado civil
+                      </label>
+                      <div className="relative">
+                        <select
+                          name="state_civil"
+                          id="state_civil"
+                          disabled={openShowUser}
+                          required={true}
+                          {...register("state_civil")}
+                          defaultValue={
+                            selectedItem ? selectedItem.state_civil : ""
+                          }
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                        >
+                          <option value="Soltero">Soltero</option>
+                          <option value="Casado">Casado</option>
+                          <option value="Divorciado">Divorciado</option>
+                          <option value="Viudo">Viudo</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="city"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Ciudad
-                    </label>
-                    <select
-                      name="city"
-                      id="city"
-                      disabled={openShowUser}
-                      onChange={(event) => setSelectedCity(event.target.value)}
-                      {...register("city")}
-                      defaultValue={selectedItem ? selectedItem.city : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {selectedRegion &&
-                        StateCL.find(
-                          (state) => state.region_number === selectedRegion
-                        )?.comunas.map((comuna) => (
-                          <option key={comuna.name} value={comuna.name}>
-                            {comuna.name}
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="state"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Región
+                      </label>
+                      <select
+                        name="state"
+                        id="state"
+                        disabled={openShowUser}
+                        required={true}
+                        {...register("state")}
+                        defaultValue={selectedItem ? selectedItem.state : ""}
+                        onChange={handleRegionChange}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        {StateCL.map((state) => (
+                          <option
+                            key={state.region_number}
+                            value={state.region_number}
+                          >
+                            {state.region}
                           </option>
                         ))}
-                    </select>
-                  </div>
-                </div>
+                      </select>
+                    </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="address"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Dirección
-                    </label>
-                    <input
-                      type="text"
-                      name="address"
-                      id="address"
-                      readOnly={openShowUser}
-                      required={true}
-                      defaultValue={selectedItem ? selectedItem.address : ""}
-                      {...register("address")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="phone"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Teléfono
-                    </label>
-                    <input
-                      type="text"
-                      name="phone"
-                      id="phone"
-                      readOnly={openShowUser}
-                      required={true}
-                      defaultValue={selectedItem ? selectedItem.phone : ""}
-                      {...register("phone")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="phone_company"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Teléfono de la empresa
-                    </label>
-                    <input
-                      type="text"
-                      name="phone_company"
-                      id="phone_company"
-                      readOnly={openShowUser}
-                      required={true}
-                      defaultValue={
-                        selectedItem ? selectedItem.phone_company : ""
-                      }
-                      {...register("phone_company")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="date_admission"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Fecha de ingreso
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        name="date_admission"
-                        required={true}
-                        id="date_admission"
-                        max={getCurrentDate()}
-                        readOnly={openShowUser}
-                        {...register("date_admission")}
-                        defaultValue={
-                          selectedItem
-                            ? formatDateToInput(selectedItem.date_admission)
-                            : ""
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="city"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Ciudad
+                      </label>
+                      <select
+                        name="city"
+                        id="city"
+                        disabled={openShowUser}
+                        onChange={(event) =>
+                          setSelectedCity(event.target.value)
                         }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                        {...register("city")}
+                        defaultValue={selectedItem ? selectedItem.city : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        {selectedRegion &&
+                          StateCL.find(
+                            (state) => state.region_number === selectedRegion
+                          )?.comunas.map((comuna) => (
+                            <option key={comuna.name} value={comuna.name}>
+                              {comuna.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="address"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Dirección
+                      </label>
+                      <input
+                        type="text"
+                        name="address"
+                        id="address"
+                        readOnly={openShowUser}
+                        required={true}
+                        defaultValue={selectedItem ? selectedItem.address : ""}
+                        {...register("address")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="status"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Estado
-                    </label>
-                    <select
-                      name="status"
-                      id="status"
-                      required={true}
-                      disabled={openShowUser}
-                      {...register("status")}
-                      defaultValue={selectedItem ? selectedItem.status : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      <option value="0">Inactivo</option>
-                      <option value="1">Activo</option>
-                    </select>
+
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="phone"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Teléfono
+                      </label>
+                      <input
+                        type="text"
+                        name="phone"
+                        id="phone"
+                        readOnly={openShowUser}
+                        required={true}
+                        defaultValue={selectedItem ? selectedItem.phone : ""}
+                        {...register("phone")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="phone_company"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Teléfono de la empresa
+                      </label>
+                      <input
+                        type="text"
+                        name="phone_company"
+                        id="phone_company"
+                        readOnly={openShowUser}
+                        required={true}
+                        defaultValue={
+                          selectedItem ? selectedItem.phone_company : ""
+                        }
+                        {...register("phone_company")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
                   </div>
-                </div>
-                {!openShowUser && (
+
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="date_admission"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Fecha de ingreso
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          name="date_admission"
+                          required={true}
+                          id="date_admission"
+                          max={getCurrentDate()}
+                          readOnly={openShowUser}
+                          {...register("date_admission")}
+                          defaultValue={
+                            selectedItem
+                              ? formatDateToInput(selectedItem.date_admission)
+                              : ""
+                          }
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="status"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estado
+                      </label>
+                      <select
+                        name="status"
+                        id="status"
+                        required={true}
+                        disabled={openShowUser}
+                        {...register("status")}
+                        defaultValue={selectedItem ? selectedItem.status : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="0">Inactivo</option>
+                        <option value="1">Activo</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-col gap-3">
                       <button
@@ -1021,8 +1147,87 @@ const CardTableWorkers = ({
                       </button>
                     </div>
                   </div>
-                )}
-              </form>
+                </form>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <p className="text-md font-semibold text-gray-800 dark:text-white">
+                    <strong>
+                      {selectedItem.name} {selectedItem.lastname}{" "}
+                      {selectedItem.lastname2}
+                    </strong>
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>RUT:</strong> {selectedItem.rut}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Fecha de nacimiento:</strong>{" "}
+                    {selectedItem.born_date
+                      ? formatDateView(
+                          formatDateToInput(selectedItem.born_date)
+                        )
+                      : "Fecha no registrada"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Género:</strong> {selectedItem.gender}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Estado civil:</strong> {selectedItem.state_civil}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Región:</strong>{" "}
+                    {
+                      StateCL.find(
+                        (state) => state.region_number == selectedItem.state
+                      )?.region
+                    }
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Ciudad:</strong> {selectedItem.city}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Dirección:</strong> {selectedItem.address}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Teléfono:</strong>{" "}
+                    {selectedItem.phone ? (
+                      <a
+                        href={`tel:${selectedItem.phone}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {selectedItem.phone}
+                      </a>
+                    ) : (
+                      "No registrado"
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Teléfono de la empresa:</strong>{" "}
+                    {selectedItem.phone_company ? (
+                      <a
+                        href={`tel:${selectedItem.phone_company}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {selectedItem.phone_company}
+                      </a>
+                    ) : (
+                      "No registrado"
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Fecha de ingreso:</strong>{" "}
+                    {formatDateView(
+                      formatDateToInput(selectedItem.date_admission)
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Estado:</strong>{" "}
+                    {selectedItem.status == 1 ? "Activo" : "Inactivo"}
+                  </p>
+                </div>
+              )}
             </DialogBody>
           </Dialog>
 
@@ -1054,6 +1259,62 @@ const CardTableWorkers = ({
               >
                 <XMarkIcon className="text-white w-5 h-5" /> Eliminar
               </button>
+            </>
+          </Dialog>
+
+          <Dialog
+            open={openImport}
+            handler={handleOpenImport}
+            size="xs"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+          >
+            <>
+              <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
+                <strong>Importar trabajadores</strong>
+              </h2>
+              <p className="text-center mb-5 dark:text-white text-sm"> Recuerda que si ya esxiste el trabajador por RUT, no se creará nuevamente. Descarga el excel de ejemplo para subir los trabajadores <Link href="/assets/FormatoTrabajadores.xlsx" download className="underline font-semibold">aquí</Link></p>
+              <button
+                type="button"
+                onClick={handleOpenImport}
+                className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
+              >
+                <XMarkIcon className="text-white w-5 h-5" />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".xlsx, .xls"
+                style={{ display: "none" }} // Ocultar el input original
+                id="fileInput"
+                onChange={handleFileChange}
+              />
+
+              {file == null ? (
+                <label
+                  htmlFor="fileInput"
+                  className="cursor-pointer text-navy-900 underline dark:text-white text-center mb-5 w-full block"
+                >
+                  Seleccionar archivo
+                </label>
+              ) : (
+
+                <label
+                  htmlFor="fileInput"
+                  className="cursor-pointer text-navy-900 underline dark:text-white text-center mb-5 w-full block"
+                >
+                  Archivo seleccionado: {file.name}
+                </label>
+                
+              )}
+              <button
+                type="button"
+                onClick={handleFileUpload}
+                className={`bg-green-600 text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-3 hover:bg-green-700 ${file == null && "disabled:opacity-75"}`}
+                disabled={file == null}
+              >
+                <ArrowUpOnSquareIcon className="w-5 h-5" /> Subir archivo
+              </button>
+              {updateMessage && <p className={`text-center mt-5 ${updateMessage.includes("correctamente") ? "text-green-500" : "text-red-500"}`}>{updateMessage}</p>}
             </>
           </Dialog>
         </>

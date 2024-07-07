@@ -1,7 +1,5 @@
-"use client";
-
 import Image from "next/image";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { primaryMenu } from "@/app/data/dataMenu";
 import {
@@ -13,6 +11,7 @@ import { menu } from "@/app/api/LoginApi";
 const SidebarMenu = ({ pathname }) => {
   const [subItemsVisible, setSubItemsVisible] = useState(null);
   const [grandSonItemsVisible, setGrandSonItemsVisible] = useState(null);
+  const [menuData, setMenuData] = useState([]); // Estado para almacenar los datos del menú
 
   const isCurrentPage = (url) => {
     const currentUrl = pathname;
@@ -33,23 +32,23 @@ const SidebarMenu = ({ pathname }) => {
 
   const userDataString = sessionStorage.getItem("userData");
   const userData = JSON.parse(userDataString);
-  console.log("userDataString" ,userDataString);
-  console.log("userData" ,userData);
 
   useEffect(() => {
-    console.log("menuData");
     const fetchData = async () => {
-      try {
-        const menuData = await menu(userData.idCompany);
-        console.log("menuData");
-        console.log(menuData);
-
-      } catch (error) {
-        console.log("menuData");
-      }
+        try {
+            const menuData = await menu(2);
+            setMenuData(menuData); // Guarda los datos del menú en el estado
+        } catch (error) {
+            console.log("Error al obtener los datos del menú:", error);
+            // Puedes manejar el error aquí, por ejemplo, mostrando un mensaje al usuario
+        }
+    };
+    
+    if (userData.userId) {
+        fetchData();
     }
-    fetchData();
-  },[]);
+}, [userData.userId]);
+
 
   return (
     <>

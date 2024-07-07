@@ -44,28 +44,27 @@ export const auth = async (usr,pass) => {
 
 export const menu = async (id_company) => {
     try {
-
-        const res = await fetch(URLAPI + '/api/v1/getMenubyRol/' + id_company, 
-        {
+        const res = await fetch(`${URLAPI}/api/v1/getMenubyRol/${id_company}`, {
             method: "GET",
             headers: {
-              "Content-Type": "application/json",
-              "x-api-key": token,
+                "Content-Type": "application/json",
+                "x-api-key": token,
             },
             cache: "no-store",
         });
 
         if (res.ok) {
-            
             const menuData = await res.json();
-
             if (menuData.code === "OK") {
-                console.log("api" ,menuData.menus);
-              return menuData.menus;
+                return menuData.menus;
+            } else {
+                throw new Error(menuData.message || "Error al obtener los datos del menú.");
             }
+        } else {
+            throw new Error("Error en la solicitud al servidor.");
         }
-
     } catch (err) {
-        console.error(err);
+        console.error("Error en la función menu:", err);
+        throw err; // Propaga el error para manejarlo en el componente React
     }
-}
+};
