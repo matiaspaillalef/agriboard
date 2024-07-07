@@ -47,7 +47,6 @@ const CardTableCompany = ({
     formState: { errors },
   } = useForm();
 
-  console.log(data);
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);

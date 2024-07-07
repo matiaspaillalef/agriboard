@@ -215,7 +215,7 @@ const CardTableWorkers = ({
   };
 
   const handleOpenShowUser = (user) => {
-    console.log(user);
+    //console.log(user);
     setSelectedItem(user);
     setOpenShowUser(true);
     setSelectedRegion(user.state);

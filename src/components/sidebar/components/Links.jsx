@@ -59,9 +59,9 @@ const SidebarMenu = ({ pathname }) => {
     if (userData.userId) {
       fetchData();
     }
-  }, []);
+  }, [userData.userId]);
 
-  console.log(menuData);
+  //console.log(menuData);
 
   return (
     <>
