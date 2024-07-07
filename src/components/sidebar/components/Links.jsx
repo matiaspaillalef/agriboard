@@ -49,7 +49,7 @@ const SidebarMenu = ({ pathname }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const menuData = await menu(userData.userId);
+        const menuData = await menu(userData.rol);
         setMenuData(menuData);
       } catch (error) {
         console.log("Error al obtener los datos del menú:", error);
