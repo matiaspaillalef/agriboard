@@ -32,6 +32,7 @@ const CardTableUsers = ({
   downloadBtn,
   SearchInput,
   datoscombos,
+  datosCompanies,
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
@@ -105,6 +106,8 @@ const CardTableUsers = ({
         //console.log(data);
         //console.log(userDataWithoutPassword);
         let id_rol = data.menuRol;
+        let id_company = data.menuCompany;
+        console.log(id_company);
 
         datoscombos.forEach((value) => {
           if (value.id_rol == id_rol) {
@@ -112,6 +115,16 @@ const CardTableUsers = ({
               ...userDataWithoutPassword,
               menuRol: value.descripcion,
               id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
+            };
+          }
+        });
+
+        datosCompanies.forEach((value) => {
+          if (value.id == id_company) {
+            userDataWithoutPassword = {
+              ...userDataWithoutPassword,
+              menuCompany: value.name_company,
+              id_company: value.id, //Igual paso el id_company ya que es necesario para la actualización de datos
             };
           }
         });
@@ -180,6 +193,7 @@ const CardTableUsers = ({
         //let { userPassword, ...newUser } = data; // agregamos al fornt el nuevo usuario sin la password
 
         let id_rol = data.menuRol;
+        console.log(id_company);
 
         datoscombos.forEach((value) => {
           if (value.id_rol == id_rol) {
@@ -191,13 +205,23 @@ const CardTableUsers = ({
           }
         });
 
+        datosCompanies.forEach((value) => {
+          if (value.id == id_company) {
+            data = {
+              ...data,
+              menuCompany: value.name_company,
+              id_company: value.id, //Igual paso el id_company ya que es necesario para la actualización de datos
+            };
+          }
+        });
+
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
 
         //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
-        //console.log(newDataFetch);
+        console.log(newDataFetch);
         setInitialData(newDataFetch);
 
         setOpen(false);
@@ -705,6 +729,29 @@ const CardTableUsers = ({
                         return (
                           <option key={index} value={rol.id_rol}>
                             {rol.descripcion}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="menuCompany"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Empresa
+                    </label>
+                    <select
+                      name="menuCompany"
+                      id="menuCompany"
+                      {...register("menuCompany")}
+                      defaultValue={selectedUser ? (selectedUser.id_company ? selectedUser.id_company : selectedUser.menuCompany) : ""}
+                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                    >
+                      {datosCompanies.map((empresas, index) => {
+                        return (
+                          <option key={index} value={empresas.id}>
+                            {empresas.name_company}
                           </option>
                         );
                       })}
