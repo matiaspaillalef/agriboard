@@ -195,7 +195,7 @@ const CardTableCompany = ({
         setOpen(false);
         setUpdateMessage("Empresa creado correctamente");
       } else {
-        setUpdateMessage("Error al crear el empresa");
+        setUpdateMessage(createUserapi);
       }
     } catch (error) {
       console.error(error);

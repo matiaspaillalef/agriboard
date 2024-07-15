@@ -1,9 +1,16 @@
 import CardTableContractors from "@/components/card/CardTableContractors";
-import { getDataContractors } from "@/app/api/ConfiguracionApi";
+import { getDataContractors } from "@/app/api/ManagementPeople";
 
+//  AQUI NO PUDE MATI // 
+/*
+const userDataString = sessionStorage.getItem("userData");
+const userData = JSON.parse(userDataString);
+const idCompany = userData.idCompany;
+*/
 const PeopleManagementContractors = async () => {
   
-    const dataContractors = await getDataContractors();
+
+    const dataContractors = await getDataContractors(1);
     console.log(dataContractors);
   
     return (

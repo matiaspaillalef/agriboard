@@ -227,7 +227,7 @@ const CardTableUsers = ({
         setOpen(false);
         setUpdateMessage("Usuario creado correctamente");
       } else {
-        setUpdateMessage("Error al crear el usuario");
+        setUpdateMessage(createUserapi);
       }
     } catch (error) {
       console.error(error);

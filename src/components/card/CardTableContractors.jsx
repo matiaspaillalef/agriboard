@@ -19,7 +19,7 @@ import {
   updateContractor,
   createContractor,
   getDataContractors,
-} from "@/app/api/ConfiguracionApi";
+} from "@/app/api/ManagementPeople";
 
 import { ProvitionalCL } from "@/app/data/dataProvisionals";
 import Rut from "@/components/validateRUT";
@@ -177,6 +177,8 @@ const CardTableContractors = ({
     }
   };
 
+
+
   // Creación 
   const onSubmitForm = async (data) => {
     try {
@@ -189,8 +191,13 @@ const CardTableContractors = ({
 
         setInitialData(updatedData);
 
+        const userDataString = sessionStorage.getItem("userData");
+        const userData = JSON.parse(userDataString);
+        const idCompany = userData.idCompany;
+
+        console.log("user data" , userData);
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataContractors(); // Actualizar la lista de usuarios
+        const newDataFetch = await getDataContractors(idCompany); // Actualizar la lista de usuarios
         //console.log(newDataFetch);
         setInitialData(newDataFetch);
 
@@ -200,7 +207,7 @@ const CardTableContractors = ({
 
         setUpdateMessage("Contratista creado correctamente");
       } else {
-        setUpdateMessage("Error al crear al contratista");
+        setUpdateMessage(createContractorapi);
       }
     } catch (error) {
       console.error(error);

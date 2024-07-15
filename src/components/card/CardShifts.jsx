@@ -182,7 +182,7 @@ const CardTableShifts = ({
         setOpen(false);
         setUpdateMessage("Turno creado correctamente");
       } else {
-        setUpdateMessage("Error al crear el turno");
+        setUpdateMessage(createShiftapi);
       }
     } catch (error) {
       console.error(error);

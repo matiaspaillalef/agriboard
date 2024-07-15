@@ -161,7 +161,7 @@ const CardTablePositions = ({
         setOpen(false);
         setUpdateMessage("Cargo creado correctamente");
       } else {
-        setUpdateMessage("Error al crear el cargo");
+        setUpdateMessage(createPositionapi);
       }
     } catch (error) {
       console.error(error);

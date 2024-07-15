@@ -330,7 +330,7 @@ const CardTableWorkers = ({
 
         setUpdateMessage("Trabajador creado correctamente");
       } else {
-        setUpdateMessage("Error al crear al trabajador");
+        setUpdateMessage(createWorkerapi);
       }
     } catch (error) {
       console.error(error);

@@ -279,7 +279,7 @@ const CardTableSquads = ({
         setOpen(false);
         setUpdateMessage("cuadrilla creada correctamente");
       } else {
-        setUpdateMessage("Error al crear el cuadrilla");
+        setUpdateMessage(createSquadapi);
       }
     } catch (error) {
       console.error(error);

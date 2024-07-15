@@ -161,7 +161,7 @@ const CardTableGroups = ({
         setOpen(false);
         setUpdateMessage("Grupo creado correctamente");
       } else {
-        setUpdateMessage("Error al crear el grupo");
+        setUpdateMessage(createGroupapi);
       }
     } catch (error) {
       console.error(error);
