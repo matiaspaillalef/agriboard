@@ -222,6 +222,7 @@ export const createCompany = async (data) => {
           "x-api-key": token,
         },
         body: JSON.stringify({
+          logo: data.logo,
           name_company: data.name_company,
           rut: data.rut,
           giro: data.giro,
@@ -269,6 +270,7 @@ export const updateCompany = async (data) => {
         },
         body: JSON.stringify({
           id: data.id,
+          logo: data.logo,
           name_company: data.name_company,
           rut: data.rut,
           giro: data.giro,
