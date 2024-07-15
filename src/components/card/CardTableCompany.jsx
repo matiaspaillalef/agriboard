@@ -6,7 +6,14 @@ import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
-import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  XMarkIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
+import Image from "next/image";
+import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
+import uploadCloud from "@/assets/img/generic/upload-cloud.jpg";
 import {
   Button,
   Dialog,
@@ -67,6 +74,9 @@ const CardTableCompany = ({
   const [rut, setRut] = useState("");
   const [rutValido, setRutValido] = useState(false);
 
+  const [file, setFile] = useState(null);
+  const [imagenUsuario, setImagenUsuario] = useState(null);
+
   const handleRegionChange = (event) => {
     const region = event.target.value;
     setSelectedRegion(region);
@@ -98,6 +108,9 @@ const CardTableCompany = ({
     name_company: "",
   });
 
+  const fileInputRef = useRef(null);
+  const [itemImages, setItemImages] = useState({});
+
   const handleOpenNewUser = () => {
     setIsEdit(false);
     handleOpen();
@@ -115,30 +128,80 @@ const CardTableCompany = ({
   const handleOpen = (user) => {
     reset();
     setSelectedItem(user); // Actualiza el estado con los datos del usuario seleccionado
+    setFile(null); // Reinicia el archivo seleccionado
     setOpen(!open);
   };
 
   const onUpdateItem = async (data) => {
-    //console.log("Datos de la empresa a actualizar:", data);
-    try {
-      const updateCompanyApi = await updateCompany(data);
 
-      // Elimina la fila del front-end
-      if (updateCompanyApi === "OK") {
-        const updatedData = initialData.map((item) =>
-          item.id == data.id ? { ...data } : item
-        );
+    let logoPath = selectedItem.logo; // Conservar la imagen existente
 
-        setInitialData(updatedData);
-        setUpdateMessage("Empresa actualizada correctamente");
-        setOpen(false);
-      } else {
-        setUpdateMessage("No se pudo actualizar la empresa");
+    if (file) {
+      try {
+        const formDataFile = new FormData();
+        formDataFile.set("logo", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formDataFile,
+        });
+
+        if (!res.ok) {
+          const errorMessage = await res.text();
+          throw new Error(`Error al subir el archivo: ${errorMessage}`);
+        }
+
+        const dataLogo = await res.json();
+        logoPath = dataLogo.path; // Actualiza el logo solo si se ha subido uno nuevo
+      } catch (error) {
+        console.error(error);
+        setUpdateMessage("Error al intentar subir la imagen");
+        return; // Salir si hay un error en la carga
       }
-    } catch (error) {
-      console.error(error);
-      // Manejo de errores
-      setUpdateMessage("Error al intentar actualizar la empresa");
+    }
+
+    const updatedDataLogo = {
+      ...data,
+      logo: logoPath, // Usa la imagen existente o la nueva
+    };
+
+    // Asegúrate de que todos los campos requeridos estén presentes
+    const requiredFields = [
+      "name_company",
+      "rut",
+      "giro",
+      "state",
+      "city",
+      "address",
+      "phone",
+      "web",
+      "compensation_box",
+      "legal_representative_name",
+      "legal_representative_rut",
+      "legal_representative_phone",
+      "legal_representative_email",
+      "status",
+    ];
+
+    for (const field of requiredFields) {
+      if (!updatedDataLogo[field]) {
+        throw new Error(`Falta el campo: ${field}`);
+      }
+    }
+
+    const updateCompanyApi = await updateCompany(updatedDataLogo);
+
+    // Elimina la fila del front-end
+    if (updateCompanyApi === "OK") {
+      const updatedData = initialData.map((item) =>
+        item.id == data.id ? { ...item, ...updatedDataLogo } : item
+      );
+
+      setInitialData(updatedData);
+      setUpdateMessage("Empresa actualizada correctamente");
+      setOpen(false);
+    } else {
+      setUpdateMessage("No se pudo actualizar la empresa");
     }
   };
 
@@ -176,30 +239,109 @@ const CardTableCompany = ({
     }
   };
 
+  const handleImagenChange = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      setImagenUsuario(reader.result);
+    };
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onClickFileInput = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFile(file);
+        setItemImages((prevState) => ({
+          ...prevState,
+          ...(selectedItem && { [selectedItem.id]: reader.result }), // Verifica que selectedItem esté definido antes de acceder a id
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Creación de empresa
   const onSubmitForm = async (data) => {
+    if (!file) {
+      console.error("No se ha seleccionado ningún archivo");
+      return;
+    }
+
     try {
-      const createUserapi = await createCompany(data);
+      //Consultamos la carga de imagen (logo empresa)
+      const formDataFile = new FormData();
+      formDataFile.set("logo", file);
 
-      // Agrega la fila del front-end
-      if (createUserapi == "OK") {
-        const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formDataFile,
+      });
 
+      if (!res.ok) {
+        const errorMessage = await res.text();
+        throw new Error(`Error al subir el archivo: ${errorMessage}`);
+      }
+
+      const dataLogo = await res.json();
+
+      const updatedDataLogo = {
+        ...data,
+        logo: dataLogo.path,
+      };
+
+      // Asegúrate de que todos los campos requeridos estén presentes
+      const requiredFields = [
+        "name_company",
+        "rut",
+        "giro",
+        "state",
+        "city",
+        "address",
+        "phone",
+        "web",
+        "compensation_box",
+        "legal_representative_name",
+        "legal_representative_rut",
+        "legal_representative_phone",
+        "legal_representative_email",
+        "status",
+      ];
+
+      for (const field of requiredFields) {
+        if (!updatedDataLogo[field]) {
+          throw new Error(`Falta el campo: ${field}`);
+        }
+      }
+
+      const createUserapi = await createCompany(updatedDataLogo);
+
+      if (createUserapi === "OK") {
+        const updatedData = [...initialData, updatedDataLogo];
         setInitialData(updatedData);
 
-        //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataCompanies(); // Actualizar la lista de usuarios
-        //console.log(newDataFetch);
+        const newDataFetch = await getDataCompanies();
         setInitialData(newDataFetch);
 
         setOpen(false);
-        setUpdateMessage("Empresa creado correctamente");
+        setUpdateMessage("Empresa creada correctamente");
       } else {
-        setUpdateMessage(createUserapi);
+        setUpdateMessage("Error al crear la empresa");
       }
     } catch (error) {
-      console.error(error);
-      // Manejo de errores
+      console.error("Error en el proceso:", error);
+      setUpdateMessage("Ocurrió un error durante la operación");
     }
   };
 
@@ -384,7 +526,6 @@ const CardTableCompany = ({
                         >
                           <div className="text-base font-medium text-navy-700 dark:text-white">
                             {key === "status" ? (
-                              //console.log(key),
                               row[key] == 1 ? (
                                 <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3">
                                   Activo
@@ -449,7 +590,6 @@ const CardTableCompany = ({
                           id="remove"
                           type="button"
                           onClick={() => {
-                            //console.log(row);
                             handleOpenAlert(
                               index,
                               row.id,
@@ -551,7 +691,7 @@ const CardTableCompany = ({
             </div>
           </div>
 
-        <Dialog
+          <Dialog
             open={open}
             handler={handleOpen}
             size="xs"
@@ -591,6 +731,65 @@ const CardTableCompany = ({
                   {...register("id")}
                   defaultValue={selectedItem ? selectedItem.id : ""}
                 />
+                <div
+                  className={`mb-3 grid gap-3 ${
+                    isEdit
+                      ? "grid-cols-2 lg:grid-cols-2"
+                      : "grid-cols-12 lg:grid-cols-2"
+                  } `}
+                >
+                  <div className="flex flex-col gap-3">
+                    <div className="relative max-h-[150px] max-w-[150px]">
+                      <Image
+                        src={
+                          selectedItem && itemImages[selectedItem.id]
+                            ? itemImages[selectedItem.id]
+                            : selectedItem?.logo
+                            ? `/${selectedItem.logo.replace("public/", "")}`
+                            : isEdit
+                            ? LogoNormal
+                            : (file && URL.createObjectURL(file)) || uploadCloud
+                        }
+                        width={200}
+                        height={200}
+                        className="rounded-xl border border-gray-200 dark:border-white/10 dark:bg-white min-h-[150px] min-w-[150px] object-contain p-4"
+                        alt="Logo"
+                      />
+
+                      <button
+                        type="button"
+                        className="absolute right-[10px] top-3 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md p-1"
+                        //onChange={handleFileChange}
+                        onClick={onClickFileInput}
+                      >
+                        <PencilSquareIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex-col gap-3 hidden">
+                    <label
+                      htmlFor="logo"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Logo
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        name="logo"
+                        required={false}
+                        id="logo"
+                        {...register("logo")}
+                        ref={fileInputRef}
+                        accept="image/*"
+                        //defaultValue={selectedItem ? selectedItem.logo : ""}
+                        onChange={(e) => handleFileChange(e)}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                </div>
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <div className="flex flex-col gap-3 ">
                     <label
@@ -836,30 +1035,29 @@ const CardTableCompany = ({
                       RUT R. Legal
                     </label>
                     <div className="relative">
-                    <Rut
-                      //value={rut}
-                      onChange={(e) => setRut(e.target.value)}
-                      onValid={setRutValido}
-                    >
-                     <input
-                        type="text"
-                        name="legal_representative_rut"
-                        id="legal_representative_rut"
-                        {...register("legal_representative_rut")}
-                        defaultValue={
-                          selectedItem
-                            ? selectedItem.legal_representative_rut
-                            : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </Rut>
-                    {!rutValido && (
-                      <span className="text-red-500 text-xs">
-                        El rut es inválido
-                      </span>
-                    )}
-                      
+                      <Rut
+                        //value={rut}
+                        onChange={(e) => setRut(e.target.value)}
+                        onValid={setRutValido}
+                      >
+                        <input
+                          type="text"
+                          name="legal_representative_rut"
+                          id="legal_representative_rut"
+                          {...register("legal_representative_rut")}
+                          defaultValue={
+                            selectedItem
+                              ? selectedItem.legal_representative_rut
+                              : ""
+                          }
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                        />
+                      </Rut>
+                      {!rutValido && (
+                        <span className="text-red-500 text-xs">
+                          El rut es inválido
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

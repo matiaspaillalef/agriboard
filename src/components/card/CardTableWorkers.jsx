@@ -330,7 +330,7 @@ const CardTableWorkers = ({
 
         setUpdateMessage("Trabajador creado correctamente");
       } else {
-        setUpdateMessage(createWorkerapi);
+        setUpdateMessage("Error al crear al trabajador");
       }
     } catch (error) {
       console.error(error);
@@ -1272,7 +1272,7 @@ const CardTableWorkers = ({
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
                 <strong>Importar trabajadores</strong>
               </h2>
-              <p className="text-center mb-5 dark:text-white text-sm"> Recuerda que si ya esxiste el trabajador por RUT, no se creará nuevamente. Descarga el excel de ejemplo para subir los trabajadores <Link href="/assets/FormatoTrabajadores.xlsx" download className="underline font-semibold">aquí</Link></p>
+              <p className="text-center mb-5 dark:text-white text-sm"> Recuerda que si ya esxiste el trabajador por RUT, no se creará nuevamente. Descarga el excel de ejemplo para subir los trabajadores <Link href="../../../public/template-trabajadores-agrisoft.xlsx" download className="underline font-semibold">aquí</Link></p>
               <button
                 type="button"
                 onClick={handleOpenImport}
