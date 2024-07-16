@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
   PlusIcon,
@@ -53,6 +53,8 @@ const CardTableCompany = ({
     reset,
     formState: { errors },
   } = useForm();
+
+  console.log(errors);
 
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
@@ -275,13 +277,16 @@ const CardTableCompany = ({
   // Creación de empresa
   const onSubmitForm = async (data) => {
     if (!file) {
-      console.error("No se ha seleccionado ningún archivo");
+      setUpdateMessage("No se ha seleccionado ningún archivo");
+      //setFile('/public/uploads/agrisoft_logo.png');
+      //console.error("No se ha seleccionado ningún archivo");
       return;
     }
 
     try {
       //Consultamos la carga de imagen (logo empresa)
       const formDataFile = new FormData();
+      console.log('fileeeee',file);
       formDataFile.set("logo", file);
 
       const res = await fetch("/api/upload", {
@@ -373,7 +378,8 @@ const CardTableCompany = ({
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
   };
 
-  const totalPages = Math.ceil(initialData.length / itemsPerPage);
+const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPage);
+
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -778,7 +784,6 @@ const CardTableCompany = ({
                       <input
                         type="file"
                         name="logo"
-                        required={false}
                         id="logo"
                         {...register("logo")}
                         ref={fileInputRef}
@@ -803,12 +808,11 @@ const CardTableCompany = ({
                       name="name_company"
                       id="name_company"
                       required={true}
-                      defaultValue={
-                        selectedItem ? selectedItem.name_company : ""
-                      }
                       {...register("name_company")}
+                      defaultValue={selectedItem ? selectedItem.name_company : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
+
                   </div>
                   <div className="flex flex-col gap-3">
                     <label
@@ -951,10 +955,11 @@ const CardTableCompany = ({
                         type="tel"
                         name="phone"
                         id="phone"
-                        {...register("phone")}
-                        defaultValue={selectedItem ? selectedItem.phone : ""}
+                        {...register("phone", {required: true})}
+                        defaultValue={selectedItem ? selectedItem.phone : formData.phone}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
                       />
+                
                     </div>
                   </div>
                   <div className="flex flex-col gap-3">

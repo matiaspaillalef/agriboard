@@ -574,13 +574,12 @@ const CardTablePositions = ({
                       type="text"
                       name="name"
                       id="name"
-                      required={true}
-                      defaultValue={
-                        selectedItem ? selectedItem.name : ""
-                      }
-                      {...register("name")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      {...register("name", { required: true })}
+                      defaultValue={isEdit ? formData.name : ""}
+                      className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${errors.name && 'border-red-500'}`}
                     />
+                    {errors.name && <span className="text-red-500 text-xs mt-0 leading-none">Este campo es requerido</span>}
+
                   </div>
                 </div>
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
