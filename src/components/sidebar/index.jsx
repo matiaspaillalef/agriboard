@@ -60,7 +60,7 @@ const Sidebar = ({ open, onClose }) => {
           </div>
         </div>
 
-        {dataCompanies.length > 0 && (
+        {dataCompanies && dataCompanies.length > 0 && (
           <div className="px-8">
             <label className="block text-sm font-medium text-gray-600 dark:text-white mb-2">
               Empresas
