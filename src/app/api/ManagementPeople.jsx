@@ -13,7 +13,7 @@ const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
 
 export const getDataContractors = async (id_company) => {
     try {
-        console.log("id_company" , id_company);
+        //console.log("id_company" , id_company);
         const res = await fetch(
             URLAPI + `/api/v1/management-people/contractors/getContractors/${id_company}`,
             {

@@ -47,8 +47,7 @@ const CardTableContractors = ({
     formState: { errors },
   } = useForm();
 
-
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState();
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -67,6 +66,15 @@ const CardTableContractors = ({
 
   const [rut, setRut] = useState("");
   const [rutValido, setRutValido] = useState(false);
+
+  //Para cargar los datos de lado del cliente
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setInitialData(data);
+    }
+  }, [data]);
+
+  console.log("initialData", initialData);
 
   const handleRegionChange = (event) => {
     const region = event.target.value;
@@ -121,13 +129,28 @@ const CardTableContractors = ({
   };
 
   const onUpdateItem = async (data) => {
+    console.log(data);
     try {
       const updateContractorApi = await updateContractor(data);
 
       // Elimina la fila del front-end
       if (updateContractorApi === "OK") {
+
+        //Al momento de actualizar y el array lo estaba mandando de otra forma, se debe hacer un map para actualizar el array de forma correcta
         const updatedData = initialData.map((item) =>
-          item.id == data.id ? { ...data } : item
+          item.id == data.id
+            ? {
+                rut: data.rut,
+                name: data.name,
+                lastname: data.lastname,
+                giro: data.giro,
+                phone: data.phone,
+                email: data.email,
+                state: data.state,
+                city: data.city,
+                status: data.status,
+              }
+            : item
         );
 
         setInitialData(updatedData);
@@ -150,7 +173,7 @@ const CardTableContractors = ({
 
   const handleCloseAlert = () => {
     setOpenAlert(false);
-    setItemToDelete({ index: null, id: null, name: "", lastname: ""});
+    setItemToDelete({ index: null, id: null, name: "", lastname: "" });
   };
 
   const handlerRemove = async () => {
@@ -168,7 +191,9 @@ const CardTableContractors = ({
         setOpenAlert(false);
         setUpdateMessage("Contratista eliminado correctamente");
       } else {
-        setUpdateMessage("Error al eliminar al contratista. Inténtalo nuevamente.");
+        setUpdateMessage(
+          "Error al eliminar al contratista. Inténtalo nuevamente."
+        );
       }
     } catch (error) {
       console.error(error);
@@ -177,9 +202,7 @@ const CardTableContractors = ({
     }
   };
 
-
-
-  // Creación 
+  // Creación
   const onSubmitForm = async (data) => {
     try {
       const createContractorapi = await createContractor(data);
@@ -195,15 +218,13 @@ const CardTableContractors = ({
         const userData = JSON.parse(userDataString);
         const idCompany = userData.idCompany;
 
-        console.log("user data" , userData);
+        console.log("user data", userData);
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataContractors(idCompany); // Actualizar la lista de usuarios
         //console.log(newDataFetch);
         setInitialData(newDataFetch);
 
         setOpen(false);
-
-
 
         setUpdateMessage("Contratista creado correctamente");
       } else {
@@ -571,7 +592,7 @@ const CardTableContractors = ({
             </div>
           </div>
 
-        <Dialog
+          <Dialog
             open={open}
             handler={handleOpen}
             size="xs"
@@ -835,7 +856,7 @@ const CardTableContractors = ({
           >
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
-                ¿Seguro que desea eliminar al contratista {" "}
+                ¿Seguro que desea eliminar al contratista{" "}
                 <strong className="font-bold">
                   {itemToDelete.name + " " + itemToDelete.lastname}
                 </strong>

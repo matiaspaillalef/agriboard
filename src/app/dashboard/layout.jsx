@@ -22,6 +22,7 @@ const RootLayout = ({ children }) => {
       window.innerWidth < 1200 ? setOpen(false) : setOpen(true)
     );
   }, [open]);
+  
 
   return (
     <div className="flex h-full w-full">
