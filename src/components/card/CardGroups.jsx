@@ -19,7 +19,7 @@ import {
   updateGroup,
   createGroup,
   getDataGroups,
-} from "@/app/api/ConfiguracionApi";
+} from "@/app/api/ManagementPeople";
 
 const CardTableGroups = ({
   data,
@@ -43,8 +43,8 @@ const CardTableGroups = ({
     formState: { errors },
   } = useForm();
 
-  console.log(data);
-  const [initialData, setInitialData] = useState(data);
+  
+  const [initialData, setInitialData] = useState();
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -65,6 +65,15 @@ const CardTableGroups = ({
     id: null,
     name: "",
   });
+
+    //Para cargar los datos de lado del cliente
+    useEffect(() => {
+      if (data && data.length > 0) {
+        setInitialData(data);
+      }
+    }, [data]);
+  
+    console.log("initialData", initialData);
 
   const handleOpenNewUser = () => {
     setIsEdit(false);
@@ -91,8 +100,15 @@ const CardTableGroups = ({
 
       // Elimina la fila del front-end
       if (updateGroupApi === "OK") {
+
         const updatedData = initialData.map((item) =>
-          item.id == data.id ? { ...data } : item
+          item.id == data.id
+            ? {
+              id: data.id,
+              name: data.name,
+              status: data.status,
+            }
+            : item
         );
 
         setInitialData(updatedData);
@@ -154,8 +170,12 @@ const CardTableGroups = ({
 
         setInitialData(updatedData);
 
+        const userDataString = sessionStorage.getItem("userData");
+        const userData = JSON.parse(userDataString);
+        const idCompany = userData.idCompany;
+
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataGroups(); 
+        const newDataFetch = await getDataGroups(idCompany); 
 
         setInitialData(newDataFetch);
         setOpen(false);

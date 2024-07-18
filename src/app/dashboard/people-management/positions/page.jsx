@@ -1,11 +1,34 @@
-import CardTablePositions from "@/components/card/cardPositions";
-import { getDataPositions } from "@/app/api/ConfiguracionApi";
+'use client'
 
-const PeopleManagementPositions = async () => {
+import CardTablePositions from "@/components/card/cardPositions";
+import { getDataPositions } from "@/app/api/ManagementPeople";
+import { useEffect, useState } from "react";
+
+const PeopleManagementPositions = () => {
   
-    const dataPositions = await getDataPositions();
-    //console.log(dataPositions);
+  const [dataPositions, setDataPositions] = useState([]);
   
+  useEffect(() => {
+    // Obtener userData desde sessionStorage
+    const userDataString = sessionStorage.getItem("userData");
+    const userData = JSON.parse(userDataString);
+    const idCompany = userData.idCompany;
+    console.log(idCompany);
+    
+    // Obtener datos de contratistas usando idCompany
+    const fetchData = async () => {
+      try {
+        const data = await getDataPositions(idCompany);
+        console.log(data);
+        setDataPositions(data);
+      } catch (error) {
+        console.error("Error al obtener registros:", error);
+      }
+    };
+    
+    fetchData();
+  }, []);
+
     return (
       <>
         <div className="flex w-full flex-col gap-5 mt-3">

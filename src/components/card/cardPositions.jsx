@@ -19,7 +19,7 @@ import {
   updatePosition,
   createPosition,
   getDataPositions,
-} from "@/app/api/ConfiguracionApi";
+} from "@/app/api/ManagementPeople";
 
 const CardTablePositions = ({
   data,
@@ -43,8 +43,7 @@ const CardTablePositions = ({
     formState: { errors },
   } = useForm();
 
-  console.log(data);
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState();
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -65,6 +64,13 @@ const CardTablePositions = ({
     id: null,
     name: "",
   });
+
+  //Para cargar los datos de lado del cliente
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setInitialData(data);
+    }
+  }, [data]);
 
   const handleOpenNewUser = () => {
     setIsEdit(false);
@@ -91,15 +97,26 @@ const CardTablePositions = ({
 
       // Elimina la fila del front-end
       if (updatePositionApi === "OK") {
+
+
         const updatedData = initialData.map((item) =>
-          item.id == data.id ? { ...data } : item
+          item.id == data.id
+            ? {
+              id: data.id,
+              name: data.name,
+              status: data.status,
+            }
+            : item
         );
 
         setInitialData(updatedData);
         setUpdateMessage("Cargo actualizada correctamente");
         setOpen(false);
+
       } else {
+
         setUpdateMessage("No se pudo actualizar el cargo");
+
       }
     } catch (error) {
       console.error(error);
@@ -115,7 +132,7 @@ const CardTablePositions = ({
 
   const handleCloseAlert = () => {
     setOpenAlert(false);
-    setItemToDelete({ index: null, id: null, name : "" });
+    setItemToDelete({ index: null, id: null, name: "" });
   };
 
   const handlerRemove = async () => {
@@ -154,8 +171,12 @@ const CardTablePositions = ({
 
         setInitialData(updatedData);
 
+        const userDataString = sessionStorage.getItem("userData");
+        const userData = JSON.parse(userDataString);
+        const idCompany = userData.idCompany;
+
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataPositions(); 
+        const newDataFetch = await getDataPositions(idCompany);
 
         setInitialData(newDataFetch);
         setOpen(false);
@@ -231,9 +252,8 @@ const CardTablePositions = ({
 
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -261,9 +281,8 @@ const CardTablePositions = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -324,9 +343,8 @@ const CardTablePositions = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -361,11 +379,10 @@ const CardTablePositions = ({
                         <td
                           key={rowIndex}
                           role="cell"
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                            index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
-                          } ${columnsClasses[rowIndex] || "text-left"}`}
+                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
+                            } ${columnsClasses[rowIndex] || "text-left"}`}
                         >
                           <div className="text-base font-medium text-navy-700 dark:text-white">
                             {key === "status" ? (
@@ -380,7 +397,7 @@ const CardTablePositions = ({
                                 </p>
                               )
                             ) :
-                            formatNumber(row[key])
+                              formatNumber(row[key])
                             }
                           </div>
                         </td>
@@ -389,11 +406,10 @@ const CardTablePositions = ({
                     {actions && (
                       <td
                         colSpan={columnLabels.length}
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                        }`}
+                        className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
+                          ? "bg-lightPrimary dark:bg-navy-900"
+                          : ""
+                          }`}
                       >
                         <button
                           type="button"
@@ -463,9 +479,8 @@ const CardTablePositions = ({
             <div className="flex items-center gap-5">
               <button
                 type="button"
-                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                  currentPage === 1 && "hidden"
-                }`}
+                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                  }`}
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
@@ -488,11 +503,10 @@ const CardTablePositions = ({
                 <button
                   key={page}
                   type="button"
-                  className={`${
-                    currentPage === page
-                      ? "font-semibold text-navy-500 dark:text-navy-300"
-                      : ""
-                  }`}
+                  className={`${currentPage === page
+                    ? "font-semibold text-navy-500 dark:text-navy-300"
+                    : ""
+                    }`}
                   onClick={() => handlePageChange(page)}
                 >
                   {page}
@@ -522,7 +536,7 @@ const CardTablePositions = ({
             </div>
           </div>
 
-        <Dialog
+          <Dialog
             open={open}
             handler={handleOpen}
             size="xs"

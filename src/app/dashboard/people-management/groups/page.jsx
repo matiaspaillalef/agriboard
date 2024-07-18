@@ -1,10 +1,32 @@
-import CardTableGroups from "@/components/card/CardGroups";
-import { getDataGroups } from "@/app/api/ConfiguracionApi";
+'use client'
 
-const PeopleManagementGroups = async () => {
+import CardTableGroups from "@/components/card/CardGroups";
+import { getDataGroups } from "@/app/api/ManagementPeople";
+import { useEffect, useState } from "react";
+
+const PeopleManagementGroups =  () => {
   
-    const dataGroups = await getDataGroups();
-    //console.log(dataGroups);
+  const [dataGroups, setDataGroups] = useState([]);
+  
+  useEffect(() => {
+    // Obtener userData desde sessionStorage
+    const userDataString = sessionStorage.getItem("userData");
+    const userData = JSON.parse(userDataString);
+    const idCompany = userData.idCompany;
+    
+    // Obtener datos de contratistas usando idCompany
+    const fetchData = async () => {
+      try {
+        const data = await getDataGroups(idCompany);
+        
+        setDataGroups(data);
+      } catch (error) {
+        console.error("Error al obtener registros: ", error);
+      }
+    };
+    
+    fetchData();
+  }, []);
   
     return (
       <>
