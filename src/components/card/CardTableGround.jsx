@@ -32,7 +32,7 @@ import { ProvitionalCL } from "@/app/data/dataProvisionals";
 import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
 
-const CardTableCompany = ({
+const CardTableGround = ({
   data,
   thead,
   columnsClasses = [],
@@ -53,6 +53,8 @@ const CardTableCompany = ({
     reset,
     formState: { errors },
   } = useForm();
+
+  console.log(errors);
 
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
@@ -1184,4 +1186,4 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
   );
 };
 
-export default CardTableCompany;
+export default CardTableGround;

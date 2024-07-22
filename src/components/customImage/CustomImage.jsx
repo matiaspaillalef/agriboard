@@ -1,34 +1,37 @@
-'use client'
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
-import LogoDark from "@/assets/img/layout/agrisoft_logo_dark.png";
 import { getDataCompanies } from "@/app/api/ConfiguracionApi";
-
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 
-function CustomImage ({ imagenPorDefecto }) {
+function CustomImage ({ companyID }) {
   const [imagenUsuario, setImagenUsuario] = useState(null);
   const [company, setCompany] = useState(null);
-
-  const userDataString = sessionStorage.getItem("userData");
-  const userData = JSON.parse(userDataString);
 
   useEffect(() => {
     const fetchCompany = async () => {
       try {
         const dataCompanies = await getDataCompanies();
-        const data = dataCompanies.find((company) => company.id === userData.idCompany);
-        data.logo && setImagenUsuario('/' + data.logo.replace("public/", ""));
-        setCompany(data);
+        console.log("Datos de empresas:", dataCompanies);
+        const data = dataCompanies.find((company) => company.id === parseInt(companyID, 10));
+        console.log("Empresa seleccionada:", data);
+        if (data && data.logo) {
+          setImagenUsuario('/' + data.logo.replace("public/", ""));
+          setCompany(data);
+        } else {
+          setImagenUsuario(null); // O una imagen por defecto si prefieres
+        }
       } catch (error) {
-        console.error("Error fetching company:", error);
+        console.error("Error al obtener la empresa:", error);
       }
     };
 
-    fetchCompany();
-  }, );
+    if (companyID) {
+      fetchCompany();
+    }
+  }, [companyID]);
 
   const handleImagenChange = (event) => {
     const file = event.target.files[0];

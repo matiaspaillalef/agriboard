@@ -82,20 +82,22 @@ const SidebarMenu = ({ pathname }) => {
                 <button
                   onClick={() => toggleSubItemsVisibility(menuItem.id)}
                   className={`flex cursor-pointer items-center w-full pb-2 px-8 ${
-                    isCurrentPage(menuItem.url) ? "active " : "no-active"
+                    isCurrentPage(menuItem.url) ? "active bg-blueQuinary !py-4 rounded-md mb-2" : "no-active"
                   }`}
                 >
                   <span
-                    className={`font-medium text-gray-600 ${
+                    className={`font-medium text-blueQuinary ${
                       subItemsVisible === menuItem.id &&
-                      "text-navy-700 dark:text-white"
+                      "text-white dark:text-white"
                     }`}
                   >
-                    <IconComponent className="w-6 h-6" />
+                    <IconComponent className={`w-6 h-6 ${
+                    isCurrentPage(menuItem.url) ? "text-white" : (subItemsVisible === menuItem.id && "text-blueQuinary")
+                  }`}/>
                   </span>
                   <p
-                    className={`leading-1 flex justify-between items-center ms-4 font-medium text-gray-600 w-full text-sm text-left hover:text-navy-700 ${
-                      isCurrentPage(menuItem.url) && "text-navy-700"
+                    className={`leading-1 flex justify-between items-center ms-4 font-medium text-white w-full text-sm text-left hover:text-blueQuinary ${
+                      isCurrentPage(menuItem.url) && "text-navy-700 hover:!text-white"
                     } ${
                       subItemsVisible === menuItem.id &&
                       "text-navy-700 dark:text-white"
@@ -105,7 +107,7 @@ const SidebarMenu = ({ pathname }) => {
                     <ChevronDownIcon
                       className={`w-4 h-4 ml-1 ${
                         subItemsVisible === menuItem.id &&
-                        "text-navy-700 dark:text-white"
+                        "text-white dark:text-white"
                       }`}
                     />
                   </p>
@@ -115,7 +117,7 @@ const SidebarMenu = ({ pathname }) => {
                 </button>
 
                 {subItemsVisible === menuItem.id && menuItem.children && (
-                  <ul className="px-1 rounded-[8px] bg-lightPrimary bg-clip-border shadow-3xl shadow-shadow-500 dark:bg-navy-900 dark:text-white dark:shadow-none items-center p-5">
+                  <ul className="px-1 rounded-[8px] bg-navy-900 bg-clip-border shadow-3xl shadow-shadow-500 dark:bg-navy-900 dark:text-white dark:shadow-none items-center p-5">
                     {menuItem.children.map((subItem) => (
                       <li
                         key={subItem.id}
@@ -134,9 +136,9 @@ const SidebarMenu = ({ pathname }) => {
                               className="flex cursor-pointer items-center w-full pb-2 px-8"
                             >
                               <p
-                                className={`leading-1 flex justify-between items-center font-medium text-gray-600 w-full text-sm text-left hover:text-navy-700 ${
+                                className={`leading-1 flex justify-between items-center font-medium text-white w-full text-sm text-left hover:text-blueQuinary ${
                                   grandSonItemsVisible === subItem.id &&
-                                  "text-navy-700 dark:text-white"
+                                  "text-blueQuinary dark:text-white"
                                 }`}
                               >
                                 {subItem.name}{" "}
@@ -146,7 +148,7 @@ const SidebarMenu = ({ pathname }) => {
 
                             {grandSonItemsVisible === subItem.id &&
                               subItem.children && (
-                                <ul className="px-10 rounded-[8px] bg-lightPrimary bg-clip-border dark:bg-navy-900 dark:text-white dark:shadow-none items-center ">
+                                <ul className="px-10 rounded-[8px] bg-navy-800 bg-clip-border dark:bg-navy-900 dark:text-white dark:shadow-none items-center ">
                                   {subItem.children.map((grandSonItem) => (
                                     <li
                                       key={grandSonItem.id}
@@ -154,9 +156,9 @@ const SidebarMenu = ({ pathname }) => {
                                     >
                                       <Link
                                         href={grandSonItem.url}
-                                        className={`text-sm text-gray-700 hover:text-navy-700 dark:hover:text-white ${
+                                        className={`text-sm text-white hover:text-blueQuinary dark:hover:text-blueQuinary ${
                                           isCurrentPage(grandSonItem.url)
-                                            ? "font-semibold text-navy-700 dark:text-white"
+                                            ? "font-semibold !text-blueQuinary dark:text-white"
                                             : ""
                                         }`}
                                       >
@@ -173,9 +175,9 @@ const SidebarMenu = ({ pathname }) => {
                         ) : (
                           <Link
                             href={subItem.url}
-                            className={`flex cursor-pointer items-center w-full pb-2 px-8 text-sm text-left font-medium text-gray-600 hover:text-navy-700 ${
+                            className={`flex cursor-pointer items-center w-full pb-2 px-8 text-sm text-left font-medium text-white hover:text-blueQuinary ${
                               isCurrentPage(subItem.url)
-                                ? "font-semibold text-navy-700 dark:text-white"
+                                ? "font-semibold !text-blueQuinary dark:text-white"
                                 : ""
                             }`}
                           >
@@ -191,18 +193,18 @@ const SidebarMenu = ({ pathname }) => {
               <Link
                 href={menuItem.url}
                 className={`flex hover:cursor-pointer items-center px-8 ${
-                  isCurrentPage(menuItem.url) ? "active " : "no-active"
+                  isCurrentPage(menuItem.url) ? "active bg-blueQuinary py-4 rounded-md" : "no-active"
                 }`}
               >
                 <span
-                  className={`font-medium text-gray-600 ${
-                    isCurrentPage(menuItem.url) && "text-navy-700"
+                  className={`font-medium text-blueQuinary ${
+                    isCurrentPage(menuItem.url) && "text-white"
                   }`}
                 >
                   <IconComponent className="w-6 h-6" />
                 </span>
                 <p
-                  className={`leading-1 flex ms-4 font-medium text-gray-600 text-sm text-left hover:text-navy-700 ${
+                  className={`leading-1 flex ms-4 font-medium text-white text-sm text-left hover:text-blueQuinary ${
                     isCurrentPage(menuItem.url) && "text-navy-700"
                   }`}
                 >

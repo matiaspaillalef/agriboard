@@ -13,6 +13,8 @@ const PeopleManagementGroups =  () => {
     const userDataString = sessionStorage.getItem("userData");
     const userData = JSON.parse(userDataString);
     const idCompany = userData.idCompany;
+
+    console.log("userData:", userData);
     
     // Obtener datos de contratistas usando idCompany
     const fetchData = async () => {

@@ -16,7 +16,7 @@ import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 
 const Sidebar = ({ open, onClose }) => {
   const [dataCompanies, setDataCompanies] = useState([]);
-
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const pathname = usePathname();
   const router = useRouter();
 
@@ -26,47 +26,91 @@ const Sidebar = ({ open, onClose }) => {
   }
 
   useEffect(() => {
+    // Función para obtener el idCompany almacenado en sessionStorage o userData
+    const getStoredCompanyId = () => {
+      const storedCompanyId = sessionStorage.getItem('selectedCompanyId');
+      if (storedCompanyId) {
+        setSelectedCompanyId(storedCompanyId);
+      } else {
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
+        if (userData && userData.idCompany) {
+          setSelectedCompanyId(userData.idCompany);
+        }
+      }
+    };
+
+    // Obtener datos de empresas
     const fetchData = async () => {
       try {
         const data = await getDataCompanies();
         setDataCompanies(data);
       } catch (error) {
-        console.error("Error al obtener datos de contratistas:", error);
+        console.error("Error al obtener datos de empresas:", error);
       }
     };
 
-    fetchData();
+    getStoredCompanyId(); // Obtener el idCompany almacenado
+    fetchData(); // Obtener datos de las empresas
+
   }, []);
+  
+
+  const handleChange = (e) => {
+    const companyId = e.target.value;
+    setSelectedCompanyId(companyId);
+
+    // Actualizar sessionStorage con el nuevo idCompany seleccionado
+    sessionStorage.setItem('selectedCompanyId', companyId);
+
+    // Actualizar userData en sessionStorage con el nuevo idCompany seleccionado
+    const userData = JSON.parse(sessionStorage.getItem('userData')) || {};
+    userData.idCompany = companyId;
+    sessionStorage.setItem('userData', JSON.stringify(userData));
+    
+    //agregar clase con el id company al body
+    document.body.classList.add(`company-${companyId}`);
+    // Actualizar la página para mostrar los datos de la empresa seleccionada
+    //window.location.reload();
+  };
+
+  useEffect(() => {
+    if (selectedCompanyId) {
+      // Agregar clase al body con el id de la empresa seleccionada
+      document.body.classList.add(`company-${selectedCompanyId}`);
+
+      // Limpiar la clase al desmontar el componente o cambiar la selección
+      return () => {
+        document.body.classList.remove(`company-${selectedCompanyId}`);
+      };
+    }
+  }, [selectedCompanyId]);
 
   return (
-    <div
-      className={`sm:none duration-175 linear fixed !z-50 flex min-h-full flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 min-w-[300px] ${
-        open ? "translate-x-0" : "-translate-x-96"
-      }`}
-    >
-      <span
-        className="absolute top-4 right-4 block cursor-pointer xl:hidden"
-        onClick={onClose}
-      >
+
+    <div id="sidenav" className={`sm:none duration-175 linear fixed !z-50 flex flex-col bg-blueTertiary pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 min-w-[300px] rounded-xl sm:left-0 md:left-[15px] top-1/2 translate-y-[-50%] translate-x-[-130%] ${open ? '!translate-x-0' : ''}`}>
+      <span className="absolute top-4 right-4 block cursor-pointer xl:hidden" onClick={onClose}>
         <HiX />
       </span>
 
-      <CustomImage />
+      <CustomImage companyID={selectedCompanyId} />
 
-      <div className="scrolling h-[600px] overflow-y-scroll mt-[50px] border-t border-bg-lightPrimary">
+      <div id="sidebar" className="mt-[50px] border-t border-blueQuaternary">
         <div className="px-8 py-8">
-          <div className="!z-5 relative flex rounded-[8px] bg-lightPrimary bg-clip-border shadow-3xl shadow-shadow-500 dark:bg-navy-900 dark:text-white dark:shadow-none !flex-row flex-grow items-center p-5">
+          <div className="!z-5 relative flex rounded-[8px] bg-clip-border dark:bg-navy-900 dark:text-white dark:shadow-none !flex-row flex-grow items-center p-5">
             <Weather />
           </div>
         </div>
 
         {dataCompanies && dataCompanies.length > 0 && (
-          <div className="px-8">
-            <label className="block text-sm font-medium text-gray-600 dark:text-white mb-2">
+          <div className="px-8 mb-5">
+            <label className="block text-sm font-medium text-white dark:text-white mb-2">
               Empresas
             </label>
-            <select className="w-full px-8 py-4 rounded-md text-sm font-medium text-gray-600 dark:text-white bg-lightPrimary dark:bg-navy-900 border-t border-bg-lightPrimary dark:border-navy-800">
-              {console.log(dataCompanies)}
+            <select
+              className="w-full px-8 py-4 rounded-md text-sm font-medium text-white dark:text-white bg-blueQuaternary dark:bg-navy-900 border-t border-blueQuaternary dark:border-navy-800"
+              value={selectedCompanyId}
+              onChange={handleChange}
+            >
               {dataCompanies.map((company) => (
                 <option key={company.id} value={company.id}>
                   {company.name_company}
@@ -76,16 +120,6 @@ const Sidebar = ({ open, onClose }) => {
           </div>
         )}
 
-        <div className="px-8 py-4 pb-8">
-          <label className="block text-sm font-medium text-gray-600 dark:text-white mb-2">
-            Campos
-          </label>
-          <select className="w-full px-8 py-4 rounded-md text-sm font-medium text-gray-600 dark:text-white bg-lightPrimary dark:bg-navy-900 border-t border-bg-lightPrimary dark:border-navy-800">
-            <option value="1">Campo 1</option>
-            <option value="2">Campo 2</option>
-          </select>
-        </div>
-
         <ul className="mb-auto pt-1">
           <SidebarMenu pathname={pathname} />
           <li className="relative mb-3 px-8">
@@ -93,17 +127,18 @@ const Sidebar = ({ open, onClose }) => {
               onClick={handleLogout}
               className="flex cursor-pointer items-center w-full pb-2 px-8"
             >
-              <ArrowLeftStartOnRectangleIcon className="w-6 h-6 font-medium text-gray-600" />
-              <p className="leading-1 flex justify-between items-center ms-4 font-medium text-gray-600 w-full text-sm text-left">
+              <ArrowLeftStartOnRectangleIcon className="w-6 h-6 font-medium text-blueQuinary" />
+              <p className="leading-1 flex justify-between items-center ms-4 font-medium text-white w-full text-sm text-left hover:text-blueQuinary">
                 Cerrar Sesión
               </p>
             </button>
           </li>
         </ul>
       </div>
-      <p className="px-8 py-8 text-xs mb-0 text-navy-700 dark:text-white">
+      <p className="px-8 pt-8 text-xs mb-0 text-white dark:text-white">
         &copy; {new Date().getFullYear()} Agrisoft Software
       </p>
+      <span className="px-8 text-gray-500 text-xs">v 1.0.0.1</span>
     </div>
   );
 };

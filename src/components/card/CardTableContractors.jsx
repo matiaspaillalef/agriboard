@@ -3,10 +3,18 @@
 import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
-import ExportarPDF from "@/components/button/ButtonExportPDF";
+//import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
-import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  XMarkIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon,
+} from "@heroicons/react/24/outline";
+
 import {
   Button,
   Dialog,
@@ -135,7 +143,6 @@ const CardTableContractors = ({
 
       // Elimina la fila del front-end
       if (updateContractorApi === "OK") {
-
         //Al momento de actualizar y el array lo estaba mandando de otra forma, se debe hacer un map para actualizar el array de forma correcta
         const updatedData = initialData.map((item) =>
           item.id == data.id
@@ -280,7 +287,11 @@ const CardTableContractors = ({
 
   let currentItems = [];
   if (Array.isArray(initialData)) {
-    currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+    if (initialData.length > 0) {
+      <div>No existen registros</div>;
+    } else {
+      currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+    }
   }
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -304,8 +315,8 @@ const CardTableContractors = ({
       <div className="mb-3 flex gap-5 ">
         <Button
           onClick={handleOpenNewUser}
-          variant="gradient"
-          className="max-w-[300px] linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
+          ////variant="gradient"
+          className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-blueQuinary dark:text-white dark:hover:!bg-navy-900 dark:active:bg-blueQuinary items-center justify-center flex gap-2 normal-case"
         >
           <PlusIcon className="w-5 h-5" />
           Nuevo contratista
@@ -333,19 +344,12 @@ const CardTableContractors = ({
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
               {downloadBtn && (
-                <>
-                  <ExportarExcel
-                    data={initialData}
-                    filename="empresas"
-                    sheetname="empresas"
-                    titlebutton="Exportar a excel"
-                  />
-                  <ExportarPDF
-                    data={initialData}
-                    filename="empresas"
-                    titlebutton="Exportar a PDF"
-                  />
-                </>
+                <ExportarExcel
+                  data={initialData}
+                  filename="empresas"
+                  sheetname="empresas"
+                  titlebutton="Exportar a excel"
+                />
               )}
 
               {SearchInput && (
@@ -368,229 +372,188 @@ const CardTableContractors = ({
               mb="24px"
               id="tablaEmpresas"
             >
-              {thead && (
-                <thead>
-                  <tr role="row">
-                    {columnLabels &&
-                      columnLabels.map((label, index) => {
-                        if (omitirColumns.includes(label)) {
-                          return null; // Omitir la columna si está en omitirColumns
-                        }
-                        return (
-                          <th
-                            key={index}
-                            colSpan={1}
-                            role="columnheader"
-                            className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                          >
-                            <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+              {Array.isArray(initialData) &&
+                initialData.length > 0 &&
+                thead && (
+                  <thead>
+                    <tr role="row">
+                      {columnLabels &&
+                        columnLabels.map((label, index) => {
+                          if (omitirColumns.includes(label)) {
+                            return null; // Omitir la columna si está en omitirColumns
+                          }
+                          return (
+                            <th
+                              key={index}
+                              colSpan={1}
+                              role="columnheader"
+                              className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                             >
-                              {label}
-                            </p>
-                          </th>
-                        );
-                      })}
-                    {/* Aquí se renderiza la columna Actions si actions es true */}
-                    {actions && (
-                      <th
-                        colSpan={1}
-                        role="columnheader"
-                        className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                      >
-                        <p className="text-xs tracking-wide text-gray-600">
-                          Actions
-                        </p>
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-              )}
+                              <p
+                                className={`text-xs tracking-wide text-gray-600 ${
+                                  columnsClasses[index] || "text-start"
+                                } `}
+                              >
+                                {label}
+                              </p>
+                            </th>
+                          );
+                        })}
+                      {/* Aquí se renderiza la columna Actions si actions es true */}
+                      {actions && (
+                        <th
+                          colSpan={1}
+                          role="columnheader"
+                          className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
+                        >
+                          <p className="text-xs tracking-wide text-gray-600">
+                            Actions
+                          </p>
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                )}
 
               <tbody role="rowgroup">
-                {currentItems.map((row, index) => (
-                  <tr key={index} role="row">
-                    {Object.keys(row).map((key, rowIndex) => {
-                      if (omitirColumns.includes(key)) {
-                        return null; // Omitir la columna si está en omitirColumns
-                      }
+                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no */}
+                {Array.isArray(initialData) && initialData.length > 0 ? (
+                  initialData.map((row, index) => (
+                    <tr key={index} role="row">
+                      {Object.keys(row).map((key, rowIndex) => {
+                        if (omitirColumns.includes(key)) {
+                          return null; // Omitir la columna si está en omitirColumns
+                        }
 
-                      return (
+                        return (
+                          <td
+                            key={rowIndex}
+                            role="cell"
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
+                              index % 2 !== 0
+                                ? "bg-lightPrimary dark:bg-navy-900"
+                                : ""
+                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                          >
+                            <div className="text-base font-medium text-navy-700 dark:text-white">
+                              {key === "status" ? (
+                                row[key] == 1 ? (
+                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Activo
+                                  </p>
+                                ) : (
+                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Inactivo
+                                  </p>
+                                )
+                              ) : key !== "password" ? (
+                                key === "state" ? (
+                                  // Transformar el número de región a su nombre correspondiente
+                                  StateCL.find(
+                                    (state) => state.region_number == row[key]
+                                  )?.region || "-"
+                                ) : (
+                                  formatNumber(row[key])
+                                )
+                              ) : (
+                                "" // No mostrar la contraseña
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
+                      {actions && (
                         <td
-                          key={rowIndex}
-                          role="cell"
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
+                          colSpan={columnLabels.length}
+                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
                             index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          } ${columnsClasses[rowIndex] || "text-left"}`}
+                          }`}
                         >
-                          <div className="text-base font-medium text-navy-700 dark:text-white">
-                            {key === "status" ? (
-                              //console.log(key),
-                              row[key] == 1 ? (
-                                <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                  Activo
-                                </p>
-                              ) : (
-                                <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                  Inactivo
-                                </p>
-                              )
-                            ) : key !== "password" ? (
-                              key === "state" ? (
-                                // Transformar el número de región a su nombre correspondiente
-                                StateCL.find(
-                                  (state) => state.region_number == row[key]
-                                )?.region || "-"
-                              ) : (
-                                formatNumber(row[key])
-                              )
-                            ) : (
-                              "" // No mostrar la contraseña
-                            )}
-                          </div>
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white"
+                            //onClick={() => handleOpen(row)}
+                            onClick={() => handleOpenEditUser(row)}
+                          >
+                            <PencilSquareIcon className="w-6 h-6" />
+                          </button>
+                          <button
+                            id="remove"
+                            type="button"
+                            onClick={() => {
+                              //console.log(row);
+                              handleOpenAlert(
+                                index,
+                                row.id,
+                                row.name ? row.name : "",
+                                row.lastname ? row.lastname : ""
+                              );
+                            }}
+                          >
+                            <TrashIcon className="w-6 h-6" />
+                          </button>
                         </td>
-                      );
-                    })}
-                    {actions && (
-                      <td
-                        colSpan={columnLabels.length}
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-gray-800 dark:text-white"
-                          //onClick={() => handleOpen(row)}
-                          onClick={() => handleOpenEditUser(row)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          id="remove"
-                          type="button"
-                          onClick={() => {
-                            //console.log(row);
-                            handleOpenAlert(
-                              index,
-                              row.id,
-                              row.name ? row.name : "",
-                              row.lastname ? row.lastname : ""
-                            );
-                          }}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                            />
-                          </svg>
-                        </button>
-                      </td>
-                    )}
+                      )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td>No se encontraron registros.</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between mt-5">
-            <div className="flex items-center gap-5">
-              <p className="text-sm text-gray-800 dark:text-white">
-                Mostrando {indexOfFirstItem + 1} a{" "}
-                {indexOfLastItem > initialData.length
-                  ? initialData.length
-                  : indexOfLastItem}{" "}
-                de {initialData.length} contratistas
-              </p>
-            </div>
-            <div className="flex items-center gap-5">
-              <button
-                type="button"
-                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                  currentPage === 1 && "hidden"
-                }`}
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              {pagination.map((page) => (
+
+          {Array.isArray(initialData) && initialData.length > 0 ? (
+            <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center gap-5">
+                <p className="text-sm text-gray-800 dark:text-white">
+                  Mostrando {indexOfFirstItem + 1} a{" "}
+                  {indexOfLastItem > initialData.length
+                    ? initialData.length
+                    : indexOfLastItem}{" "}
+                  de {initialData.length} contratistas
+                </p>
+              </div>
+              <div className="flex items-center gap-5">
                 <button
-                  key={page}
                   type="button"
-                  className={`${
-                    currentPage === page
-                      ? "font-semibold text-navy-500 dark:text-navy-300"
-                      : ""
+                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                    currentPage === 1 && "hidden"
                   }`}
-                  onClick={() => handlePageChange(page)}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
                 >
-                  {page}
+                  <ChevronLeftIcon className="w-5 h-5" />
                 </button>
-              ))}
-              <button
-                type="button"
-                className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
+                {pagination.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`${
+                      currentPage === page
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
+                    }`}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
+                  <ChevronRightIcon className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-          </div>
+          ) : null}
 
           <Dialog
             open={open}
@@ -603,20 +566,7 @@ const CardTableContractors = ({
               onClick={handleOpen}
               className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              </svg>
+              <XMarkIcon className="w-6 h-6" />
             </button>
             <DialogHeader className="dark:text-white">
               {isEdit ? "Editar Contratista" : "Crear Contratista"}

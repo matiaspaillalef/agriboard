@@ -117,10 +117,10 @@ const Weather = () => {
       {weatherData ? (
         <>
           <div className={`${style.weather_icon} flex gap-1 items-center`}>
-            <i className={`${weatherData.iconClass} text-5xl text-navy-700 dark:text-white`}></i>
-            <h4 className='text-xl font-bold text-navy-700 dark:text-white'>{`${weatherData.city}, ${weatherData.tempRedond}°C`}</h4>
+            <i className={`${weatherData.iconClass} text-5xl text-blueQuinary dark:text-white`}></i>
+            <h4 className='text-xl font-bold text-white dark:text-white'>{`${weatherData.city}, ${weatherData.tempRedond}°C`}</h4>
           </div>
-          <p className='font-dm text-sm font-medium text-gray-600'>{`${currentDate}`}</p>
+          <p className='font-dm text-sm font-medium text-white'>{`${currentDate}`}</p>
         </>
       ) : (
         <p>Cargando datos meteorológicos...</p>

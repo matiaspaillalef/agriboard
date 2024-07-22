@@ -1,3 +1,11 @@
+#sidebar{
+    height: calc(100dvh - 345px);
+    overflow-y: scroll;
+}
+
+#sidenav {
+height: calc(100dvh - 30px)
+}
 .hidden_submenu  > ul {
     animation: fade-out .5s forwards;
 }
@@ -49,4 +57,10 @@
         visibility: visible;
         opacity: 1;
     }
+}
+
+@media (max-width: 768px) {
+    #sidenav {
+        height: 100%;
+        }
 }

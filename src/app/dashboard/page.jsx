@@ -33,7 +33,7 @@ const opcionesDeFormato = {
 // Formatea la fecha actual según las opciones de formato
 const fechaFormateada = fechaActual.toLocaleDateString('es-ES', opcionesDeFormato);
 
-const dashboard = ({ isLoggedIn }) => {
+const dashboard = ({ isLoggedIn, companyID  }) => {
 
     const [data, setData] = useState([]);
 
