@@ -14,9 +14,9 @@ function CustomImage ({ companyID }) {
     const fetchCompany = async () => {
       try {
         const dataCompanies = await getDataCompanies();
-        console.log("Datos de empresas:", dataCompanies);
+        //console.log("Datos de empresas:", dataCompanies);
         const data = dataCompanies.find((company) => company.id === parseInt(companyID, 10));
-        console.log("Empresa seleccionada:", data);
+        //console.log("Empresa seleccionada:", data);
         if (data && data.logo) {
           setImagenUsuario('/' + data.logo.replace("public/", ""));
           setCompany(data);

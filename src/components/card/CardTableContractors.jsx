@@ -82,7 +82,6 @@ const CardTableContractors = ({
     }
   }, [data]);
 
-  console.log("initialData", initialData);
 
   const handleRegionChange = (event) => {
     const region = event.target.value;
@@ -285,6 +284,7 @@ const CardTableContractors = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
+  /*
   let currentItems = [];
   if (Array.isArray(initialData)) {
     if (initialData.length > 0) {
@@ -292,13 +292,14 @@ const CardTableContractors = ({
     } else {
       currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
     }
-  }
+  }*/
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   if (!data || data.length === 0) {
     return <div>No hay datos disponibles.</div>;
   }
+
 
   return (
     <>
@@ -342,25 +343,27 @@ const CardTableContractors = ({
               </h4>
             )}
 
-            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {downloadBtn && (
-                <ExportarExcel
-                  data={initialData}
-                  filename="empresas"
-                  sheetname="empresas"
-                  titlebutton="Exportar a excel"
-                />
-              )}
+            {Array.isArray(initialData) && initialData.length > 0 && (
+              <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+                {downloadBtn && (
+                  <ExportarExcel
+                    data={initialData}
+                    filename="empresas"
+                    sheetname="empresas"
+                    titlebutton="Exportar a excel"
+                  />
+                )}
 
-              {SearchInput && (
-                <input
-                  type="search"
-                  placeholder="Buscar"
-                  className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
-                  onKeyUp={handlerSearch}
-                />
-              )}
-            </div>
+                {SearchInput && (
+                  <input
+                    type="search"
+                    placeholder="Buscar"
+                    className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
+                    onKeyUp={handlerSearch}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           <div className="h-full overflow-x-scroll max-h-dvh">

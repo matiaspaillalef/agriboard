@@ -15,7 +15,7 @@ export const getDataGround = async (id_company) => {
   try {
     //console.log("id_company" , id_company);
     const res = await fetch(
-      URLAPI + `/api/v1/management-people/production/getGround/${id_company}`,
+      URLAPI + `/api/v1/configuracion/production/getGround/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -31,7 +31,7 @@ export const getDataGround = async (id_company) => {
       const groundData = await res.json();
 
       if (groundData.code === "OK") {
-        return groundData.ground;
+        return groundData.grounds;
       }
       else if (groundData.code === "ERROR") {
         return groundData.mensaje;

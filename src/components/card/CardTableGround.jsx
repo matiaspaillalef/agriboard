@@ -10,6 +10,9 @@ import {
   PlusIcon,
   XMarkIcon,
   PencilSquareIcon,
+  TrashIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
@@ -514,115 +517,93 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
               )}
 
               <tbody role="rowgroup">
-                {currentItems.map((row, index) => (
-                  <tr key={index} role="row">
-                    {Object.keys(row).map((key, rowIndex) => {
-                      if (omitirColumns.includes(key)) {
-                        return null; // Omitir la columna si está en omitirColumns
-                      }
+                 {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no */}
+                 {Array.isArray(initialData) && initialData.length > 0 ? (
+                  initialData.map((row, index) => (
+                    <tr key={index} role="row">
+                      {Object.keys(row).map((key, rowIndex) => {
+                        if (omitirColumns.includes(key)) {
+                          return null; // Omitir la columna si está en omitirColumns
+                        }
 
-                      return (
+                        return (
+                          <td
+                            key={rowIndex}
+                            role="cell"
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
+                              index % 2 !== 0
+                                ? "bg-lightPrimary dark:bg-navy-900"
+                                : ""
+                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                          >
+                            <div className="text-base font-medium text-navy-700 dark:text-white">
+                              {key === "status" ? (
+                                row[key] == 1 ? (
+                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Activo
+                                  </p>
+                                ) : (
+                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Inactivo
+                                  </p>
+                                )
+                              ) : key !== "password" ? (
+                                key === "state" ? (
+                                  // Transformar el número de región a su nombre correspondiente
+                                  StateCL.find(
+                                    (state) => state.region_number == row[key]
+                                  )?.region || "-"
+                                ) : (
+                                  formatNumber(row[key])
+                                )
+                              ) : (
+                                "" // No mostrar la contraseña
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
+                      {actions && (
                         <td
-                          key={rowIndex}
-                          role="cell"
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
+                          colSpan={columnLabels.length}
+                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
                             index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          } ${columnsClasses[rowIndex] || "text-left"}`}
+                          }`}
                         >
-                          <div className="text-base font-medium text-navy-700 dark:text-white">
-                            {key === "status" ? (
-                              row[key] == 1 ? (
-                                <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3">
-                                  Activo
-                                </p>
-                              ) : (
-                                <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3">
-                                  Inactivo
-                                </p>
-                              )
-                            ) : key !== "password" ? (
-                              // Mostrar el valor formateado, excepto la contraseña
-                              key === "compensation_box" ? (
-                                // Transformar el ID de caja de compensación a su nombre correspondiente
-                                ProvitionalCL.find((box) => box.id == row[key])
-                                  ?.name || "-"
-                              ) : key === "state" ? (
-                                // Transformar el número de región a su nombre correspondiente
-                                StateCL.find(
-                                  (state) => state.region_number == row[key]
-                                )?.region || "-"
-                              ) : (
-                                formatNumber(row[key])
-                              )
-                            ) : (
-                              "" // No mostrar la contraseña
-                            )}
-                          </div>
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white"
+                            //onClick={() => handleOpen(row)}
+                            onClick={() => handleOpenEditUser(row)}
+                          >
+                            <PencilSquareIcon className="w-6 h-6" />
+                          </button>
+                          <button
+                            id="remove"
+                            type="button"
+                            onClick={() => {
+                              //console.log(row);
+                              handleOpenAlert(
+                                index,
+                                row.id,
+                                row.name ? row.name : "",
+                                row.lastname ? row.lastname : ""
+                              );
+                            }}
+                          >
+                            <TrashIcon className="w-6 h-6" />
+                          </button>
                         </td>
-                      );
-                    })}
-                    {actions && (
-                      <td
-                        colSpan={columnLabels.length}
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-gray-800 dark:text-white"
-                          //onClick={() => handleOpen(row)}
-                          onClick={() => handleOpenEditUser(row)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          id="remove"
-                          type="button"
-                          onClick={() => {
-                            handleOpenAlert(
-                              index,
-                              row.id,
-                              row.name_company ? row.name_company : ""
-                            );
-                          }}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                            />
-                          </svg>
-                        </button>
-                      </td>
-                    )}
+                      )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td>No se encontraron registros.</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
