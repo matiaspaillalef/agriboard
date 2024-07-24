@@ -68,3 +68,30 @@ body {
 @keyframes l6 {
     100% {inset:0}
 }
+
+.loadingData {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 125px);
+  flex-direction: column;
+  background-color: white;
+  border-radius: 10px;
+  gap: 15px;
+}
+
+.loadingData img{
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0.95);
+  }
+}

@@ -22,7 +22,6 @@ const RootLayout = ({ children }) => {
       window.innerWidth < 1200 ? setOpen(false) : setOpen(true)
     );
   }, [open]);
-  
 
   return (
     <div className="flex h-full w-full">
@@ -31,7 +30,7 @@ const RootLayout = ({ children }) => {
       </div>
       <div className="h-full w-full bg-lightPrimary dark:!bg-navy-900">
         <main
-          className={`mx-[12px] h-full flex-none transition-all md:pr-2 xl:ml-[333px]`}
+          className={`mx-[12px] h-full flex-none transition-all md:pr-2 xl:ml-[350px]`}
         >
           <div className="h-full min-h-dvh">
             <Navbar onOpenSidenav={() => setOpen(true)} />

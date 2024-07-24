@@ -163,6 +163,9 @@ module.exports = withMT({
       white: "#ffffff",
       lightPrimary: "#F4F7FE",
       blueSecondary: "#4318FF",
+      blueTertiary: "#132c6d",
+      blueQuaternary: "#0c4899",
+      blueQuinary: "#1b81ff",
       brandLinear: "#868CFF",
       gray: {
         50: "#f8f9fa",
