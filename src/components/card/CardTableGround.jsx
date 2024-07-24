@@ -25,11 +25,11 @@ import {
   DialogFooter,
 } from "@material-tailwind/react";
 import {
-  deleteCompany as deleteCompanyApi,
-  updateCompany,
-  createCompany,
-  getDataCompanies,
-} from "@/app/api/ConfiguracionApi";
+  deleteGround as deleteGroundApi,
+  updateGround,
+  createGround,
+  getDataGround,
+} from "@/app/api/ProductionApi";
 
 import { ProvitionalCL } from "@/app/data/dataProvisionals";
 import Rut from "@/components/validateRUT";
@@ -43,8 +43,10 @@ const CardTableGround = ({
   title,
   actions,
   tableId,
+  companyID,
   downloadBtn,
   SearchInput,
+  datosCompanies,
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
@@ -56,8 +58,6 @@ const CardTableGround = ({
     reset,
     formState: { errors },
   } = useForm();
-
-  console.log(errors);
 
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
@@ -79,8 +79,7 @@ const CardTableGround = ({
   const [rut, setRut] = useState("");
   const [rutValido, setRutValido] = useState(false);
 
-  const [file, setFile] = useState(null);
-  const [imagenUsuario, setImagenUsuario] = useState(null);
+  const [rol, setRol] = useState(""); // control de item por rol
 
   const handleRegionChange = (event) => {
     const region = event.target.value;
@@ -110,11 +109,8 @@ const CardTableGround = ({
   const [itemToDelete, setItemToDelete] = useState({
     index: null,
     id: null,
-    name_company: "",
+    name_item: "",
   });
-
-  const fileInputRef = useRef(null);
-  const [itemImages, setItemImages] = useState({});
 
   const handleOpenNewUser = () => {
     setIsEdit(false);
@@ -128,97 +124,66 @@ const CardTableGround = ({
     setFormData(user);
     setSelectedItem(user);
     handleOpen(user);
+
+    //Cuando se habra el modal de edición valida si es un usuario con rol de administrador (1)
+    const userDataString = sessionStorage.getItem("userData");
+    const userData = JSON.parse(userDataString);
+    const userRol = userData.rol;
+
+    setRol(userRol);
   };
 
   const handleOpen = (user) => {
     reset();
     setSelectedItem(user); // Actualiza el estado con los datos del usuario seleccionado
-    setFile(null); // Reinicia el archivo seleccionado
     setOpen(!open);
   };
 
   const onUpdateItem = async (data) => {
-
-    let logoPath = selectedItem.logo; // Conservar la imagen existente
-
-    if (file) {
-      try {
-        const formDataFile = new FormData();
-        formDataFile.set("logo", file);
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formDataFile,
-        });
-
-        if (!res.ok) {
-          const errorMessage = await res.text();
-          throw new Error(`Error al subir el archivo: ${errorMessage}`);
-        }
-
-        const dataLogo = await res.json();
-        logoPath = dataLogo.path; // Actualiza el logo solo si se ha subido uno nuevo
-      } catch (error) {
-        console.error(error);
-        setUpdateMessage("Error al intentar subir la imagen");
-        return; // Salir si hay un error en la carga
+    try {
+      if (!data || !data.id) {
+        throw new Error(
+          "Los datos para actualizar son inválidos o incompletos."
+        );
       }
-    }
 
-    const updatedDataLogo = {
-      ...data,
-      logo: logoPath, // Usa la imagen existente o la nueva
-    };
+      // Convertir cadenas vacías en null para latitude y longitude
+      const updatedData = {
+        ...data,
+        latitude: data.latitude !== "" ? data.latitude : null,
+        longitude: data.longitude !== "" ? data.longitude : null,
+      };
 
-    // Asegúrate de que todos los campos requeridos estén presentes
-    const requiredFields = [
-      "name_company",
-      "rut",
-      "giro",
-      "state",
-      "city",
-      "address",
-      "phone",
-      "web",
-      "compensation_box",
-      "legal_representative_name",
-      "legal_representative_rut",
-      "legal_representative_phone",
-      "legal_representative_email",
-      "status",
-    ];
+      const updateItemApi = await updateGround(updatedData);
 
-    for (const field of requiredFields) {
-      if (!updatedDataLogo[field]) {
-        throw new Error(`Falta el campo: ${field}`);
+      //console.log(updateItemApi);
+      if (updateItemApi === "OK") {
+        const updatedList = initialData.map((item) =>
+          item.id === data.id ? { ...item, ...updatedData } : item
+        );
+
+        setInitialData(updatedList);
+        setUpdateMessage("Registro actualizado correctamente");
+        setOpen(false);
+      } else {
+        setUpdateMessage("No se pudo actualizar el registro.");
       }
-    }
-
-    const updateCompanyApi = await updateCompany(updatedDataLogo);
-
-    // Elimina la fila del front-end
-    if (updateCompanyApi === "OK") {
-
-      const updatedData = initialData.map((item) =>
-        item.id == data.id ? { ...item, ...updatedDataLogo } : item
-      );
-
-      setInitialData(updatedData);
-      setUpdateMessage("Empresa actualizada correctamente");
-      setOpen(false);
-    } else {
-      setUpdateMessage("No se pudo actualizar la empresa");
+    } catch (error) {
+      console.error(error);
+      setUpdateMessage("Error al intentar actualizar el registro.");
     }
   };
 
-  const handleOpenAlert = (index, id, name_company) => {
-    setItemToDelete({ index, id, name_company });
+  const handleOpenAlert = (index, id, name_item) => {
+    setItemToDelete({ index, id, name_item });
     setOpenAlert(true);
   };
 
+  console.log("datosCompanies", companyID);
+
   const handleCloseAlert = () => {
     setOpenAlert(false);
-    setItemToDelete({ index: null, id: null, name_company: "" });
+    setItemToDelete({ index: null, id: null, name_item: "" });
   };
 
   const handlerRemove = async () => {
@@ -226,131 +191,59 @@ const CardTableGround = ({
 
     try {
       //if (userConfirmed) {
-      const deleteCompany = await deleteCompanyApi(id);
+      const deleteItem = await deleteGroundApi(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteCompany === "OK") {
+      if (deleteItem === "OK") {
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
         setOpenAlert(false);
-        setUpdateMessage("Empresa eliminado correctamente");
+        setUpdateMessage("Registro eliminado correctamente");
       } else {
-        setUpdateMessage("Error al eliminar el empresa. Inténtalo nuevamente.");
+        setUpdateMessage(
+          "Error al eliminar el registro. Inténtalo nuevamente."
+        );
       }
     } catch (error) {
       console.error(error);
       // Manejo de errores
-      setUpdateMessage("Ocurrió un error al intentar eliminar el empresa.");
-    }
-  };
-
-  const handleImagenChange = (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      setImagenUsuario(reader.result);
-    };
-
-    if (file) {
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const onClickFileInput = () => {
-    fileInputRef.current.click();
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFile(file);
-        setItemImages((prevState) => ({
-          ...prevState,
-          ...(selectedItem && { [selectedItem.id]: reader.result }), // Verifica que selectedItem esté definido antes de acceder a id
-        }));
-      };
-      reader.readAsDataURL(file);
+      setUpdateMessage("Ocurrió un error al intentar eliminar el registro.");
     }
   };
 
   // Creación de empresa
   const onSubmitForm = async (data) => {
-    if (!file) {
-      setUpdateMessage("No se ha seleccionado ningún archivo");
-      //setFile('/public/uploads/agrisoft_logo.png');
-      //console.error("No se ha seleccionado ningún archivo");
-      return;
-    }
-
     try {
-      //Consultamos la carga de imagen (logo empresa)
-      const formDataFile = new FormData();
-      console.log('fileeeee',file);
-      formDataFile.set("logo", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formDataFile,
-      });
-
-      if (!res.ok) {
-        const errorMessage = await res.text();
-        throw new Error(`Error al subir el archivo: ${errorMessage}`);
+      if (
+        !data ||
+        !data.name ||
+        !data.state ||
+        !data.city ||
+        !data.address ||
+        !data.zone ||
+        !data.company_id ||
+        !data.status
+      ) {
+        throw new Error("Los datos para crear el registro son incompletos.");
       }
 
-      const dataLogo = await res.json();
+      const createItem = await createGround(data);
 
-      const updatedDataLogo = {
-        ...data,
-        logo: dataLogo.path,
-      };
+      console.log(createItem);
 
-      // Asegúrate de que todos los campos requeridos estén presentes
-      const requiredFields = [
-        "name_company",
-        "rut",
-        "giro",
-        "state",
-        "city",
-        "address",
-        "phone",
-        "web",
-        "compensation_box",
-        "legal_representative_name",
-        "legal_representative_rut",
-        "legal_representative_phone",
-        "legal_representative_email",
-        "status",
-      ];
+      if (createItem === "OK") {
+        const updatedData = [...initialData, data];
 
-      for (const field of requiredFields) {
-        if (!updatedDataLogo[field]) {
-          throw new Error(`Falta el campo: ${field}`);
-        }
-      }
-
-      const createUserapi = await createCompany(updatedDataLogo);
-
-      if (createUserapi === "OK") {
-        const updatedData = [...initialData, updatedDataLogo];
         setInitialData(updatedData);
-
-        const newDataFetch = await getDataCompanies();
-        setInitialData(newDataFetch);
-
         setOpen(false);
-        setUpdateMessage("Empresa creada correctamente");
+        setUpdateMessage("Registro creado correctamente");
       } else {
-        setUpdateMessage("Error al crear la empresa");
+        setUpdateMessage(createItem || "No se pudo crear el registro");
       }
     } catch (error) {
-      console.error("Error en el proceso:", error);
-      setUpdateMessage("Ocurrió un error durante la operación");
+      console.error("Error al crear el registro:", error);
+      setUpdateMessage("Error al intentar crear el registro");
     }
   };
 
@@ -382,8 +275,9 @@ const CardTableGround = ({
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
   };
 
-const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPage);
-
+  const totalPages = Math.ceil(
+    (initialData ? initialData.length : 0) / itemsPerPage
+  );
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -392,7 +286,7 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
+  //const currentItems = initialData ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -438,32 +332,27 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
               </h4>
             )}
 
-            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {downloadBtn && (
-                <>
+            {Array.isArray(initialData) && initialData.length > 0 && (
+              <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+                {downloadBtn && (
                   <ExportarExcel
                     data={initialData}
-                    filename="empresas"
-                    sheetname="empresas"
+                    filename="campos"
+                    sheetname="campos"
                     titlebutton="Exportar a excel"
                   />
-                  <ExportarPDF
-                    data={initialData}
-                    filename="empresas"
-                    titlebutton="Exportar a PDF"
-                  />
-                </>
-              )}
+                )}
 
-              {SearchInput && (
-                <input
-                  type="search"
-                  placeholder="Buscar"
-                  className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
-                  onKeyUp={handlerSearch}
-                />
-              )}
-            </div>
+                {SearchInput && (
+                  <input
+                    type="search"
+                    placeholder="Buscar"
+                    className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
+                    onKeyUp={handlerSearch}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           <div className="h-full overflow-x-scroll max-h-dvh">
@@ -517,8 +406,8 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
               )}
 
               <tbody role="rowgroup">
-                 {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no */}
-                 {Array.isArray(initialData) && initialData.length > 0 ? (
+                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no */}
+                {Array.isArray(initialData) && initialData.length > 0 ? (
                   initialData.map((row, index) => (
                     <tr key={index} role="row">
                       {Object.keys(row).map((key, rowIndex) => {
@@ -601,83 +490,59 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                   ))
                 ) : (
                   <tr>
-                    <td>No se encontraron registros.</td>
+                    <td className="py-4">No se encontraron registros.</td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between mt-5">
-            <div className="flex items-center gap-5">
-              <p className="text-sm text-gray-800 dark:text-white">
-                Mostrando {indexOfFirstItem + 1} a{" "}
-                {indexOfLastItem > initialData.length
-                  ? initialData.length
-                  : indexOfLastItem}{" "}
-                de {initialData.length} empresas
-              </p>
-            </div>
-            <div className="flex items-center gap-5">
-              <button
-                type="button"
-                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                  currentPage === 1 && "hidden"
-                }`}
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              {pagination.map((page) => (
+          {Array.isArray(initialData) && initialData.length > 0 ? (
+            <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center gap-5">
+                <p className="text-sm text-gray-800 dark:text-white">
+                  Mostrando {indexOfFirstItem + 1} a{" "}
+                  {indexOfLastItem > initialData.length
+                    ? initialData.length
+                    : indexOfLastItem}{" "}
+                  de {initialData.length} registros
+                </p>
+              </div>
+              <div className="flex items-center gap-5">
                 <button
-                  key={page}
                   type="button"
-                  className={`${
-                    currentPage === page
-                      ? "font-semibold text-navy-500 dark:text-navy-300"
-                      : ""
+                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                    currentPage === 1 && "hidden"
                   }`}
-                  onClick={() => handlePageChange(page)}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
                 >
-                  {page}
+                  <ChevronLeftIcon className="w-5 h-5" />
                 </button>
-              ))}
-              <button
-                type="button"
-                className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
+                {pagination.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`${
+                      currentPage === page
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
+                    }`}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
+                  <ChevronRightIcon className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-          </div>
+          ) : null}
 
           <Dialog
             open={open}
@@ -725,125 +590,24 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                       ? "grid-cols-2 lg:grid-cols-2"
                       : "grid-cols-12 lg:grid-cols-2"
                   } `}
-                >
-                  <div className="flex flex-col gap-3">
-                    <div className="relative max-h-[150px] max-w-[150px]">
-                      <Image
-                        src={
-                          selectedItem && itemImages[selectedItem.id]
-                            ? itemImages[selectedItem.id]
-                            : selectedItem?.logo
-                            ? `/${selectedItem.logo.replace("public/", "")}`
-                            : isEdit
-                            ? LogoNormal
-                            : (file && URL.createObjectURL(file)) || uploadCloud
-                        }
-                        width={200}
-                        height={200}
-                        className="rounded-xl border border-gray-200 dark:border-white/10 dark:bg-white min-h-[150px] min-w-[150px] object-contain p-4"
-                        alt="Logo"
-                      />
-
-                      <button
-                        type="button"
-                        className="absolute right-[10px] top-3 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md p-1"
-                        //onChange={handleFileChange}
-                        onClick={onClickFileInput}
-                      >
-                        <PencilSquareIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex-col gap-3 hidden">
-                    <label
-                      htmlFor="logo"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Logo
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="file"
-                        name="logo"
-                        id="logo"
-                        {...register("logo")}
-                        ref={fileInputRef}
-                        accept="image/*"
-                        //defaultValue={selectedItem ? selectedItem.logo : ""}
-                        onChange={(e) => handleFileChange(e)}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                ></div>
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                   <div className="flex flex-col gap-3 ">
                     <label
-                      htmlFor="name_company"
+                      htmlFor="name"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Nombre Empresa
+                      Nombre Campo
                     </label>
                     <input
                       type="text"
-                      name="name_company"
-                      id="name_company"
+                      name="name"
+                      id="name"
                       required={true}
-                      {...register("name_company")}
-                      defaultValue={selectedItem ? selectedItem.name_company : ""}
+                      {...register("name")}
+                      defaultValue={selectedItem ? selectedItem.name : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
-
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="rut"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      RUT
-                    </label>
-                    <Rut
-                      //value={rut}
-                      onChange={(e) => setRut(e.target.value)}
-                      onValid={setRutValido}
-                    >
-                      <input
-                        type="text"
-                        name="rut"
-                        id="rut"
-                        required={true}
-                        {...register("rut")}
-                        defaultValue={selectedItem ? selectedItem.rut : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </Rut>
-                    {!rutValido && (
-                      <span className="text-red-500 text-xs">
-                        El rut es inválido
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="giro"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Giro
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="giro"
-                        required={true}
-                        id="giro"
-                        {...register("giro")}
-                        defaultValue={selectedItem ? selectedItem.giro : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -927,176 +691,66 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                 <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
                   <div className="flex flex-col gap-3">
                     <label
-                      htmlFor="phone"
+                      htmlFor="latitude"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Teléfono
+                      Latitud
                     </label>
                     <div className="relative">
                       <input
-                        type="tel"
-                        name="phone"
-                        id="phone"
-                        {...register("phone", {required: true})}
-                        defaultValue={selectedItem ? selectedItem.phone : formData.phone}
+                        type="text"
+                        name="latitude"
+                        id="latitude"
+                        {...register("latitude")}
+                        defaultValue={selectedItem ? selectedItem.latitude : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
                       />
-                
                     </div>
                   </div>
                   <div className="flex flex-col gap-3">
                     <label
-                      htmlFor="web"
+                      htmlFor="longitude"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Web
+                      Longitud
                     </label>
                     <div className="relative">
                       <input
-                        type="url"
-                        name="web"
-                        id="web"
-                        {...register("web")}
-                        defaultValue={selectedItem ? selectedItem.web : ""}
+                        type="text"
+                        name="logitude"
+                        id="longitude"
+                        {...register("longitude")}
+                        defaultValue={
+                          selectedItem ? selectedItem.longitude : ""
+                        }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <div className="flex flex-col gap-3">
                     <label
-                      htmlFor="state"
+                      htmlFor="zone"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Caja de compensación
+                      Zona
                     </label>
                     <select
-                      name="compensation_box"
-                      id="compensation_box"
+                      name="zone"
+                      id="zone"
                       required={true}
-                      {...register("compensation_box")}
-                      defaultValue={
-                        selectedItem ? selectedItem.compensation_box : ""
-                      }
+                      {...register("zone")}
+                      defaultValue={selectedItem ? selectedItem.zone : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {ProvitionalCL.map((box) => (
-                        <option key={box.id} value={box.id}>
-                          {box.name}
-                        </option>
-                      ))}
+                      <option value="Norte">Norte</option>
+                      <option value="Centro">Centro</option>
+                      <option value="Sur">Sur</option>
                     </select>
                   </div>
-                </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="legal_representative_name"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Nombre R. Legal
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="legal_representative_name"
-                        id="legal_representative_name"
-                        {...register("legal_representative_name")}
-                        defaultValue={
-                          selectedItem
-                            ? selectedItem.legal_representative_name
-                            : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="legal_representative_rut"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      RUT R. Legal
-                    </label>
-                    <div className="relative">
-                      <Rut
-                        //value={rut}
-                        onChange={(e) => setRut(e.target.value)}
-                        onValid={setRutValido}
-                      >
-                        <input
-                          type="text"
-                          name="legal_representative_rut"
-                          id="legal_representative_rut"
-                          {...register("legal_representative_rut")}
-                          defaultValue={
-                            selectedItem
-                              ? selectedItem.legal_representative_rut
-                              : ""
-                          }
-                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                        />
-                      </Rut>
-                      {!rutValido && (
-                        <span className="text-red-500 text-xs">
-                          El rut es inválido
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="legal_representative_phone"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Teléfono R. Legal
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        name="legal_representative_phone"
-                        id="legal_representative_phone"
-                        {...register("legal_representative_phone")}
-                        defaultValue={
-                          selectedItem
-                            ? selectedItem.legal_representative_phone
-                            : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="legal_representative_email"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Email R. Legal
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="legal_representative_email"
-                        id="legal_representative_email"
-                        {...register("legal_representative_email")}
-                        defaultValue={
-                          selectedItem
-                            ? selectedItem.legal_representative_email
-                            : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                   <div className="flex flex-col gap-3">
                     <label
                       htmlFor="status"
@@ -1116,6 +770,54 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                       <option value="1">Activo</option>
                     </select>
                   </div>
+                </div>
+
+                {/*rol == 1 ? (
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1 ">
+                <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="company_id"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Empresa
+                    </label>
+                    <select
+                      name="company_id"
+                      id="company_id"
+                      {...register("company_id")}
+                      defaultValue={selectedItem ? selectedItem.company_id : ""}
+                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                    >
+                      {datosCompanies.map((empresas, index) => {
+                        return (
+                          <option key={index} value={empresas.id}>
+                            {empresas.name_company}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                  </div>
+                ) : (
+                  <input
+                  type="hidden"
+                  name="company_id"
+                  {...register("company_id")}
+                  
+                  defaultValue={selectedItem ? selectedItem.company_id : companyID}
+                />
+                ) */}
+
+                <input
+                  type="hidden"
+                  name="company_id"
+                  {...register("company_id")}
+                  defaultValue={
+                    selectedItem ? selectedItem.company_id : companyID
+                  }
+                />
+
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                   <div className="flex flex-col gap-3">
                     <button
                       type="submit"
@@ -1140,10 +842,7 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
                 ¿Seguro que desea eliminar la empresa{" "}
-                <strong className="font-bold">
-                  {itemToDelete.name_company}
-                </strong>
-                ?
+                <strong className="font-bold">{itemToDelete.name_item}</strong>?
               </h2>
               <button
                 type="button"

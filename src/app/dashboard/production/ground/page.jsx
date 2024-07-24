@@ -2,94 +2,59 @@
 
 import CardTableGround from "@/components/card/CardTableGround";
 import { getDataGround } from "@/app/api/ProductionApi";
+import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 import { useEffect, useState, useCallback } from "react";
 
 import LoadingData from "@/components/loadingData/loadingData";
+import { set } from "react-hook-form";
 
-const ProductionGround = () => {
+const PeopleManagementGround = () => {
   const [dataGrounds, setDataGrounds] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [dataCompanies, setDataCompanies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Función para obtener selectedCompanyId desde sessionStorage o userData
   const getCompanyIdFromSessionStorage = useCallback(() => {
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
     if (storedCompanyId) {
-      setSelectedCompanyId(storedCompanyId);
+      return storedCompanyId;
     } else {
       const userData = JSON.parse(sessionStorage.getItem("userData"));
-      if (userData && userData.idCompany) {
-        setSelectedCompanyId(userData.idCompany);
-      }
+      return userData?.idCompany || "";
     }
   }, []);
 
-  // Función para obtener datos de contratistas
   const fetchData = useCallback(async (companyId) => {
     setIsLoading(true);
     try {
       const data = await getDataGround(companyId);
+      const companies = await getDataCompanies();
       setDataGrounds(data);
+      setDataCompanies(companies);
     } catch (error) {
-      console.error("Error al obtener datos de contratistas:", error);
-    }finally {
+      console.error("Error al obtener datos:", error);
+    } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    getCompanyIdFromSessionStorage();
-  }, [getCompanyIdFromSessionStorage]); // Se ejecuta solo una vez al montar el componente
+    const companyId = getCompanyIdFromSessionStorage();
+    setSelectedCompanyId(companyId);
+    if (companyId) {
+      fetchData(companyId);
+    }
+  }, [getCompanyIdFromSessionStorage, fetchData]);
 
   useEffect(() => {
-    // Obtener el companyId inicial para la primera carga
-    const initialFetch = async () => {
-      let companyID = selectedCompanyId;
+    if (!selectedCompanyId) return;
 
-      // Si no hay selectedCompanyId inicial, obtenerlo de userData
-      if (!companyID) {
-        const userData = JSON.parse(sessionStorage.getItem("userData"));
-        if (userData && userData.idCompany) {
-          companyID = userData.idCompany;
-          setSelectedCompanyId(companyID); // Actualizar selectedCompanyId en el estado
-        }
+    const observer = new MutationObserver(() => {
+      const companyId = getCompanyIdFromSessionStorage();
+      if (companyId !== selectedCompanyId) {
+        setSelectedCompanyId(companyId);
+        fetchData(companyId);
       }
-
-      // Llamar a fetchData con el companyID obtenido
-      await fetchData(companyID);
-    };
-
-    initialFetch();
-  }, [fetchData, selectedCompanyId]); // Ejecutar al iniciar y cuando selectedCompanyId cambie
-
-  useEffect(() => {
-    // Observar cambios en las clases del body y actualizar datos si es necesario
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (
-          mutation.type === "attributes" &&
-          mutation.attributeName === "class"
-        ) {
-          const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
-          //console.log("storedCompanyId:", storedCompanyId);
-
-          let companyID = selectedCompanyId;
-
-          // Si hay un storedCompanyId en sessionStorage, usarlo
-          if (storedCompanyId) {
-            companyID = storedCompanyId;
-          } else {
-            // Si no, obtenerlo de userData si está disponible
-            const userData = JSON.parse(sessionStorage.getItem("userData"));
-            if (userData && userData.idCompany) {
-              companyID = userData.idCompany;
-            }
-          }
-
-          // Llamar a fetchData con el companyID obtenido
-          fetchData(companyID);
-        }
-      });
     });
 
     observer.observe(document.body, {
@@ -101,10 +66,9 @@ const ProductionGround = () => {
     return () => {
       observer.disconnect();
     };
-  }, [fetchData, selectedCompanyId]); // Observar cambios en las clases del body y ejecutar fetchData
+  }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
-
-  console.log("dataGrounds", dataGrounds);
+  //console.log(dataCompanies);
   return (
     <>
       {isLoading ? (
@@ -119,7 +83,9 @@ const ProductionGround = () => {
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
-                omitirColumns={["id", "latitude", "longitude", "id_company"]}
+                companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
+                datosCompanies={dataCompanies}
+                omitirColumns={["id", "latitude", "longitude", "company_id"]}
               />
             </div>
           </div>
@@ -129,6 +95,4 @@ const ProductionGround = () => {
   );
 };
 
-export default ProductionGround;
-
-
+export default PeopleManagementGround;

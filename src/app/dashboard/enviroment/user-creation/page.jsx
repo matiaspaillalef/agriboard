@@ -10,7 +10,6 @@ const UserCreationPage = async () => {
   const roles = await getRoles();
   const companies = await getDataCompanies();
   
-  console.log(dataUsers);
   return (
     <>
       <div className="flex w-full flex-col gap-5 mt-3">
