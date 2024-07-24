@@ -31,7 +31,7 @@ import {
   getDataSquads,
   getDataGroups,
   getDataWorkers,
-} from "@/app/api/ConfiguracionApi";
+} from "@/app/api/ManagementPeople";
 
 const CardTableSquads = ({
   data,
@@ -55,7 +55,7 @@ const CardTableSquads = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState();
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -92,6 +92,15 @@ const CardTableSquads = ({
   const [showSelectedWorkers, setShowSelectedWorkers] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredWorkers, setFilteredWorkers] = useState(workers);
+
+
+  //Para cargar los datos de lado del cliente
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setInitialData(data);
+    }
+  }, [data]);
+
 
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -131,10 +140,19 @@ const CardTableSquads = ({
       .filter((worker) => worker.isSelected)
       .map((worker) => worker.id);
 
-    const updatedSquad = {
-      ...selectSquad,
-      workers: selectedWorkerIds, // Agregamos los IDs de los trabajadores seleccionados
-    };
+
+    const updatedSquad = initialData.map((item) =>
+      item.id == data.id
+        ? {
+          id: data.id,
+          name: data.name,
+          group: data.id_group,
+          status: data.status,
+          workers: data.workers
+        }
+        : item
+    );
+
 
     const responseCode = await updateSquad(updatedSquad);
     //console.log("Response code:", responseCode);
@@ -142,8 +160,12 @@ const CardTableSquads = ({
       // Manejar éxito
       setUpdateMessage("Trabajadores asignados correctamente.");
 
+      const userDataString = sessionStorage.getItem("userData");
+      const userData = JSON.parse(userDataString);
+      const idCompany = userData.idCompany;
+
       //Esto lo hago para cuando se reabra el modal quede con la data actualizada
-      const squadData = await getDataSquads();
+      const squadData = await getDataSquads(idCompany);
       setInitialData(squadData);
 
       setTimeout(() => {
@@ -206,16 +228,28 @@ const CardTableSquads = ({
 
       // Elimina la fila del front-end
       if (updateSquadApi === "OK") {
+        
         const updatedData = initialData.map((item) =>
-          item.id == data.id ? { ...data } : item
+          item.id == data.id
+            ? {
+              id: data.id,
+              name: data.name,
+              group: data.group,
+              status: data.status,
+            }
+            : item
         );
 
         setInitialData(updatedData);
         setUpdateMessage("cuadrilla actualizada correctamente");
         setOpen(false);
+
       } else {
+
         setUpdateMessage("No se pudo actualizar el cuadrilla");
+
       }
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -272,8 +306,12 @@ const CardTableSquads = ({
 
         setInitialData(updatedData);
 
+        const userDataString = sessionStorage.getItem("userData");
+        const userData = JSON.parse(userDataString);
+        const idCompany = userData.idCompany;
+
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataSquads();
+        const newDataFetch = await getDataSquads(idCompany);
 
         setInitialData(newDataFetch);
         setOpen(false);
@@ -308,7 +346,7 @@ const CardTableSquads = ({
     // Obtener los grupos cuando el componente se monte
     const fetchGroups = async () => {
       try {
-        const groupsData = await getDataGroups();
+        const groupsData = await getDataGroups(1);
         setGroups(groupsData);
       } catch (error) {
         console.error("Error al obtener los grupos", error);

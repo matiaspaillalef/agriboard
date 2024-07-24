@@ -1,10 +1,33 @@
-import CardTableSquads from "@/components/card/CardSquads";
-import { getDataSquads } from "@/app/api/ConfiguracionApi";
+'use client'
 
-const PeopleManagementSquads = async () => {
+import CardTableSquads from "@/components/card/CardSquads";
+import { getDataSquads } from "@/app/api/ManagementPeople";
+import { useEffect, useState } from "react";
+
+const PeopleManagementSquads =  () => {
+
+  const [dataSquads, setDataSquads] = useState([]);
+
+  useEffect(() => {
+    // Obtener userData desde sessionStorage
+    const userDataString = sessionStorage.getItem("userData");
+    const userData = JSON.parse(userDataString);
+    const idCompany = userData.idCompany;
+    
+    // Obtener datos de contratistas usando idCompany
+    const fetchData = async () => {
+      try {
+        const data = await getDataSquads(idCompany);
+        console.log(data);
+        setDataSquads(data);
+      } catch (error) {
+        console.error("Error al obtener registros: ", error);
+      }
+    };
+    
+    fetchData();
+  }, []);
   
-    const dataSquads = await getDataSquads();
-    //console.log(dataSquads);
   
     return (
       <>
