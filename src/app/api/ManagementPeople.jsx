@@ -605,10 +605,10 @@ export const deleteSquad = async (id) => {
 
 //Management People - Shifts
 
-export const getDataShifts = async () => {
+export const getDataShifts = async (id_company) => {
   try {
     const res = await fetch(
-      URLAPI + "/api/v1/management-people/shifts/getShifts",
+      URLAPI + `/api/v1/management-people/shifts/getShifts/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -620,12 +620,22 @@ export const getDataShifts = async () => {
     );
 
     if (res.ok) {
+
       const shiftsData = await res.json();
 
       if (shiftsData.code === "OK") {
+
         return shiftsData.shifts;
+
+      }
+
+      else if (shiftsData.code === "ERROR") {
+        
+        return shiftsData.mensaje;
+
       }
     }
+
   } catch (err) {
     console.error(err);
   }

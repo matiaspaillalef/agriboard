@@ -30,7 +30,7 @@ import {
   updateWorker,
   createWorker,
   getDataWorkers,
-} from "@/app/api/ConfiguracionApi";
+} from "@/app/api/ManagementPeople";
 
 import { ProvitionalCL } from "@/app/data/dataProvisionals";
 import Rut from "@/components/validateRUT";

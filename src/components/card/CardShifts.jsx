@@ -22,7 +22,7 @@ import {
   updateShift,
   createShift,
   getDataShifts,
-} from "@/app/api/ConfiguracionApi";
+} from "@/app/api/ManagementPeople";
 
 const CardTableShifts = ({
   data,
@@ -47,7 +47,7 @@ const CardTableShifts = ({
   } = useForm();
 
   //console.log(data);
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState();
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -94,19 +94,34 @@ const CardTableShifts = ({
     reset();
     setSelectedItem(user); // Actualiza el estado con los datos del usuario seleccionado
     setOpen(!open);
-  
+
   };
+
+  //Para cargar los datos de lado del cliente
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setInitialData(data);
+    }
+  }, [data]);
+
+  console.log("initialData", initialData);
 
   const onUpdateItem = async (data) => {
     //console.log("Datos de la empresa a actualizar:", data);
     try {
       const updateShiftApi = await updateShift(data);
-
       // Elimina la fila del front-end
       if (updateShiftApi === "OK") {
         const updatedData = initialData.map((item) =>
-          item.id == data.id ? { ...data } : item
+          item.id == data.id
+            ? {
+              id: data.id,
+              name: data.name,
+              status: data.status,
+            }
+            : item
         );
+
 
         setInitialData(updatedData);
         setUpdateMessage("Turno actualizado correctamente");
@@ -124,6 +139,7 @@ const CardTableShifts = ({
   };
 
   const handleShowSchedule = (user) => {
+    console.log(user);
     setIsShowSchedule(true);
     setFormData(user);
     setSelectedItem(user);
@@ -142,7 +158,7 @@ const CardTableShifts = ({
 
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
-     d
+    d
     try {
       //if (userConfirmed) {
       const deleteShift = await deleteShiftApi(id);
@@ -175,8 +191,12 @@ const CardTableShifts = ({
 
         setInitialData(updatedData);
 
+        const userDataString = sessionStorage.getItem("userData");
+        const userData = JSON.parse(userDataString);
+        const idCompany = userData.idCompany;
+
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataShifts();
+        const newDataFetch = await getDataShifts(idCompany);
 
         setInitialData(newDataFetch);
         setOpen(false);
@@ -247,9 +267,8 @@ const CardTableShifts = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -277,9 +296,8 @@ const CardTableShifts = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -340,9 +358,8 @@ const CardTableShifts = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -377,11 +394,10 @@ const CardTableShifts = ({
                         <td
                           key={rowIndex}
                           role="cell"
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                            index % 2 !== 0
+                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          } ${columnsClasses[rowIndex] || "text-left"}`}
+                            } ${columnsClasses[rowIndex] || "text-left"}`}
                         >
                           <div className="text-base font-medium text-navy-700 dark:text-white">
                             {key === "status" ? (
@@ -403,21 +419,20 @@ const CardTableShifts = ({
                       );
                     })}
 
-                    
+
                     <td
-                    className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                      index % 2 !== 0
-                        ? "bg-lightPrimary dark:bg-navy-900"
-                        : ""
-                    }`}
+                      className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
+                          ? "bg-lightPrimary dark:bg-navy-900"
+                          : ""
+                        }`}
                     >
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-white cursor-pointer"
-                      onClick={() => handleShowSchedule(row)}
-                    >
-                      <EyeIcon className="w-5 h-5"></EyeIcon> Ver horarios
-                    </button>
+                      <button
+                        type="button"
+                        className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-white cursor-pointer"
+                        onClick={() => handleShowSchedule(row)}
+                      >
+                        <EyeIcon className="w-5 h-5"></EyeIcon> Ver horarios
+                      </button>
 
                     </td>
 
@@ -425,11 +440,10 @@ const CardTableShifts = ({
                     {actions && (
                       <td
                         colSpan={columnLabels.length}
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
+                        className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                             ? "bg-lightPrimary dark:bg-navy-900"
                             : ""
-                        }`}
+                          }`}
                       >
                         <button
                           type="button"
@@ -499,9 +513,8 @@ const CardTableShifts = ({
             <div className="flex items-center gap-5">
               <button
                 type="button"
-                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                  currentPage === 1 && "hidden"
-                }`}
+                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                  }`}
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
@@ -524,11 +537,10 @@ const CardTableShifts = ({
                 <button
                   key={page}
                   type="button"
-                  className={`${
-                    currentPage === page
+                  className={`${currentPage === page
                       ? "font-semibold text-navy-500 dark:text-navy-300"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => handlePageChange(page)}
                 >
                   {page}
@@ -558,7 +570,7 @@ const CardTableShifts = ({
             </div>
           </div>
 
-        <Dialog
+          <Dialog
             open={open}
             handler={handleOpen}
             size="xs"
@@ -599,25 +611,25 @@ const CardTableShifts = ({
                   defaultValue={selectedItem ? selectedItem.id : ""}
                 />
                 {!isShowSchedule && (
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3 ">
-                    <label
-                      htmlFor="name"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Nombre del turno
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      required={true}
-                      defaultValue={selectedItem ? selectedItem.name : ""}
-                      {...register("name")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3 ">
+                      <label
+                        htmlFor="name"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Nombre del turno
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        required={true}
+                        defaultValue={selectedItem ? selectedItem.name : ""}
+                        {...register("name")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
                   </div>
-                </div>
                 )}
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1 bg-lightPrimary p-5 rounded-xl my-5">
                   <div className="flex flex-col gap-0">
@@ -626,7 +638,7 @@ const CardTableShifts = ({
                         onClick={() => handleOpenAcc(1)}
                         className="text-sm font-semibold py-3"
                       >
-                        Lunes 
+                        Lunes
                       </AccordionHeader>
                       <AccordionBody>
                         <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -677,7 +689,7 @@ const CardTableShifts = ({
                         </div>
                       </AccordionBody>
                     </Accordion>
-                    <Accordion open={openAcc === 2}  icon={<ChevronDownIcon className="w-5 h-5" />}>
+                    <Accordion open={openAcc === 2} icon={<ChevronDownIcon className="w-5 h-5" />}>
                       <AccordionHeader
                         onClick={() => handleOpenAcc(2)}
                         className="text-sm font-semibold py-3"
@@ -832,7 +844,7 @@ const CardTableShifts = ({
                               className="flex h-12 w-full items-center justify-center rounded-xl border bg-white p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                             />
                           </div>
-                      </div>
+                        </div>
                       </AccordionBody>
                     </Accordion>
                     <Accordion open={openAcc === 5} icon={<ChevronDownIcon className="w-5 h-5" />}>
@@ -882,7 +894,7 @@ const CardTableShifts = ({
                               className="flex h-12 w-full items-center justify-center rounded-xl border bg-white p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                             />
                           </div>
-                      </div>
+                        </div>
                       </AccordionBody>
                     </Accordion>
                     <Accordion open={openAcc === 6} icon={<ChevronDownIcon className="w-5 h-5" />}>
@@ -932,7 +944,7 @@ const CardTableShifts = ({
                               className="flex h-12 w-full items-center justify-center rounded-xl border bg-white p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                             />
                           </div>
-                      </div>
+                        </div>
                       </AccordionBody>
                     </Accordion>
                     <Accordion open={openAcc === 7} icon={<ChevronDownIcon className="w-5 h-5" />}>
@@ -982,47 +994,47 @@ const CardTableShifts = ({
                               className="flex h-12 w-full items-center justify-center rounded-xl border bg-white p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                             />
                           </div>
-                      </div>
+                        </div>
                       </AccordionBody>
                     </Accordion>
                   </div>
                 </div>
 
                 {!isShowSchedule && (
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="status"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Estado
-                    </label>
-                    <select
-                      name="status"
-                      id="status"
-                      required={true}
-                      {...register("status")}
-                      defaultValue={selectedItem ? selectedItem.status : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      <option value="0">Inactivo</option>
-                      <option value="1">Activo</option>
-                    </select>
-                  </div>
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="status"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estado
+                      </label>
+                      <select
+                        name="status"
+                        id="status"
+                        required={true}
+                        {...register("status")}
+                        defaultValue={selectedItem ? selectedItem.status : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="0">Inactivo</option>
+                        <option value="1">Activo</option>
+                      </select>
+                    </div>
 
-                  <div className="flex flex-col gap-3">
-                    <button
-                      type="submit"
-                      className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                      //onSubmit={onUpdateItem}
-                      onSubmit={isEdit ? onUpdateItem : onSubmitForm}
-                    >
-                      {isEdit ? "Editar Turno" : "Crear Turno"}
-                    </button>
+                    <div className="flex flex-col gap-3">
+                      <button
+                        type="submit"
+                        className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+                        //onSubmit={onUpdateItem}
+                        onSubmit={isEdit ? onUpdateItem : onSubmitForm}
+                      >
+                        {isEdit ? "Editar Turno" : "Crear Turno"}
+                      </button>
+                    </div>
+
                   </div>
-                 
-                </div>
-                 )}
+                )}
               </form>
             </DialogBody>
           </Dialog>
