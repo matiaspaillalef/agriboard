@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
-import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { set, useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
@@ -14,9 +13,6 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
-import uploadCloud from "@/assets/img/generic/upload-cloud.jpg";
 import {
   Button,
   Dialog,
@@ -24,18 +20,15 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
+import { getDataGround } from "@/app/api/ProductionApi";
 import {
-  deleteGround as deleteGroundApi,
-  updateGround,
-  createGround,
-  getDataGround,
+  getDataSectorBarracks,
+  createSectorBarrack,
+  updateSectorBarrack,
+  deleteSectorBarrack,
 } from "@/app/api/ProductionApi";
 
-import { ProvitionalCL } from "@/app/data/dataProvisionals";
-import Rut from "@/components/validateRUT";
-import { StateCL } from "@/app/data/dataStates";
-
-const CardTableGround = ({
+const CardTableBarracks = ({
   data,
   thead,
   columnsClasses = [],
@@ -73,36 +66,26 @@ const CardTableGround = ({
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
 
-  const [selectedRegion, setSelectedRegion] = useState("XV");
-  const [selectedCity, setSelectedCity] = useState("Arica");
-
   const [rut, setRut] = useState("");
   const [rutValido, setRutValido] = useState(false);
 
   const [rol, setRol] = useState(""); // control de item por rol
 
-  const handleRegionChange = (event) => {
-    const region = event.target.value;
-    setSelectedRegion(region);
+  const [dataGround, setDataGround] = useState([]);
 
-    // Buscar la región seleccionada en los datos de StateCL
-    const selectedRegionData = StateCL.find(
-      (state) => state.region_number === region
-    );
-
-    // Actualizar las comunas correspondientes a la región seleccionada
-    if (selectedRegionData) {
-      const { comunas } = selectedRegionData;
-      // Establecer la primera comuna como la seleccionada por defecto
-      if (comunas && comunas.length > 0) {
-        setSelectedCity(comunas[0].name);
-      } else {
-        setSelectedCity(""); // Resetear la ciudad seleccionada si no hay comunas
-      }
-    } else {
-      setSelectedCity(""); // Resetear la ciudad seleccionada si no se encuentra la región seleccionada
+  const handleDataGround = async () => {
+    try {
+      const groundData = await getDataGround(companyID);
+      setDataGround(groundData);
+    } catch (error) {
+      console.error("Error al obtener el nombre del ground:", error);
+      return "Desconocido";
     }
   };
+
+  useEffect(() => {
+    handleDataGround();
+  }, []);
 
   const [openAlert, setOpenAlert] = useState(false);
 
@@ -118,8 +101,6 @@ const CardTableGround = ({
   };
 
   const handleOpenEditUser = (user) => {
-    setRutValido(true); //Se pasa en true ya que si leventa la ventada de editar es por que los datos ya fueron validados
-    setSelectedRegion(user.state);
     setIsEdit(true);
     setFormData(user);
     setSelectedItem(user);
@@ -147,22 +128,18 @@ const CardTableGround = ({
         );
       }
 
-      // Convertir cadenas vacías en null para latitude y longitude
-      const updatedData = {
-        ...data,
-        latitude: data.latitude !== "" ? data.latitude : null,
-        longitude: data.longitude !== "" ? data.longitude : null,
-      };
+      const updateItemApi = await updateSectorBarrack(data);
+      const dataNew = await getDataSectorBarracks(companyID);
 
-      const updateItemApi = await updateGround(updatedData);
-
-      //console.log(updateItemApi);
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
-          item.id === data.id ? { ...item, ...updatedData } : item
+          item.id === Number(data.id) ? { ...item, ...data } : item
         );
 
+        //Le coloque Number por que llega como string y debe ser number
+
         setInitialData(updatedList);
+        setInitialData(dataNew);
         setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
@@ -186,10 +163,9 @@ const CardTableGround = ({
 
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
-
     try {
       //if (userConfirmed) {
-      const deleteItem = await deleteGroundApi(id);
+      const deleteItem = await deleteSectorBarrack(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
@@ -213,27 +189,22 @@ const CardTableGround = ({
   // Creación de empresa
   const onSubmitForm = async (data) => {
     try {
-      if (
-        !data ||
-        !data.name ||
-        !data.state ||
-        !data.city ||
-        !data.address ||
-        !data.zone ||
-        !data.company_id ||
-        !data.status
-      ) {
-        throw new Error("Los datos para crear el registro son incompletos.");
-      }
+      const transformedData = {
+        id: Number(data.id) || null, // Convierte a número, o usa null si no hay id
+        name: data.name.trim(), // Elimina espacios en blanco alrededor
+        ground: Number(data.ground) || null, // Convierte a número
+        company_id: Number(data.company_id) || null, // Convierte a número
+        status: data.status.trim(), // Elimina espacios en blanco alrededor
+      };
 
-      const createItem = await createGround(data);
-
-      console.log(createItem);
+      const createItem = await createSectorBarrack(transformedData);
+      const dataNew = await getDataSectorBarracks(companyID);
 
       if (createItem === "OK") {
-        const updatedData = [...initialData, data];
+        const updatedData = [...initialData, transformedData];
 
-        setInitialData(updatedData);
+        setInitialData(updatedData); //Actualizamos la visualización de la tabla
+        setInitialData(dataNew); //Actualizamos la visualizacion pero con el id, quizas sea necesario quitar el de ahi arriba
         setOpen(false);
         setUpdateMessage("Registro creado correctamente");
       } else {
@@ -273,6 +244,7 @@ const CardTableGround = ({
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
   };
 
+  //const totalPages = Math.ceil(initialData.length / itemsPerPage);
   const totalPages = Math.ceil(
     (initialData ? initialData.length : 0) / itemsPerPage
   );
@@ -284,7 +256,7 @@ const CardTableGround = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
+  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -307,7 +279,7 @@ const CardTableGround = ({
           className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
         >
           <PlusIcon className="w-5 h-5" />
-          Nueva empresa
+          Nuevo sector / cuartel
         </Button>
       </div>
       {loading ? (
@@ -330,9 +302,10 @@ const CardTableGround = ({
               </h4>
             )}
 
-            {Array.isArray(initialData) && initialData.length > 0 && (
-              <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-                {downloadBtn && (
+            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+              {Array.isArray(initialData) &&
+                initialData.length > 0 &&
+                downloadBtn && (
                   <ExportarExcel
                     data={initialData}
                     filename="campos"
@@ -341,16 +314,15 @@ const CardTableGround = ({
                   />
                 )}
 
-                {SearchInput && (
-                  <input
-                    type="search"
-                    placeholder="Buscar"
-                    className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
-                    onKeyUp={handlerSearch}
-                  />
-                )}
-              </div>
-            )}
+              {SearchInput && (
+                <input
+                  type="search"
+                  placeholder="Buscar"
+                  className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
+                  onKeyUp={handlerSearch}
+                />
+              )}
+            </div>
           </div>
 
           <div className="h-full overflow-x-scroll max-h-dvh">
@@ -404,7 +376,7 @@ const CardTableGround = ({
               )}
 
               <tbody role="rowgroup">
-                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no */}
+                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no, el currentItems es de la paginación */}
                 {Array.isArray(initialData) && initialData.length > 0 ? (
                   currentItems.map((row, index) => (
                     <tr key={index} role="row">
@@ -434,17 +406,12 @@ const CardTableGround = ({
                                     Inactivo
                                   </p>
                                 )
-                              ) : key !== "password" ? (
-                                key === "state" ? (
-                                  // Transformar el número de región a su nombre correspondiente
-                                  StateCL.find(
-                                    (state) => state.region_number == row[key]
-                                  )?.region || "-"
-                                ) : (
-                                  formatNumber(row[key])
-                                )
+                              ) : key === "ground" ? (
+                                dataGround.find(
+                                  (ground) => ground.id === row[key]
+                                )?.name
                               ) : (
-                                "" // No mostrar la contraseña
+                                formatNumber(row[key])
                               )}
                             </div>
                           </td>
@@ -494,7 +461,6 @@ const CardTableGround = ({
               </tbody>
             </table>
           </div>
-         
           {initialData.length > 0 && pagination.length > 1 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
@@ -570,7 +536,7 @@ const CardTableGround = ({
               </svg>
             </button>
             <DialogHeader className="dark:text-white">
-              {isEdit ? "Editar Empresa" : "Crear Empresa"}
+              {isEdit ? "Editar Sector / Cuartel" : "Crear Sector / Cuartel"}
             </DialogHeader>
             <DialogBody>
               <form
@@ -596,7 +562,7 @@ const CardTableGround = ({
                       htmlFor="name"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Nombre Campo
+                      Nombre
                     </label>
                     <input
                       type="text"
@@ -613,140 +579,25 @@ const CardTableGround = ({
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <div className="flex flex-col gap-3">
                     <label
-                      htmlFor="state"
+                      htmlFor="ground"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Región
+                      Campo
                     </label>
                     <select
-                      name="state"
-                      id="state"
+                      name="ground"
+                      id="ground"
                       required={true}
-                      {...register("state")}
-                      defaultValue={selectedItem ? selectedItem.state : ""}
-                      onChange={handleRegionChange}
+                      {...register("ground")}
+                      defaultValue={selectedItem ? selectedItem.ground : ""}
+                      //onChange={handleRegionChange}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {StateCL.map((state) => (
-                        <option
-                          key={state.region_number}
-                          value={state.region_number}
-                        >
-                          {state.region}
+                      {dataGround.map((ground) => (
+                        <option key={ground.id} value={ground.id}>
+                          {ground.name}
                         </option>
                       ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="city"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Ciudad
-                    </label>
-                    <select
-                      name="city"
-                      id="city"
-                      //value={selectedCity}
-                      onChange={(event) => setSelectedCity(event.target.value)}
-                      {...register("city")}
-                      defaultValue={selectedItem ? selectedItem.city : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {selectedRegion &&
-                        StateCL.find(
-                          (state) => state.region_number === selectedRegion
-                        )?.comunas.map((comuna) => (
-                          <option key={comuna.name} value={comuna.name}>
-                            {comuna.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="address"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Dirección
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="address"
-                        id="address"
-                        {...register("address")}
-                        defaultValue={selectedItem ? selectedItem.address : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="latitude"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Latitud
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="latitude"
-                        id="latitude"
-                        {...register("latitude")}
-                        defaultValue={selectedItem ? selectedItem.latitude : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="longitude"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Longitud
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="logitude"
-                        id="longitude"
-                        {...register("longitude")}
-                        defaultValue={
-                          selectedItem ? selectedItem.longitude : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="zone"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Zona
-                    </label>
-                    <select
-                      name="zone"
-                      id="zone"
-                      required={true}
-                      {...register("zone")}
-                      defaultValue={selectedItem ? selectedItem.zone : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      <option value="Norte">Norte</option>
-                      <option value="Centro">Centro</option>
-                      <option value="Sur">Sur</option>
                     </select>
                   </div>
 
@@ -824,7 +675,7 @@ const CardTableGround = ({
                       //onSubmit={onUpdateItem}
                       onSubmit={isEdit ? onUpdateItem : onSubmitForm}
                     >
-                      {isEdit ? "Editar Empresa" : "Crear Empresa"}
+                      {isEdit ? "Editar" : "Crear"}
                     </button>
                   </div>
                 </div>
@@ -865,4 +716,4 @@ const CardTableGround = ({
   );
 };
 
-export default CardTableGround;
+export default CardTableBarracks;

@@ -41,6 +41,8 @@ const PeopleManagementPositions = () => {
       const data = await getDataPositions(companyId);
       setDataPositions(data);
 
+      console.log("Data de cargos:", data);
+
     } catch (error) {
 
       console.error("Error al obtener datos:", error);

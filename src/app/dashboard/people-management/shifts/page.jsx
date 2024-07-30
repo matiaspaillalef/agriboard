@@ -14,108 +14,45 @@ const PeopleManagementShifts = () => {
 
   // Función para obtener selectedCompanyId desde sessionStorage o userData
   const getCompanyIdFromSessionStorage = useCallback(() => {
-
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
-
     if (storedCompanyId) {
-
-      setSelectedCompanyId(storedCompanyId);
-
+      return storedCompanyId;
     } else {
-
       const userData = JSON.parse(sessionStorage.getItem("userData"));
-
-      if (userData && userData.idCompany) {
-        setSelectedCompanyId(userData.idCompany);
-      }
+      return userData?.idCompany || "";
     }
   }, []);
 
-  // Función para obtener datos de Positions
   const fetchData = useCallback(async (companyId) => {
-
     setIsLoading(true);
-
     try {
-
       const data = await getDataShifts(companyId);
-      console.log(data);
       setdataShifts(data);
 
     } catch (error) {
-
       console.error("Error al obtener datos:", error);
-
     } finally {
-
       setIsLoading(false);
-
     }
   }, []);
 
-  useEffect(() => { getCompanyIdFromSessionStorage(); }, [getCompanyIdFromSessionStorage]); // Se ejecuta solo una vez al montar el componente
+  useEffect(() => {
+    const companyId = getCompanyIdFromSessionStorage();
+    setSelectedCompanyId(companyId);
+    if (companyId) {
+      fetchData(companyId);
+    }
+  }, [getCompanyIdFromSessionStorage, fetchData]);
 
   useEffect(() => {
-    // Obtener el companyId inicial para la primera 98/*carga
-    const initialFetch = async () => {
+    if (!selectedCompanyId) return;
 
-      let companyID = selectedCompanyId;
-
-      // Si no hay selectedCompanyId inicial, obtenerlo de userData
-      if (!companyID) {
-
-        const userData = JSON.parse(sessionStorage.getItem("userData"));
-
-        if (userData && userData.idCompany) {
-
-          companyID = userData.idCompany;
-          setSelectedCompanyId(companyID); // Actualizar selectedCompanyId en el estado
-
-        }
+    const observer = new MutationObserver(() => {
+      const companyId = getCompanyIdFromSessionStorage();
+      if (companyId !== selectedCompanyId) {
+        setSelectedCompanyId(companyId);
+        fetchData(companyId);
       }
-
-      // Llamar a fetchData con el companyID obtenido
-      await fetchData(companyID);
-
-    };
-
-    initialFetch();
-
-  }, [fetchData, selectedCompanyId]); // Ejecutar al iniciar y cuando selectedCompanyId cambie
-
-  useEffect(() => {
-    // Observar cambios en las clases del body y actualizar datos si es necesario
-    const observer = new MutationObserver((mutations) => {
-
-      mutations.forEach((mutation) => {
-
-        if (mutation.type === "attributes" && mutation.attributeName === "class") {
-
-          const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
-          //console.log("storedCompanyId:", storedCompanyId);
-
-          let companyID = selectedCompanyId;
-
-          // Si hay un storedCompanyId en sessionStorage, usarlo
-          if (storedCompanyId) {
-
-            companyID = storedCompanyId;
-
-          } else {
-
-            // Si no, obtenerlo de userData si está disponible
-            const userData = JSON.parse(sessionStorage.getItem("userData"));
-
-            if (userData && userData.idCompany) {
-
-              companyID = userData.idCompany;
-
-            }
-          }
-          // Llamar a fetchData con el companyID obtenido
-          fetchData(companyID);
-        }
-      });
     });
 
     observer.observe(document.body, {
@@ -127,9 +64,7 @@ const PeopleManagementShifts = () => {
     return () => {
       observer.disconnect();
     };
-  }, [fetchData, selectedCompanyId]);
-
-
+  }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
   return (
     <>

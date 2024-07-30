@@ -320,6 +320,7 @@ export const deletePosition = async (id) => {
 ////////// Management People - GROUPS  //////////////////////////
 
 export const getDataGroups = async (id_company) => {
+
   try {
 
     const res = await fetch(
@@ -494,7 +495,6 @@ export const getDataSquads = async (id_company) => {
   }
 }
 
-
 export const createSquad = async (data) => {
   try {
 
@@ -574,8 +574,6 @@ export const updateSquad = async (data) => {
     console.error(err);
   }
 };
-
-
 
 export const deleteSquad = async (id) => {
   try {
@@ -751,10 +749,10 @@ export const deleteShift = async (id) => {
 }
 
 //Management People - Workers
-export const getDataWorkers = async () => {
+export const getDataWorkers = async (id_company) => {
   try {
     const res = await fetch(
-      URLAPI + "/api/v1/management-people/workers/getWorkers",
+      URLAPI + `/api/v1/management-people/workers/getWorkers/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -803,6 +801,7 @@ export const createWorker = async (data) => {
           phone_company: data.phone_company,
           date_admission: data.date_admission,
           status: data.status,
+          id_company: data.id_company,
         }),
         cache: "no-store",
       }

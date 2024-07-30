@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import * as XLSX from "xlsx";
-import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import "@/assets/css/Table.css";
@@ -247,16 +246,33 @@ const CardTableWorkers = ({
   };
 
   const onUpdateItem = async (data) => {
-    console.log(data);
-
     try {
-      const updateWorkerApi = await updateWorker(data);
+      const transformedData = {
+        id: data.id,
+        rut: data.rut,
+        name: data.name,
+        lastname: data.lastname,
+        lastname2: data.lastname2,
+        born_date: data.born_date,
+        gender: data.gender,
+        state_civil: data.state_civil,
+        state: data.state,
+        city: data.city,
+        address: data.address,
+        phone: data.phone,
+        phone_company: data.phone_company,
+        date_admission: data.date_admission,
+        status: data.status,
+      };
+      const updateWorkerApi = await updateWorker(transformedData);
 
       // Elimina la fila del front-end
       if (updateWorkerApi === "OK") {
         const updatedData = initialData.map((item) =>
-          item.id == data.id ? { ...data } : item
+          item.id == transformedData.id ? { ...transformedData } : item
         );
+
+        //const updatedData = [...initialData, transformedData];
 
         setInitialData(updatedData);
         setUpdateMessage("Trabajadoractualizado correctamente");
@@ -366,12 +382,10 @@ const CardTableWorkers = ({
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
   };
 
-  let totalPages;
-  if (initialData === undefined) {
-    totalPages = 0; // O cualquier otro valor por defecto que desees asignar
-  } else {
-    totalPages = Math.ceil(initialData.length / itemsPerPage);
-  }
+  //const totalPages = Math.ceil(initialData.length / itemsPerPage);
+  const totalPages = Math.ceil(
+    (initialData ? initialData.length : 0) / itemsPerPage
+  );
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -380,10 +394,7 @@ const CardTableWorkers = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  let currentItems = [];
-  if (Array.isArray(initialData)) {
-    currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
-  }
+  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -516,21 +527,16 @@ const CardTableWorkers = ({
             )}
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {downloadBtn && (
-                <>
+              {Array.isArray(initialData) &&
+                initialData.length > 0 &&
+                downloadBtn && (
                   <ExportarExcel
                     data={initialData}
                     filename="empresas"
                     sheetname="empresas"
                     titlebutton="Exportar a excel"
                   />
-                  <ExportarPDF
-                    data={initialData}
-                    filename="empresas"
-                    titlebutton="Exportar a PDF"
-                  />
-                </>
-              )}
+                )}
 
               {SearchInput && (
                 <input
@@ -594,161 +600,169 @@ const CardTableWorkers = ({
               )}
 
               <tbody role="rowgroup">
-                {currentItems.map((row, index) => (
-                  <tr key={index} role="row">
-                    {Object.keys(row).map((key, rowIndex) => {
-                      if (omitirColumns.includes(key)) {
-                        return null; // Omitir la columna si está en omitirColumns
-                      }
+                {Array.isArray(initialData) && initialData.length > 0 ? (
+                  currentItems.map((row, index) => (
+                    <tr key={index} role="row">
+                      {Object.keys(row).map((key, rowIndex) => {
+                        if (omitirColumns.includes(key)) {
+                          return null; // Omitir la columna si está en omitirColumns
+                        }
 
-                      return (
+                        return (
+                          <td
+                            key={rowIndex}
+                            role="cell"
+                            className={`pt-[14px] pb-3 text-[14px] px-5 ${
+                              index % 2 !== 0
+                                ? "bg-lightPrimary dark:bg-navy-900"
+                                : ""
+                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                          >
+                            <div className="text-base font-medium text-navy-700 dark:text-white">
+                              {key === "status" ? (
+                                //console.log(key),
+                                row[key] == 1 ? (
+                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Activo
+                                  </p>
+                                ) : (
+                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Inactivo
+                                  </p>
+                                )
+                              ) : key !== "password" ? (
+                                key === "state" ? (
+                                  // Transformar el número de región a su nombre correspondiente
+                                  StateCL.find(
+                                    (state) => state.region_number == row[key]
+                                  )?.region || "-"
+                                ) : (
+                                  formatNumber(row[key])
+                                )
+                              ) : (
+                                "" // No mostrar la contraseña
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
+                      {actions && (
                         <td
-                          key={rowIndex}
-                          role="cell"
+                          colSpan={columnLabels.length}
                           className={`pt-[14px] pb-3 text-[14px] px-5 ${
                             index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          } ${columnsClasses[rowIndex] || "text-left"}`}
+                          }`}
                         >
-                          <div className="text-base font-medium text-navy-700 dark:text-white">
-                            {key === "status" ? (
-                              //console.log(key),
-                              row[key] == 1 ? (
-                                <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                  Activo
-                                </p>
-                              ) : (
-                                <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                  Inactivo
-                                </p>
-                              )
-                            ) : key !== "password" ? (
-                              key === "state" ? (
-                                // Transformar el número de región a su nombre correspondiente
-                                StateCL.find(
-                                  (state) => state.region_number == row[key]
-                                )?.region || "-"
-                              ) : (
-                                formatNumber(row[key])
-                              )
-                            ) : (
-                              "" // No mostrar la contraseña
-                            )}
-                          </div>
+                          <Tooltip
+                            placement="bottom"
+                            content="Ver trabajador"
+                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
+                          >
+                            <button
+                              type="button"
+                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                              onClick={() => handleOpenShowUser(row)}
+                            >
+                              <EyeIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip
+                            placement="bottom"
+                            content="Editar trabajador"
+                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
+                          >
+                            <button
+                              type="button"
+                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                              onClick={() => handleOpenEditUser(row)}
+                            >
+                              <PencilSquareIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip
+                            placement="bottom"
+                            content="Eliminar trabajdor"
+                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
+                          >
+                            <button
+                              id="remove"
+                              type="button"
+                              onClick={() => {
+                                //console.log(row);
+                                handleOpenAlert(
+                                  index,
+                                  row.id,
+                                  row.name ? row.name : "",
+                                  row.lastname ? row.lastname : ""
+                                );
+                              }}
+                            >
+                              <TrashIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
                         </td>
-                      );
-                    })}
-                    {actions && (
-                      <td
-                        colSpan={columnLabels.length}
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                        }`}
-                      >
-                        <Tooltip
-                          placement="bottom"
-                          content="Ver trabajador"
-                          className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                        >
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                            onClick={() => handleOpenShowUser(row)}
-                          >
-                            <EyeIcon className="w-6 h-6" />
-                          </button>
-                        </Tooltip>
-
-                        <Tooltip
-                          placement="bottom"
-                          content="Editar trabajador"
-                          className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                        >
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                            onClick={() => handleOpenEditUser(row)}
-                          >
-                            <PencilSquareIcon className="w-6 h-6" />
-                          </button>
-                        </Tooltip>
-
-                        <Tooltip
-                          placement="bottom"
-                          content="Eliminar trabajdor"
-                          className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                        >
-                          <button
-                            id="remove"
-                            type="button"
-                            onClick={() => {
-                              //console.log(row);
-                              handleOpenAlert(
-                                index,
-                                row.id,
-                                row.name ? row.name : "",
-                                row.lastname ? row.lastname : ""
-                              );
-                            }}
-                          >
-                            <TrashIcon className="w-6 h-6" />
-                          </button>
-                        </Tooltip>
-                      </td>
-                    )}
+                      )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="py-4">No se encontraron registros.</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between mt-5">
-            <div className="flex items-center gap-5">
-              <p className="text-sm text-gray-800 dark:text-white">
-                Mostrando {indexOfFirstItem + 1} a{" "}
-                {indexOfLastItem > initialData.length
-                  ? initialData.length
-                  : indexOfLastItem}{" "}
-                de {initialData.length} trabajadores
-              </p>
-            </div>
-            <div className="flex items-center gap-5">
-              <button
-                type="button"
-                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                  currentPage === 1 && "hidden"
-                }`}
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeftIcon className="w-5 h-5" />
-              </button>
-              {pagination.map((page) => (
+          {initialData.length > 0 && pagination.length > 1 && (
+            <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center gap-5">
+                <p className="text-sm text-gray-800 dark:text-white">
+                  Mostrando {indexOfFirstItem + 1} a{" "}
+                  {indexOfLastItem > initialData.length
+                    ? initialData.length
+                    : indexOfLastItem}{" "}
+                  de {initialData.length} registros
+                </p>
+              </div>
+              <div className="flex items-center gap-5">
                 <button
-                  key={page}
                   type="button"
-                  className={`${
-                    currentPage === page
-                      ? "font-semibold text-navy-500 dark:text-navy-300"
-                      : ""
+                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                    currentPage === 1 && "hidden"
                   }`}
-                  onClick={() => handlePageChange(page)}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
                 >
-                  {page}
+                  <ChevronLeftIcon className="w-5 h-5" />
                 </button>
-              ))}
-              <button
-                type="button"
-                className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRightIcon className="w-5 h-5" />
-              </button>
+                {pagination.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`${
+                      currentPage === page
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
+                    }`}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRightIcon className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <Dialog
             open={open}
@@ -761,20 +775,7 @@ const CardTableWorkers = ({
               onClick={handleOpen}
               className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              </svg>
+              <XMarkIcon className="w-6 h-6" />
             </button>
             <DialogHeader className="dark:text-white">
               {openShowUser
@@ -1272,7 +1273,19 @@ const CardTableWorkers = ({
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
                 <strong>Importar trabajadores</strong>
               </h2>
-              <p className="text-center mb-5 dark:text-white text-sm"> Recuerda que si ya esxiste el trabajador por RUT, no se creará nuevamente. Descarga el excel de ejemplo para subir los trabajadores <Link href="../../../public/template-trabajadores-agrisoft.xlsx" download className="underline font-semibold">aquí</Link></p>
+              <p className="text-center mb-5 dark:text-white text-sm">
+                {" "}
+                Recuerda que si ya esxiste el trabajador por RUT, no se creará
+                nuevamente. Descarga el excel de ejemplo para subir los
+                trabajadores{" "}
+                <Link
+                  href="../../../public/template-trabajadores-agrisoft.xlsx"
+                  download
+                  className="underline font-semibold"
+                >
+                  aquí
+                </Link>
+              </p>
               <button
                 type="button"
                 onClick={handleOpenImport}
@@ -1297,24 +1310,34 @@ const CardTableWorkers = ({
                   Seleccionar archivo
                 </label>
               ) : (
-
                 <label
                   htmlFor="fileInput"
                   className="cursor-pointer text-navy-900 underline dark:text-white text-center mb-5 w-full block"
                 >
                   Archivo seleccionado: {file.name}
                 </label>
-                
               )}
               <button
                 type="button"
                 onClick={handleFileUpload}
-                className={`bg-green-600 text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-3 hover:bg-green-700 ${file == null && "disabled:opacity-75"}`}
+                className={`bg-green-600 text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-3 hover:bg-green-700 ${
+                  file == null && "disabled:opacity-75"
+                }`}
                 disabled={file == null}
               >
                 <ArrowUpOnSquareIcon className="w-5 h-5" /> Subir archivo
               </button>
-              {updateMessage && <p className={`text-center mt-5 ${updateMessage.includes("correctamente") ? "text-green-500" : "text-red-500"}`}>{updateMessage}</p>}
+              {updateMessage && (
+                <p
+                  className={`text-center mt-5 ${
+                    updateMessage.includes("correctamente")
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {updateMessage}
+                </p>
+              )}
             </>
           </Dialog>
         </>

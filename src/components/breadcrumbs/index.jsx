@@ -48,6 +48,10 @@ const path = usePathname();
           return "Cuadrillas";
         case "ground":
           return "Campos";
+        case "sectors-barracks":
+          return "Sectores y cuarteles";
+        case "varieties":
+          return "Variedades";
         default:
           return segment;
       }

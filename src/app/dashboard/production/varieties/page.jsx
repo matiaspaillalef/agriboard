@@ -1,19 +1,20 @@
-'use client'
+"use client";
 
-import CardTableSquads from "@/components/card/CardSquads";
-import { getDataSquads } from "@/app/api/ManagementPeople";
-import { useEffect, useState, useCallback  } from "react";
+import CardTableVarieties from "@/components/card/CardTableVarieties";
+import { getDataGround, getDataVarieties } from "@/app/api/ProductionApi";
+import { getDataCompanies } from "@/app/api/ConfiguracionApi";
+import { useEffect, useState, useCallback } from "react";
+
 import LoadingData from "@/components/loadingData/loadingData";
+import { set } from "react-hook-form";
 
-const PeopleManagementSquads = () => {
-
-  const [dataSquads, setDataSquads] = useState([]);
+const ProductionVarieties = () => {
+  const [dataVarieties, setDataVarieties] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [dataCompanies, setDataCompanies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-
-   // Función para obtener selectedCompanyId desde sessionStorage o userData
-   const getCompanyIdFromSessionStorage = useCallback(() => {
+  const getCompanyIdFromSessionStorage = useCallback(() => {
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
     if (storedCompanyId) {
       return storedCompanyId;
@@ -26,10 +27,10 @@ const PeopleManagementSquads = () => {
   const fetchData = useCallback(async (companyId) => {
     setIsLoading(true);
     try {
-      const data = await getDataSquads(companyId);
-      setDataSquads(data);
-
-      console.log(data);
+      const data = await  getDataVarieties(companyId);
+      const companies = await getDataCompanies();
+      setDataVarieties(data);
+      setDataCompanies(companies);
 
     } catch (error) {
       console.error("Error al obtener datos:", error);
@@ -67,6 +68,8 @@ const PeopleManagementSquads = () => {
       observer.disconnect();
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
+
+
   return (
     <>
       {isLoading ? (
@@ -75,14 +78,15 @@ const PeopleManagementSquads = () => {
         <div className="flex w-full flex-col gap-5 mt-3">
           <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-              <CardTableSquads
-                data={dataSquads}
-                thead="Nombre, Grupo, Estado"
-                omitirColumns={["id", "workers"]}
+              <CardTableVarieties
+                data={dataVarieties}
+                thead="Nombre, Estado"
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
-                companyID={selectedCompanyId}
+                companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
+                datosCompanies={dataCompanies}
+                omitirColumns={["id", "company_id"]}
               />
             </div>
           </div>
@@ -90,6 +94,6 @@ const PeopleManagementSquads = () => {
       )}
     </>
   );
-}
+};
 
-export default PeopleManagementSquads;
+export default ProductionVarieties;

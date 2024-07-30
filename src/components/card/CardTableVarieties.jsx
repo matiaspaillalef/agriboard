@@ -24,16 +24,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import {
-  deleteGround as deleteGroundApi,
-  updateGround,
-  createGround,
-  getDataGround,
-} from "@/app/api/ProductionApi";
-
-import { ProvitionalCL } from "@/app/data/dataProvisionals";
-import Rut from "@/components/validateRUT";
-import { StateCL } from "@/app/data/dataStates";
+import { getDataVarieties, createVariety, updateVariety, deleteVariety } from "@/app/api/ProductionApi";
 
 const CardTableGround = ({
   data,
@@ -73,36 +64,27 @@ const CardTableGround = ({
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
 
-  const [selectedRegion, setSelectedRegion] = useState("XV");
-  const [selectedCity, setSelectedCity] = useState("Arica");
-
   const [rut, setRut] = useState("");
   const [rutValido, setRutValido] = useState(false);
 
   const [rol, setRol] = useState(""); // control de item por rol
 
-  const handleRegionChange = (event) => {
-    const region = event.target.value;
-    setSelectedRegion(region);
+  const [dataGround, setDataGround] = useState([]);
 
-    // Buscar la región seleccionada en los datos de StateCL
-    const selectedRegionData = StateCL.find(
-      (state) => state.region_number === region
-    );
-
-    // Actualizar las comunas correspondientes a la región seleccionada
-    if (selectedRegionData) {
-      const { comunas } = selectedRegionData;
-      // Establecer la primera comuna como la seleccionada por defecto
-      if (comunas && comunas.length > 0) {
-        setSelectedCity(comunas[0].name);
-      } else {
-        setSelectedCity(""); // Resetear la ciudad seleccionada si no hay comunas
-      }
-    } else {
-      setSelectedCity(""); // Resetear la ciudad seleccionada si no se encuentra la región seleccionada
+  const handleDataGround = async () => {
+    try {
+      const groundData = await getDataGround(companyID);
+      setDataGround(groundData);
+    } catch (error) {
+      console.error("Error al obtener el nombre del ground:", error);
+      return "Desconocido";
     }
   };
+
+  useEffect(() => {
+    handleDataGround();
+  }, []);
+
 
   const [openAlert, setOpenAlert] = useState(false);
 
@@ -118,8 +100,6 @@ const CardTableGround = ({
   };
 
   const handleOpenEditUser = (user) => {
-    setRutValido(true); //Se pasa en true ya que si leventa la ventada de editar es por que los datos ya fueron validados
-    setSelectedRegion(user.state);
     setIsEdit(true);
     setFormData(user);
     setSelectedItem(user);
@@ -142,27 +122,21 @@ const CardTableGround = ({
   const onUpdateItem = async (data) => {
     try {
       if (!data || !data.id) {
-        throw new Error(
-          "Los datos para actualizar son inválidos o incompletos."
-        );
+        throw new Error("Los datos para actualizar son inválidos o incompletos.");
       }
-
-      // Convertir cadenas vacías en null para latitude y longitude
-      const updatedData = {
-        ...data,
-        latitude: data.latitude !== "" ? data.latitude : null,
-        longitude: data.longitude !== "" ? data.longitude : null,
-      };
-
-      const updateItemApi = await updateGround(updatedData);
-
-      //console.log(updateItemApi);
+  
+      const updateItemApi = await updateVariety(data);
+      const dataNew = await getDataVarieties(companyID);
+  
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
-          item.id === data.id ? { ...item, ...updatedData } : item
+          item.id === Number(data.id) ? { ...item, ...data } : item
         );
-
+  
+        //Le coloque Number por que llega como string y debe ser number
+  
         setInitialData(updatedList);
+        setInitialData(dataNew);
         setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
@@ -186,10 +160,9 @@ const CardTableGround = ({
 
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
-
     try {
       //if (userConfirmed) {
-      const deleteItem = await deleteGroundApi(id);
+      const deleteItem = await deleteVariety(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
@@ -213,29 +186,25 @@ const CardTableGround = ({
   // Creación de empresa
   const onSubmitForm = async (data) => {
     try {
-      if (
-        !data ||
-        !data.name ||
-        !data.state ||
-        !data.city ||
-        !data.address ||
-        !data.zone ||
-        !data.company_id ||
-        !data.status
-      ) {
-        throw new Error("Los datos para crear el registro son incompletos.");
-      }
 
-      const createItem = await createGround(data);
+      const transformedData = {
+        id: Number(data.id) || null, // Convierte a número, o usa null si no hay id
+        name: data.name.trim(), // Elimina espacios en blanco alrededor
+        company_id: Number(data.company_id) || null, // Convierte a número
+        status: data.status.trim() // Elimina espacios en blanco alrededor
+    };
 
-      console.log(createItem);
+      const createItem = await createVariety(transformedData);
+      const dataNew = await getDataVarieties(companyID);
 
       if (createItem === "OK") {
-        const updatedData = [...initialData, data];
+        const updatedData = [...initialData, transformedData];
 
-        setInitialData(updatedData);
+        setInitialData(updatedData); //Actualizamos la visualización de la tabla
+        setInitialData(dataNew); //Actualizamos la visualizacion pero con el id, quizas sea necesario quitar el de ahi arriba
         setOpen(false);
         setUpdateMessage("Registro creado correctamente");
+        
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
       }
@@ -273,9 +242,8 @@ const CardTableGround = ({
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
   };
 
-  const totalPages = Math.ceil(
-    (initialData ? initialData.length : 0) / itemsPerPage
-  );
+  //const totalPages = Math.ceil(initialData.length / itemsPerPage);
+  const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -284,7 +252,7 @@ const CardTableGround = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
+const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -307,7 +275,7 @@ const CardTableGround = ({
           className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
         >
           <PlusIcon className="w-5 h-5" />
-          Nueva empresa
+          Nueva variedad
         </Button>
       </div>
       {loading ? (
@@ -404,7 +372,7 @@ const CardTableGround = ({
               )}
 
               <tbody role="rowgroup">
-                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no */}
+                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no, el currentItems es de la paginación */}
                 {Array.isArray(initialData) && initialData.length > 0 ? (
                   currentItems.map((row, index) => (
                     <tr key={index} role="row">
@@ -434,18 +402,12 @@ const CardTableGround = ({
                                     Inactivo
                                   </p>
                                 )
-                              ) : key !== "password" ? (
-                                key === "state" ? (
-                                  // Transformar el número de región a su nombre correspondiente
-                                  StateCL.find(
-                                    (state) => state.region_number == row[key]
-                                  )?.region || "-"
-                                ) : (
-                                  formatNumber(row[key])
-                                )
-                              ) : (
-                                "" // No mostrar la contraseña
-                              )}
+                              ) 
+                              
+                              : key === "ground"  ?  dataGround.find((ground) => ground.id === row[key])?.name
+
+                              : (formatNumber(row[key]))
+                               }
                             </div>
                           </td>
                         );
@@ -494,7 +456,6 @@ const CardTableGround = ({
               </tbody>
             </table>
           </div>
-         
           {initialData.length > 0 && pagination.length > 1 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
@@ -570,7 +531,7 @@ const CardTableGround = ({
               </svg>
             </button>
             <DialogHeader className="dark:text-white">
-              {isEdit ? "Editar Empresa" : "Crear Empresa"}
+              {isEdit ? "Editar Variedad" : "Crear Variedad"}
             </DialogHeader>
             <DialogBody>
               <form
@@ -590,13 +551,13 @@ const CardTableGround = ({
                       : "grid-cols-12 lg:grid-cols-2"
                   } `}
                 ></div>
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <div className="flex flex-col gap-3 ">
                     <label
                       htmlFor="name"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Nombre Campo
+                      Nombre
                     </label>
                     <input
                       type="text"
@@ -608,147 +569,7 @@ const CardTableGround = ({
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
                   </div>
-                </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="state"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Región
-                    </label>
-                    <select
-                      name="state"
-                      id="state"
-                      required={true}
-                      {...register("state")}
-                      defaultValue={selectedItem ? selectedItem.state : ""}
-                      onChange={handleRegionChange}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {StateCL.map((state) => (
-                        <option
-                          key={state.region_number}
-                          value={state.region_number}
-                        >
-                          {state.region}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="city"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Ciudad
-                    </label>
-                    <select
-                      name="city"
-                      id="city"
-                      //value={selectedCity}
-                      onChange={(event) => setSelectedCity(event.target.value)}
-                      {...register("city")}
-                      defaultValue={selectedItem ? selectedItem.city : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {selectedRegion &&
-                        StateCL.find(
-                          (state) => state.region_number === selectedRegion
-                        )?.comunas.map((comuna) => (
-                          <option key={comuna.name} value={comuna.name}>
-                            {comuna.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="address"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Dirección
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="address"
-                        id="address"
-                        {...register("address")}
-                        defaultValue={selectedItem ? selectedItem.address : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="latitude"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Latitud
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="latitude"
-                        id="latitude"
-                        {...register("latitude")}
-                        defaultValue={selectedItem ? selectedItem.latitude : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="longitude"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Longitud
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="logitude"
-                        id="longitude"
-                        {...register("longitude")}
-                        defaultValue={
-                          selectedItem ? selectedItem.longitude : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="zone"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Zona
-                    </label>
-                    <select
-                      name="zone"
-                      id="zone"
-                      required={true}
-                      {...register("zone")}
-                      defaultValue={selectedItem ? selectedItem.zone : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      <option value="Norte">Norte</option>
-                      <option value="Centro">Centro</option>
-                      <option value="Sur">Sur</option>
-                    </select>
-                  </div>
 
                   <div className="flex flex-col gap-3">
                     <label
@@ -824,7 +645,7 @@ const CardTableGround = ({
                       //onSubmit={onUpdateItem}
                       onSubmit={isEdit ? onUpdateItem : onSubmitForm}
                     >
-                      {isEdit ? "Editar Empresa" : "Crear Empresa"}
+                      {isEdit ? "Editar" : "Crear"}
                     </button>
                   </div>
                 </div>

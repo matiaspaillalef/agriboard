@@ -69,6 +69,12 @@ const TitlePage = () => {
         case "ground":
             translatedSegment = "Campos";
             break;
+        case "sectors-barracks":
+            translatedSegment = "Sectores / Cuarteles";
+            break;
+        case "varieties":
+            translatedSegment = "Variedades";
+            break;
         default:
             translatedSegment = segment;
             break;

@@ -163,3 +163,288 @@ export const deleteGround = async (id) => {
     console.error(err);
   }
 };
+
+// Production - Sector Barracks
+
+export const getDataSectorBarracks = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getSectorsBarracks/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    
+
+    if (res.ok) {
+
+      const sectorBarracksData = await res.json();
+
+      if (sectorBarracksData.code === "OK") {
+        return sectorBarracksData.sectors;
+      }
+      else if (sectorBarracksData.code === "ERROR") {
+        return sectorBarracksData.mensaje;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createSectorBarrack = async (data) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createSectorBarrack",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          ground: data.ground,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const sectorBarracksData = await res.json();
+
+      if (sectorBarracksData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (sectorBarracksData.code === "ERROR") {
+        return sectorBarracksData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+};
+
+export const updateSectorBarrack = async (data) => {
+
+  try {
+    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateSectorBarrack", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify({
+        id: data.id,
+        name: data.name,
+        ground: data.ground,
+        company_id: data.company_id,
+        status: data.status,
+      }),
+    });
+
+    if (res.ok) {
+      const sectorBarracksData = await res.json();
+
+      if (sectorBarracksData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (sectorBarracksData.code === "ERROR") {
+        return sectorBarracksData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los datos del contratista");
+  }
+};
+
+export const deleteSectorBarrack = async (id) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteSectorBarrack",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const sectorBarracksData = await res.json();
+
+      if (sectorBarracksData.code === "OK") {
+        return sectorBarracksData.code;
+      }
+      else if (sectorBarracksData.code === "ERROR") {
+        return sectorBarracksData.mensaje;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// Production - Varieties
+
+export const getDataVarieties = async (id_company) => {
+  console.log("id_company", id_company);
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getVarieties/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    
+
+    if (res.ok) {
+
+      const sectorBarracksData = await res.json();
+
+      if (sectorBarracksData.code === "OK") {
+        return sectorBarracksData.varieties;
+      }
+      else if (sectorBarracksData.code === "ERROR") {
+        return sectorBarracksData.mensaje;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createVariety = async (data) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createVariety",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const varietyData = await res.json();
+
+      if (varietyData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (varietyData.code === "ERROR") {
+        return varietyData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+};
+
+export const updateVariety = async (data) => {
+
+  try {
+    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateVariety", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify({
+        id: data.id,
+        name: data.name,
+        company_id: data.company_id,
+        status: data.status,
+      }),
+    });
+
+    if (res.ok) {
+      const varietyData = await res.json();
+
+      if (varietyData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (varietyData.code === "ERROR") {
+        return varietyData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los datos del contratista");
+  }
+};
+
+export const deleteVariety = async (id) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteVariety",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const varietyData = await res.json();
+
+      if (varietyData.code === "OK") {
+        return varietyData.code;
+      }
+      else if (varietyData.code === "ERROR") {
+        return varietyData.mensaje;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+};

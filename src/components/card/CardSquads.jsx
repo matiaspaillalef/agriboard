@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
-import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { set, useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
@@ -29,9 +28,9 @@ import {
   updateSquad,
   createSquad,
   getDataSquads,
-  getDataGroups,
-  getDataWorkers,
-} from "@/app/api/ManagementPeople";
+} from "@/app/api/ConfiguracionApi";
+
+import { getDataGroups, getDataWorkers } from "@/app/api/ManagementPeople";
 
 const CardTableSquads = ({
   data,
@@ -43,6 +42,7 @@ const CardTableSquads = ({
   tableId,
   downloadBtn,
   SearchInput,
+  companyID,
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
@@ -55,7 +55,7 @@ const CardTableSquads = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState();
+  const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -92,15 +92,6 @@ const CardTableSquads = ({
   const [showSelectedWorkers, setShowSelectedWorkers] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredWorkers, setFilteredWorkers] = useState(workers);
-
-
-  //Para cargar los datos de lado del cliente
-  useEffect(() => {
-    if (data && data.length > 0) {
-      setInitialData(data);
-    }
-  }, [data]);
-
 
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -140,19 +131,10 @@ const CardTableSquads = ({
       .filter((worker) => worker.isSelected)
       .map((worker) => worker.id);
 
-
-    const updatedSquad = initialData.map((item) =>
-      item.id == data.id
-        ? {
-          id: data.id,
-          name: data.name,
-          group: data.id_group,
-          status: data.status,
-          workers: data.workers
-        }
-        : item
-    );
-
+    const updatedSquad = {
+      ...selectSquad,
+      workers: selectedWorkerIds, // Agregamos los IDs de los trabajadores seleccionados
+    };
 
     const responseCode = await updateSquad(updatedSquad);
     //console.log("Response code:", responseCode);
@@ -160,12 +142,8 @@ const CardTableSquads = ({
       // Manejar éxito
       setUpdateMessage("Trabajadores asignados correctamente.");
 
-      const userDataString = sessionStorage.getItem("userData");
-      const userData = JSON.parse(userDataString);
-      const idCompany = userData.idCompany;
-
       //Esto lo hago para cuando se reabra el modal quede con la data actualizada
-      const squadData = await getDataSquads(idCompany);
+      const squadData = await getDataSquads();
       setInitialData(squadData);
 
       setTimeout(() => {
@@ -228,28 +206,16 @@ const CardTableSquads = ({
 
       // Elimina la fila del front-end
       if (updateSquadApi === "OK") {
-        
         const updatedData = initialData.map((item) =>
-          item.id == data.id
-            ? {
-              id: data.id,
-              name: data.name,
-              group: data.group,
-              status: data.status,
-            }
-            : item
+          item.id == data.id ? { ...data } : item
         );
 
         setInitialData(updatedData);
         setUpdateMessage("cuadrilla actualizada correctamente");
         setOpen(false);
-
       } else {
-
         setUpdateMessage("No se pudo actualizar el cuadrilla");
-
       }
-
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -306,12 +272,8 @@ const CardTableSquads = ({
 
         setInitialData(updatedData);
 
-        const userDataString = sessionStorage.getItem("userData");
-        const userData = JSON.parse(userDataString);
-        const idCompany = userData.idCompany;
-
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataSquads(idCompany);
+        const newDataFetch = await getDataSquads();
 
         setInitialData(newDataFetch);
         setOpen(false);
@@ -346,7 +308,7 @@ const CardTableSquads = ({
     // Obtener los grupos cuando el componente se monte
     const fetchGroups = async () => {
       try {
-        const groupsData = await getDataGroups(1);
+        const groupsData = await getDataGroups(companyID);
         setGroups(groupsData);
       } catch (error) {
         console.error("Error al obtener los grupos", error);
@@ -355,7 +317,7 @@ const CardTableSquads = ({
 
     const fetchWorkers = async () => {
       try {
-        const workersData = await getDataWorkers();
+        const workersData = await getDataWorkers(companyID);
         setWorkers(workersData);
       } catch (error) {
         console.error("Error al obtener los trabajadores", error);
@@ -447,20 +409,13 @@ const CardTableSquads = ({
             )}
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {downloadBtn && (
-                <>
-                  <ExportarExcel
-                    data={initialData}
-                    filename="empresas"
-                    sheetname="empresas"
-                    titlebutton="Exportar a excel"
-                  />
-                  <ExportarPDF
-                    data={initialData}
-                    filename="empresas"
-                    titlebutton="Exportar a PDF"
-                  />
-                </>
+              {Array.isArray(initialData) && downloadBtn && (
+                <ExportarExcel
+                  data={initialData}
+                  filename="empresas"
+                  sheetname="empresas"
+                  titlebutton="Exportar a excel"
+                />
               )}
 
               {SearchInput && (
@@ -526,18 +481,36 @@ const CardTableSquads = ({
               )}
 
               <tbody role="rowSquad">
-                {currentItems.map((row, index) => (
-                  <tr key={index} role="row">
-                    {Object.keys(row).map((key, rowIndex) => {
-                      if (omitirColumns.includes(key)) {
-                        return null; // Omitir la columna si está en omitirColumns
-                      }
+                {Array.isArray(initialData) && initialData.length > 0 ? (
+                  currentItems.map((row, index) => (
+                    <tr key={index} role="row">
+                      {Object.keys(row).map((key, rowIndex) => {
+                        if (omitirColumns.includes(key)) {
+                          return null; // Omitir la columna si está en omitirColumns
+                        }
 
-                      //Acá mapeamos los id del grupo para trernos el nombre de la DB groups
-                      if (key === "group") {
-                        const group = groups.find(
-                          (group) => group.id == row[key]
-                        );
+                        //Acá mapeamos los id del grupo para trernos el nombre de la DB groups
+                        if (key === "group") {
+                          const group = groups.find(
+                            (group) => group.id == row[key]
+                          );
+                          return (
+                            <td
+                              key={rowIndex}
+                              role="cell"
+                              className={`pt-[14px] pb-3 text-[14px] px-5 ${
+                                index % 2 !== 0
+                                  ? "bg-lightPrimary dark:bg-navy-900"
+                                  : ""
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
+                            >
+                              <div className="text-base font-medium text-navy-700 dark:text-white">
+                                {group ? group.name : ""}
+                              </div>
+                            </td>
+                          );
+                        }
+
                         return (
                           <td
                             key={rowIndex}
@@ -549,155 +522,145 @@ const CardTableSquads = ({
                             } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
-                              {group ? group.name : ""}
+                              {key === "status" ? (
+                                //console.log(key),
+                                row[key] == 1 ? (
+                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Activo
+                                  </p>
+                                ) : (
+                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Inactivo
+                                  </p>
+                                )
+                              ) : (
+                                formatNumber(row[key])
+                              )}
                             </div>
                           </td>
                         );
-                      }
+                      })}
 
-                      return (
+                      {actions && (
                         <td
-                          key={rowIndex}
-                          role="cell"
+                          colSpan={columnLabels.length}
                           className={`pt-[14px] pb-3 text-[14px] px-5 ${
                             index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          } ${columnsClasses[rowIndex] || "text-left"}`}
+                          }`}
                         >
-                          <div className="text-base font-medium text-navy-700 dark:text-white">
-                            {key === "status" ? (
-                              //console.log(key),
-                              row[key] == 1 ? (
-                                <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                  Activo
-                                </p>
-                              ) : (
-                                <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                  Inactivo
-                                </p>
-                              )
-                            ) : (
-                              formatNumber(row[key])
-                            )}
-                          </div>
+                          <Tooltip
+                            placement="bottom"
+                            className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
+                            content="Asignar trabajadores"
+                          >
+                            <button
+                              type="button"
+                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                              onClick={() => {
+                                handleAddWorkers(row);
+                              }}
+                              data-tooltip-target="tooltip"
+                            >
+                              <UserGroupIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip
+                            placement="bottom"
+                            className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
+                            content="Editar cuadrilla"
+                          >
+                            <button
+                              type="button"
+                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                              //onClick={() => handleOpen(row)}
+                              onClick={() => handleOpenEditUser(row)}
+                            >
+                              <PencilSquareIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip
+                            placement="bottom"
+                            className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
+                            content="Eliminar cuadrilla"
+                          >
+                            <button
+                              id="remove"
+                              className="text-sm font-semibold text-gray-800 dark:text-white"
+                              type="button"
+                              onClick={() => {
+                                handleOpenAlert(
+                                  index,
+                                  row.id,
+                                  row.name ? row.name : ""
+                                );
+                              }}
+                            >
+                              <TrashIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
                         </td>
-                      );
-                    })}
-
-                    {actions && (
-                      <td
-                        colSpan={columnLabels.length}
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                        }`}
-                      >
-                        <Tooltip
-                          placement="bottom"
-                          className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
-                          content="Asignar trabajadores"
-                        >
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                            onClick={() => {
-                              handleAddWorkers(row);
-                            }}
-                            data-tooltip-target="tooltip"
-                          >
-                            <UserGroupIcon className="w-6 h-6" />
-                          </button>
-                        </Tooltip>
-
-                        <Tooltip
-                          placement="bottom"
-                          className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
-                          content="Editar cuadrilla"
-                        >
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                            //onClick={() => handleOpen(row)}
-                            onClick={() => handleOpenEditUser(row)}
-                          >
-                            <PencilSquareIcon className="w-6 h-6" />
-                          </button>
-                        </Tooltip>
-
-                        <Tooltip
-                          placement="bottom"
-                          className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
-                          content="Eliminar cuadrilla"
-                        >
-                          <button
-                            id="remove"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            type="button"
-                            onClick={() => {
-                              handleOpenAlert(
-                                index,
-                                row.id,
-                                row.name ? row.name : ""
-                              );
-                            }}
-                          >
-                            <TrashIcon className="w-6 h-6" />
-                          </button>
-                        </Tooltip>
-                      </td>
-                    )}
+                      )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="py-4">No se encontraron registros.</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between mt-5">
-            <div className="flex items-center gap-5">
-              <p className="text-sm text-gray-800 dark:text-white">
-                Mostrando {indexOfFirstItem + 1} a{" "}
-                {indexOfLastItem > (initialData?.length ?? 0)
-                  ? initialData?.length ?? 0
-                  : indexOfLastItem}{" "}
-                de {initialData?.length ?? 0} cuadrillas
-              </p>
-            </div>
-            <div className="flex items-center gap-5">
-              <button
-                type="button"
-                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                  currentPage === 1 && "hidden"
-                }`}
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeftIcon className="w-5 h-5" />
-              </button>
-              {pagination.map((page) => (
+          {Array.isArray(initialData) && initialData.length > 0 && (
+            <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center gap-5">
+                <p className="text-sm text-gray-800 dark:text-white">
+                  Mostrando {indexOfFirstItem + 1} a{" "}
+                  {indexOfLastItem > (initialData?.length ?? 0)
+                    ? initialData?.length ?? 0
+                    : indexOfLastItem}{" "}
+                  de {initialData?.length ?? 0} cuadrillas
+                </p>
+              </div>
+              <div className="flex items-center gap-5">
                 <button
-                  key={page}
                   type="button"
-                  className={`${
-                    currentPage === page
-                      ? "font-semibold text-navy-500 dark:text-navy-300"
-                      : ""
+                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                    currentPage === 1 && "hidden"
                   }`}
-                  onClick={() => handlePageChange(page)}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
                 >
-                  {page}
+                  <ChevronLeftIcon className="w-5 h-5" />
                 </button>
-              ))}
-              <button
-                type="button"
-                className="p-1 bg-gray-200 dark:bg-navy-900 text-navy-900 dark:text-white rounded-md"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRightIcon className="w-5 h-5" />
-              </button>
+                {pagination.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`${
+                      currentPage === page
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
+                    }`}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="p-1 bg-gray-200 dark:bg-navy-900 text-navy-900 dark:text-white rounded-md"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRightIcon className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <Dialog
             open={open}
@@ -762,11 +725,12 @@ const CardTableSquads = ({
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 text-navy-900 dark:text-white"
                     >
                       <option value="">Selecciona un grupo</option>
-                      {groups.map((group) => (
-                        <option key={group.id} value={group.id}>
-                          {group.name}
-                        </option>
-                      ))}
+                      {Array.isArray(groups) &&
+                        groups.map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name}
+                          </option>
+                        ))}
                     </select>
                   </div>
                 </div>
@@ -902,7 +866,8 @@ const CardTableSquads = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredWorkers.length > 0 ? (
+                  {Array.isArray(filteredWorkers) &&
+                  filteredWorkers.length > 0 ? (
                     filteredWorkers.map((worker, index) => (
                       <tr
                         key={worker.id}
