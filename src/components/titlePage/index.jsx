@@ -75,6 +75,9 @@ const TitlePage = () => {
         case "varieties":
             translatedSegment = "Variedades";
             break;
+        case "species":
+            translatedSegment = "Especies";
+            break;
         default:
             translatedSegment = segment;
             break;

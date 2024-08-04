@@ -310,7 +310,7 @@ export const deleteSectorBarrack = async (id) => {
 // Production - Varieties
 
 export const getDataVarieties = async (id_company) => {
-  console.log("id_company", id_company);
+
   try {
     const res = await fetch(
       URLAPI + `/api/v1/configuracion/production/getVarieties/${id_company}`,
@@ -441,6 +441,150 @@ export const deleteVariety = async (id) => {
       }
       else if (varietyData.code === "ERROR") {
         return varietyData.mensaje;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// Production - Species
+
+export const getDataSpecies = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getSpecies/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const speciesData = await res.json();
+
+      if (speciesData.code === "OK") {
+        return speciesData.species;
+      }
+      else if (speciesData.code === "ERROR") {
+        return speciesData.mensaje;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createSpecies = async (data) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createSpecies",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          varieties: data.varieties,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const speciesData = await res.json();
+
+      console.log("speciesData", speciesData);
+      if (speciesData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (speciesData.code === "ERROR") {
+        return speciesData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+
+  catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+}
+
+export const updateSpecies = async (data) => {
+
+  try {
+    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateSpecies", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify({
+        id: data.id,
+        name: data.name,
+        varieties: data.varieties,
+        company_id: data.company_id,
+        status: data.status,
+      }),
+    });
+
+    if (res.ok) {
+      const speciesData = await res.json();
+
+      if (speciesData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (speciesData.code === "ERROR") {
+        return speciesData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los datos del contratista");
+  }
+};
+
+export const deleteSpecies = async (id) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteSpecies",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const speciesData = await res.json();
+
+      if (speciesData.code === "OK") {
+        return speciesData.code;
+      }
+      else if (speciesData.code === "ERROR") {
+        return speciesData.mensaje;
       }
     }
 

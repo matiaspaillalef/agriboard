@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
+import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { set, useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
@@ -12,8 +13,12 @@ import {
   TrashIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
+  EyeIcon,
   DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
+import Image from "next/image";
+import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
+import uploadCloud from "@/assets/img/generic/upload-cloud.jpg";
 import {
   Button,
   Dialog,
@@ -21,15 +26,15 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { getDataGround } from "@/app/api/ProductionApi";
 import {
-  getDataSectorBarracks,
-  createSectorBarrack,
-  updateSectorBarrack,
-  deleteSectorBarrack,
+  getDataVarieties,
+  getDataSpecies,
+  updateSpecies,
+  createSpecies,
+  deleteSpecies,
 } from "@/app/api/ProductionApi";
 
-const CardTableBarracks = ({
+const CardTableSpecies = ({
   data,
   thead,
   columnsClasses = [],
@@ -72,37 +77,91 @@ const CardTableBarracks = ({
 
   const [rol, setRol] = useState(""); // control de item por rol
 
-  const [dataGround, setDataGround] = useState([]);
+  const [dataVarieties, setDataVarieties] = useState([]);
+  const [selectedVarieties, setSelectedVarieties] = useState([]);
 
-  const handleDataGround = async () => {
-    try {
-      const groundData = await getDataGround(companyID);
-      setDataGround(groundData);
-    } catch (error) {
-      console.error("Error al obtener el nombre del ground:", error);
-      return "Desconocido";
-    }
-  };
+  const [openShowUser, setOpenShowUser] = useState(false);
 
   useEffect(() => {
-    handleDataGround();
+    const handleNameVarieties = async () => {
+      const varieties = await getDataVarieties(companyID);
+      setDataVarieties(varieties);
+      //console.log(varieties);
+    };
+    handleNameVarieties();
   }, []);
 
-  const [openAlert, setOpenAlert] = useState(false);
+  useEffect(() => {
+    if (selectedItem) {
+      setSelectedVarieties(selectedItem.varieties || []); // Asegúrate de que sea un arreglo
+      //setValue('varieties', selectedItem.varieties || []); // Actualiza el valor del formulario
+    }
+  }, [selectedItem]);
 
+  const handleCheckboxChange = (id) => {
+    setSelectedVarieties((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((varietyId) => varietyId !== id)
+        : [...prevSelected, id]
+    );
+  };
+
+  const [openAlert, setOpenAlert] = useState(false);
+  const [openAlertClone, setOpenAlertClone] = useState(false);
   const [itemToDelete, setItemToDelete] = useState({
     index: null,
     id: null,
     name_item: "",
   });
 
+  const [itemToClone, setItemToClone] = useState({
+    index: null,
+    id: null,
+    name: "",
+    varieties: "",
+    status: "",
+  });
+
+  const handleNameVarieties = (ids) => {
+    if (!Array.isArray(ids)) {
+      console.error("El argumento proporcionado no es un array.");
+      return "";
+    }
+
+    // Encontrar los nombres de las variedades correspondientes a los IDs
+    const names = ids.map((id) => {
+      const variety = dataVarieties.find((variety) => variety.id === id);
+      return variety ? variety.name : "";
+    });
+
+    // Filtrar nombres vacíos y unirlos con comas si hay más de uno
+    const filteredNames = names.filter((name) => name !== "");
+    return filteredNames.join(filteredNames.length > 1 ? ", " : "");
+  };
+
+  const handleNameVarietiesSafe = (ids) => {
+    return Array.isArray(ids) ? handleNameVarieties(ids) : "";
+  };
+
+  const handleOpenShowUser = (user) => {
+    //console.log(user);
+    setSelectedItem(user);
+    setOpenShowUser(true);
+    setFormData(user);
+    handleOpen(user);
+    setIsEdit(false);
+  };
+
   const handleOpenNewUser = () => {
     setIsEdit(false);
+    setOpenShowUser(false);
     handleOpen();
   };
 
   const handleOpenEditUser = (user) => {
+    //console.log(user);
     setIsEdit(true);
+    setOpenShowUser(false);
     setFormData(user);
     setSelectedItem(user);
     handleOpen(user);
@@ -129,15 +188,15 @@ const CardTableBarracks = ({
         );
       }
 
-      const updateItemApi = await updateSectorBarrack(data);
-      const dataNew = await getDataSectorBarracks(companyID);
+      const updatedData = { ...data, varieties: selectedVarieties };
+
+      const updateItemApi = await updateSpecies(updatedData);
+      const dataNew = await getDataSpecies(companyID);
 
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
-          item.id === Number(data.id) ? { ...item, ...data } : item
+          item.id === Number(data.id) ? { ...item, ...updatedData } : item
         );
-
-        //Le coloque Number por que llega como string y debe ser number
 
         setInitialData(updatedList);
         setInitialData(dataNew);
@@ -155,18 +214,33 @@ const CardTableBarracks = ({
   const handleOpenAlert = (index, id, name_item) => {
     setItemToDelete({ index, id, name_item });
     setOpenAlert(true);
+    setOpenAlertClone(false);
+  };
+
+  const handleCloneAlert = (index, name, varieties, status, company_id) => {
+    //console.log(index, name, varieties, status, company_id);
+    setItemToClone({ name, varieties, status, company_id });
+    setOpenAlertClone(true);
+    setOpenAlert(false);
   };
 
   const handleCloseAlert = () => {
     setOpenAlert(false);
+    setOpenAlertClone(false);
     setItemToDelete({ index: null, id: null, name_item: "" });
+  };
+
+  const handleCloseAlertClone = () => {
+    setOpenAlertClone(false);
+    setOpenAlert(false);
+    setItemToDelete({ index: null, name: "", varieties: "", status: "" });
   };
 
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
     try {
       //if (userConfirmed) {
-      const deleteItem = await deleteSectorBarrack(id);
+      const deleteItem = await deleteSpecies(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
@@ -187,19 +261,42 @@ const CardTableBarracks = ({
     }
   };
 
-  // Creación de empresa
+  const handlerClone = async () => {
+    const { name, varieties, status, company_id } = itemToClone;
+
+    try {
+      const cloneItem = await createSpecies(itemToClone);
+      const dataNew = await getDataSpecies(companyID);
+
+      if (cloneItem === "OK") {
+        const updatedData = [...initialData, itemToClone];
+
+        setInitialData(updatedData);
+        setInitialData(dataNew);
+        setOpenAlertClone(false);
+        setUpdateMessage("Registro clonado correctamente");
+      } else {
+        setUpdateMessage(cloneItem || "No se pudo clonar el registro");
+      }
+    } catch (error) {
+      console.error("Error al clonar el registro:", error);
+      setUpdateMessage("Error al intentar clonar el registro");
+    }
+  };
+
+  // Creación
   const onSubmitForm = async (data) => {
     try {
       const transformedData = {
-        id: Number(data.id) || null, // Convierte a número, o usa null si no hay id
-        name: data.name.trim(), // Elimina espacios en blanco alrededor
-        ground: Number(data.ground) || null, // Convierte a número
+        id: Number(data.id) || null,
+        name: data.name.trim(),
+        varieties: selectedVarieties,
         company_id: Number(data.company_id) || null, // Convierte a número
-        status: data.status.trim(), // Elimina espacios en blanco alrededor
+        status: data.status.trim(),
       };
 
-      const createItem = await createSectorBarrack(transformedData);
-      const dataNew = await getDataSectorBarracks(companyID);
+      const createItem = await createSpecies(transformedData);
+      const dataNew = await getDataSpecies(companyID);
 
       if (createItem === "OK") {
         const updatedData = [...initialData, transformedData];
@@ -207,6 +304,7 @@ const CardTableBarracks = ({
         setInitialData(updatedData); //Actualizamos la visualización de la tabla
         setInitialData(dataNew); //Actualizamos la visualizacion pero con el id, quizas sea necesario quitar el de ahi arriba
         setOpen(false);
+        setSelectedVarieties([]);
         setUpdateMessage("Registro creado correctamente");
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
@@ -280,7 +378,7 @@ const CardTableBarracks = ({
           className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
         >
           <PlusIcon className="w-5 h-5" />
-          Nuevo sector / cuartel
+          Nueva especie
         </Button>
       </div>
       {loading ? (
@@ -309,8 +407,8 @@ const CardTableBarracks = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={initialData}
-                    filename="campos"
-                    sheetname="campos"
+                    filename="Especies"
+                    sheetname="especies"
                     titlebutton="Exportar a excel"
                   />
                 )}
@@ -427,17 +525,13 @@ const CardTableBarracks = ({
                               : ""
                           }`}
                         >
-                          {/**Clonar */}
                           <button
                             type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            onClick={() => handleOpenEditUser(row)}
-
+                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                            onClick={() => handleOpenShowUser(row)}
                           >
-                           <DocumentDuplicateIcon className="w-6 h-6" />
+                            <EyeIcon className="w-6 h-6" />
                           </button>
-                
-
                           <button
                             type="button"
                             className="text-sm font-semibold text-gray-800 dark:text-white"
@@ -446,6 +540,24 @@ const CardTableBarracks = ({
                           >
                             <PencilSquareIcon className="w-6 h-6" />
                           </button>
+
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white"
+                            onClick={() => {
+                              handleCloneAlert(
+                                index,
+                                //row.id,
+                                row.name ? row.name : "",
+                                row.varieties ? row.varieties : "",
+                                row.status ? row.status : "",
+                                Number(companyID)
+                              );
+                            }}
+                          >
+                            <DocumentDuplicateIcon className="w-6 h-6" />
+                          </button>
+
                           <button
                             id="remove"
                             type="button"
@@ -454,8 +566,7 @@ const CardTableBarracks = ({
                               handleOpenAlert(
                                 index,
                                 row.id,
-                                row.name ? row.name : "",
-                                row.lastname ? row.lastname : ""
+                                row.name ? row.name : ""
                               );
                             }}
                           >
@@ -473,53 +584,56 @@ const CardTableBarracks = ({
               </tbody>
             </table>
           </div>
-          {initialData.length > 0 && pagination.length > 1 && (
-            <div className="flex items-center justify-between mt-5">
-              <div className="flex items-center gap-5">
-                <p className="text-sm text-gray-800 dark:text-white">
-                  Mostrando {indexOfFirstItem + 1} a{" "}
-                  {indexOfLastItem > initialData.length
-                    ? initialData.length
-                    : indexOfLastItem}{" "}
-                  de {initialData.length} registros
-                </p>
-              </div>
-              <div className="flex items-center gap-5">
-                <button
-                  type="button"
-                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                    currentPage === 1 && "hidden"
-                  }`}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeftIcon className="w-5 h-5" />
-                </button>
-                {pagination.map((page) => (
+
+          {Array.isArray(initialData) &&
+            initialData.length > 0 &&
+            pagination.length > 1 && (
+              <div className="flex items-center justify-between mt-5">
+                <div className="flex items-center gap-5">
+                  <p className="text-sm text-gray-800 dark:text-white">
+                    Mostrando {indexOfFirstItem + 1} a{" "}
+                    {indexOfLastItem > initialData.length
+                      ? initialData.length
+                      : indexOfLastItem}{" "}
+                    de {initialData.length} registros
+                  </p>
+                </div>
+                <div className="flex items-center gap-5">
                   <button
-                    key={page}
                     type="button"
-                    className={`${
-                      currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                      currentPage === 1 && "hidden"
                     }`}
-                    onClick={() => handlePageChange(page)}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                   >
-                    {page}
+                    <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                ))}
-                <button
-                  type="button"
-                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRightIcon className="w-5 h-5" />
-                </button>
+                  {pagination.map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`${
+                        currentPage === page
+                          ? "font-semibold text-navy-500 dark:text-navy-300"
+                          : ""
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRightIcon className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           <Dialog
             open={open}
@@ -532,179 +646,161 @@ const CardTableBarracks = ({
               onClick={handleOpen}
               className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              </svg>
+              <XMarkIcon className="w-6 h-6" />
             </button>
             <DialogHeader className="dark:text-white">
-              {isEdit ? "Editar Sector / Cuartel" : "Crear Sector / Cuartel"}
+              {openShowUser
+                ? "Datos de la especie"
+                : isEdit
+                ? "Editar especie"
+                : "Nueva especie"}
             </DialogHeader>
             <DialogBody>
-              <form
-                onSubmit={handleSubmit(isEdit ? onUpdateItem : onSubmitForm)}
-                method="POST"
-              >
-                <input
-                  type="hidden"
-                  name="id"
-                  {...register("id")}
-                  defaultValue={selectedItem ? selectedItem.id : ""}
-                />
-                <div
-                  className={`mb-3 grid gap-3 ${
-                    isEdit
-                      ? "grid-cols-2 lg:grid-cols-2"
-                      : "grid-cols-12 lg:grid-cols-2"
-                  } `}
-                ></div>
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3 ">
-                    <label
-                      htmlFor="name"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Nombre
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      required={true}
-                      {...register("name")}
-                      defaultValue={selectedItem ? selectedItem.name : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="ground"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Campo
-                    </label>
-                    <select
-                      name="ground"
-                      id="ground"
-                      required={true}
-                      {...register("ground")}
-                      defaultValue={selectedItem ? selectedItem.ground : ""}
-                      //onChange={handleRegionChange}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {dataGround.map((ground) => (
-                        <option key={ground.id} value={ground.id}>
-                          {ground.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="status"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Estado
-                    </label>
-                    <select
-                      name="status"
-                      id="status"
-                      required={true}
-                      {...register("status")}
-                      defaultValue={selectedItem ? selectedItem.status : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      <option value="0">Inactivo</option>
-                      <option value="1">Activo</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/*rol == 1 ? (
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1 ">
-                <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="company_id"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Empresa
-                    </label>
-                    <select
-                      name="company_id"
-                      id="company_id"
-                      {...register("company_id")}
-                      defaultValue={selectedItem ? selectedItem.company_id : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {datosCompanies.map((empresas, index) => {
-                        return (
-                          <option key={index} value={empresas.id}>
-                            {empresas.name_company}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                  </div>
-                ) : (
+              {!openShowUser ? (
+                <form
+                  onSubmit={handleSubmit(isEdit ? onUpdateItem : onSubmitForm)}
+                  method="POST"
+                >
                   <input
-                  type="hidden"
-                  name="company_id"
-                  {...register("company_id")}
-                  
-                  defaultValue={selectedItem ? selectedItem.company_id : companyID}
-                />
-                ) */}
-
-                <input
-                  type="hidden"
-                  name="company_id"
-                  {...register("company_id")}
-                  defaultValue={
-                    selectedItem ? selectedItem.company_id : companyID
-                  }
-                />
-
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3">
-                    <button
-                      type="submit"
-                      className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                      //onSubmit={onUpdateItem}
-                      onSubmit={isEdit ? onUpdateItem : onSubmitForm}
-                    >
-                      {isEdit ? "Editar" : "Crear"}
-                    </button>
+                    type="hidden"
+                    name="id"
+                    {...register("id")}
+                    defaultValue={selectedItem ? selectedItem.id : ""}
+                  />
+                  <div
+                    className={`mb-3 grid gap-3 ${
+                      isEdit
+                        ? "grid-cols-2 lg:grid-cols-2"
+                        : "grid-cols-12 lg:grid-cols-2"
+                    } `}
+                  ></div>
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3 ">
+                      <label
+                        htmlFor="name"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        required={true}
+                        {...register("name")}
+                        defaultValue={selectedItem ? selectedItem.name : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
                   </div>
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-row flex-wrap gap-3">
+                      <label
+                        htmlFor="varieties"
+                        className="text-sm font-semibold text-gray-800 dark:text-white basis-full"
+                      >
+                        Variedades
+                      </label>
+
+                      {dataVarieties.map(
+                        (variety) =>
+                          variety.status == 1 && (
+                            <div key={variety.id} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id={`variety-${variety.id}`}
+                                name="varieties"
+                                value={variety.id}
+                                checked={selectedVarieties.includes(variety.id)}
+                                onChange={() =>
+                                  handleCheckboxChange(variety.id)
+                                }
+                                className="mr-2"
+                              />
+                              <label
+                                htmlFor={`variety-${variety.id}`}
+                                className="text-sm font-medium text-gray-800 dark:text-white"
+                              >
+                                {variety.name}
+                              </label>
+                            </div>
+                          )
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="status"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estado
+                      </label>
+                      <select
+                        name="status"
+                        id="status"
+                        required={true}
+                        {...register("status")}
+                        defaultValue={selectedItem ? selectedItem.status : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="0">Inactivo</option>
+                        <option value="1">Activo</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <input
+                    type="hidden"
+                    name="company_id"
+                    {...register("company_id")}
+                    defaultValue={companyID}
+                  />
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3">
+                      <button
+                        type="submit"
+                        className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+                        //onSubmit={onUpdateItem}
+                        onSubmit={isEdit ? onUpdateItem : onSubmitForm}
+                      >
+                        {isEdit ? "Editar" : "Crear"}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <p className="text-md font-semibold text-gray-800 dark:text-white">
+                    <strong>{selectedItem.name}</strong>
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Variedades:</strong>{" "}
+                    {handleNameVarietiesSafe(selectedItem.varieties)}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Estado:</strong>{" "}
+                    {selectedItem.status == 1 ? "Activo" : "Inactivo"}
+                  </p>
                 </div>
-              </form>
+              )}
             </DialogBody>
           </Dialog>
 
           <Dialog
-            open={openAlert}
-            handler={handleCloseAlert}
+            open={openAlert || openAlertClone}
+            handler={handleCloseAlert || handleCloseAlertClone}
             size="xs"
             className="p-5 lg:max-w-[25%] dark:bg-navy-900"
           >
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
-                ¿Seguro que desea eliminar la empresa{" "}
-                <strong className="font-bold">{itemToDelete.name_item}</strong>?
+                ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} la especie{" "}
+                <strong className="font-bold">
+                  {openAlert ? itemToDelete.name_item : itemToClone.name}
+                </strong>
+                ?
               </h2>
               <button
                 type="button"
@@ -715,10 +811,21 @@ const CardTableBarracks = ({
               </button>
               <button
                 type="button"
-                onClick={handlerRemove}
-                className="bg-red-500 text-white flex items-center justify-center px-4 py-2 rounded m-auto"
+                onClick={openAlert ? handlerRemove : handlerClone}
+                className={`${
+                  openAlert ? "bg-red-500" : "bg-blueTertiary"
+                } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
               >
-                <XMarkIcon className="text-white w-5 h-5" /> Eliminar
+                {openAlert ? (
+                  <>
+                    <XMarkIcon className="text-white w-5 h-5" /> Eliminar
+                  </>
+                ) : (
+                  <>
+                    <DocumentDuplicateIcon className="text-white w-5 h-5" />{" "}
+                    Clonar
+                  </>
+                )}
               </button>
             </>
           </Dialog>
@@ -728,4 +835,4 @@ const CardTableBarracks = ({
   );
 };
 
-export default CardTableBarracks;
+export default CardTableSpecies;

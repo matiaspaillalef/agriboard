@@ -28,9 +28,9 @@ import {
   updateSquad,
   createSquad,
   getDataSquads,
-} from "@/app/api/ConfiguracionApi";
-
-import { getDataGroups, getDataWorkers } from "@/app/api/ManagementPeople";
+  getDataGroups,
+  getDataWorkers
+} from "@/app/api/ManagementPeople";
 
 const CardTableSquads = ({
   data,

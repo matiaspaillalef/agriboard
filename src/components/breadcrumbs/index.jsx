@@ -52,6 +52,8 @@ const path = usePathname();
           return "Sectores y cuarteles";
         case "varieties":
           return "Variedades";
+        case "species":
+          return "Especies";
         default:
           return segment;
       }
