@@ -148,7 +148,7 @@ const SidebarMenu = ({ pathname }) => {
 
                             {grandSonItemsVisible === subItem.id &&
                               subItem.children && (
-                                <ul className="px-10 rounded-[8px] bg-navy-800 bg-clip-border dark:bg-navy-900 dark:text-white dark:shadow-none items-center ">
+                                <ul className="pl-[55px] rounded-[8px] bg-clip-border dark:text-white dark:shadow-none items-center ">
                                   {subItem.children.map((grandSonItem) => (
                                     <li
                                       key={grandSonItem.id}

@@ -54,6 +54,10 @@ const path = usePathname();
           return "Variedades";
         case "species":
           return "Especies";
+        case "sector-attributes":
+          return "Atributos de sector";
+        case "parameterization-ground":
+          return "Parametrización de campo";
         default:
           return segment;
       }

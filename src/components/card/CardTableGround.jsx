@@ -210,7 +210,7 @@ const CardTableGround = ({
     }
   };
 
-  // Creación de empresa
+  // Creación de campo
   const onSubmitForm = async (data) => {
     try {
       if (
@@ -307,7 +307,7 @@ const CardTableGround = ({
           className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
         >
           <PlusIcon className="w-5 h-5" />
-          Nueva empresa
+          Nuevo campo
         </Button>
       </div>
       {loading ? (
@@ -360,7 +360,7 @@ const CardTableGround = ({
               variant="simple"
               color="gray-500"
               mb="24px"
-              id="tablaEmpresas"
+              id="tablaCampos"
             >
               {thead && (
                 <thead>
@@ -570,7 +570,7 @@ const CardTableGround = ({
               </svg>
             </button>
             <DialogHeader className="dark:text-white">
-              {isEdit ? "Editar Empresa" : "Crear Empresa"}
+              {isEdit ? "Editar Campo" : "Crear Campo"}
             </DialogHeader>
             <DialogBody>
               <form
@@ -778,7 +778,7 @@ const CardTableGround = ({
                       htmlFor="company_id"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Empresa
+                      Campo
                     </label>
                     <select
                       name="company_id"
@@ -787,10 +787,10 @@ const CardTableGround = ({
                       defaultValue={selectedItem ? selectedItem.company_id : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {datosCompanies.map((empresas, index) => {
+                      {datosCompanies.map((campos, index) => {
                         return (
-                          <option key={index} value={empresas.id}>
-                            {empresas.name_company}
+                          <option key={index} value={campos.id}>
+                            {campos.name_company}
                           </option>
                         );
                       })}
@@ -824,7 +824,7 @@ const CardTableGround = ({
                       //onSubmit={onUpdateItem}
                       onSubmit={isEdit ? onUpdateItem : onSubmitForm}
                     >
-                      {isEdit ? "Editar Empresa" : "Crear Empresa"}
+                      {isEdit ? "Editar Campo" : "Crear Campo"}
                     </button>
                   </div>
                 </div>
@@ -840,7 +840,7 @@ const CardTableGround = ({
           >
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
-                ¿Seguro que desea eliminar la empresa{" "}
+                ¿Seguro que desea eliminar la campo{" "}
                 <strong className="font-bold">{itemToDelete.name_item}</strong>?
               </h2>
               <button

@@ -69,21 +69,6 @@ const CardTableGround = ({
 
   const [rol, setRol] = useState(""); // control de item por rol
 
-  const [dataGround, setDataGround] = useState([]);
-
-  const handleDataGround = async () => {
-    try {
-      const groundData = await getDataGround(companyID);
-      setDataGround(groundData);
-    } catch (error) {
-      console.error("Error al obtener el nombre del ground:", error);
-      return "Desconocido";
-    }
-  };
-
-  useEffect(() => {
-    handleDataGround();
-  }, []);
 
 
   const [openAlert, setOpenAlert] = useState(false);
