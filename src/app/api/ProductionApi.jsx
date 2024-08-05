@@ -592,3 +592,150 @@ export const deleteSpecies = async (id) => {
     console.error(err);
   }
 };
+
+// Production - Seasons
+export const getDataSeasons = async (id_company) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getSeasons/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const seasonsData = await res.json();
+
+      if (seasonsData.code === "OK") {
+        return seasonsData.seasons;
+      }
+      else if (seasonsData.code === "ERROR") {
+        return seasonsData.mensaje;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createSeason = async (data) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createSeason",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          period: data.period,
+          date_from: data.date_from,
+          date_until: data.date_until,
+          shifts: data.shifts,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const seasonData = await res.json();
+
+      if (seasonData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (seasonData.code === "ERROR") {
+        return seasonData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+};
+
+export const updateSeason = async (data) => {
+
+  try {
+    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateSeason", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify({
+        id: data.id,
+        name: data.name,
+        period: data.period,
+        date_from: data.date_from,
+        date_until: data.date_until,
+        shifts: data.shifts,
+        status: data.status,
+        company_id: data.company_id,
+      }),
+    });
+
+    if (res.ok) {
+      const seasonData = await res.json();
+
+      if (seasonData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (seasonData.code === "ERROR") {
+        return seasonData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los datos del contratista");
+  }
+};
+
+export const deleteSeason = async (id) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteSeason",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const seasonData = await res.json();
+
+      if (seasonData.code === "OK") {
+        return seasonData.code;
+      }
+      else if (seasonData.code === "ERROR") {
+        return seasonData.mensaje;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+};

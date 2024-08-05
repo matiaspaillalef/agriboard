@@ -81,6 +81,9 @@ const TitlePage = () => {
         case "sector-attributes":
             translatedSegment = "Atributos de sector";
             break;
+        case "season":
+            translatedSegment = "Temporada";
+            break;
         default:
             translatedSegment = segment;
             break;

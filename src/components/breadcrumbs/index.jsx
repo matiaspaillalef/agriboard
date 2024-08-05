@@ -58,6 +58,10 @@ const path = usePathname();
           return "Atributos de sector";
         case "parameterization-ground":
           return "Parametrización de campo";
+          case "parameterization-production":
+          return "Parametrización de producción";
+        case "season":
+          return "Temporada";
         default:
           return segment;
       }

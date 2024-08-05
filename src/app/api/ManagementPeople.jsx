@@ -622,9 +622,7 @@ export const getDataShifts = async (id_company) => {
       const shiftsData = await res.json();
 
       if (shiftsData.code === "OK") {
-
         return shiftsData.shifts;
-
       }
 
       else if (shiftsData.code === "ERROR") {
