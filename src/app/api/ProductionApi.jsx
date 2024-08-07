@@ -4,11 +4,9 @@ import { date } from "zod";
 const URLAPI = process.env.NEXT_PUBLIC_API_URL;
 const APIKEY = process.env.NEXT_PUBLIC_JWT_SECRET;
 
-
 const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
   expiresIn: 30000,
 });
-
 
 // Production - Ground
 
@@ -28,17 +26,14 @@ export const getDataGround = async (id_company) => {
     );
 
     if (res.ok) {
-
       const groundData = await res.json();
 
       if (groundData.code === "OK") {
         return groundData.grounds;
-      }
-      else if (groundData.code === "ERROR") {
+      } else if (groundData.code === "ERROR") {
         return groundData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
@@ -46,8 +41,6 @@ export const getDataGround = async (id_company) => {
 
 export const createGround = async (data) => {
   try {
-
-
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createGround",
       {
@@ -61,8 +54,8 @@ export const createGround = async (data) => {
           state: data.state,
           city: data.city,
           address: data.address,
-          latitude: data.latitude !== '' ? data.latitude : null,
-          longitude: data.longitude !== '' ? data.longitude : null,
+          latitude: data.latitude !== "" ? data.latitude : null,
+          longitude: data.longitude !== "" ? data.longitude : null,
           zone: data.zone,
           company_id: data.company_id,
           status: data.status,
@@ -88,28 +81,30 @@ export const createGround = async (data) => {
   }
 };
 
-
 export const updateGround = async (data) => {
   try {
-    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateGround", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": token,
-      },
-      body: JSON.stringify({
-        id: data.id,
-        name: data.name,
-        state: data.state,
-        city: data.city,
-        address: data.address,
-        latitude: data.latitude !== '' ? data.latitude : null,
-        longitude: data.longitude !== '' ? data.longitude : null,
-        zone: data.zone,
-        company_id: data.company_id,
-        status: data.status,
-      }),
-    });
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateGround",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          state: data.state,
+          city: data.city,
+          address: data.address,
+          latitude: data.latitude !== "" ? data.latitude : null,
+          longitude: data.longitude !== "" ? data.longitude : null,
+          zone: data.zone,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+      }
+    );
 
     if (res.ok) {
       const groundData = await res.json();
@@ -129,7 +124,6 @@ export const updateGround = async (data) => {
   }
 };
 
-
 export const deleteGround = async (id) => {
   try {
     const res = await fetch(
@@ -148,17 +142,14 @@ export const deleteGround = async (id) => {
     );
 
     if (res.ok) {
-
       const groundData = await res.json();
 
       if (groundData.code === "OK") {
         return groundData.code;
-      }
-      else if (groundData.code === "ERROR") {
+      } else if (groundData.code === "ERROR") {
         return groundData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
@@ -169,7 +160,8 @@ export const deleteGround = async (id) => {
 export const getDataSectorBarracks = async (id_company) => {
   try {
     const res = await fetch(
-      URLAPI + `/api/v1/configuracion/production/getSectorsBarracks/${id_company}`,
+      URLAPI +
+        `/api/v1/configuracion/production/getSectorsBarracks/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -180,27 +172,21 @@ export const getDataSectorBarracks = async (id_company) => {
       }
     );
 
-    
-
     if (res.ok) {
-
       const sectorBarracksData = await res.json();
 
       if (sectorBarracksData.code === "OK") {
         return sectorBarracksData.sectors;
-      }
-      else if (sectorBarracksData.code === "ERROR") {
+      } else if (sectorBarracksData.code === "ERROR") {
         return sectorBarracksData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createSectorBarrack = async (data) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createSectorBarrack",
@@ -238,22 +224,24 @@ export const createSectorBarrack = async (data) => {
 };
 
 export const updateSectorBarrack = async (data) => {
-
   try {
-    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateSectorBarrack", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": token,
-      },
-      body: JSON.stringify({
-        id: data.id,
-        name: data.name,
-        ground: data.ground,
-        company_id: data.company_id,
-        status: data.status,
-      }),
-    });
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateSectorBarrack",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          ground: data.ground,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+      }
+    );
 
     if (res.ok) {
       const sectorBarracksData = await res.json();
@@ -273,7 +261,6 @@ export const updateSectorBarrack = async (data) => {
 };
 
 export const deleteSectorBarrack = async (id) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteSectorBarrack",
@@ -291,17 +278,14 @@ export const deleteSectorBarrack = async (id) => {
     );
 
     if (res.ok) {
-
       const sectorBarracksData = await res.json();
 
       if (sectorBarracksData.code === "OK") {
         return sectorBarracksData.code;
-      }
-      else if (sectorBarracksData.code === "ERROR") {
+      } else if (sectorBarracksData.code === "ERROR") {
         return sectorBarracksData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
@@ -310,7 +294,6 @@ export const deleteSectorBarrack = async (id) => {
 // Production - Varieties
 
 export const getDataVarieties = async (id_company) => {
-
   try {
     const res = await fetch(
       URLAPI + `/api/v1/configuracion/production/getVarieties/${id_company}`,
@@ -324,27 +307,21 @@ export const getDataVarieties = async (id_company) => {
       }
     );
 
-    
-
     if (res.ok) {
-
       const sectorBarracksData = await res.json();
 
       if (sectorBarracksData.code === "OK") {
         return sectorBarracksData.varieties;
-      }
-      else if (sectorBarracksData.code === "ERROR") {
+      } else if (sectorBarracksData.code === "ERROR") {
         return sectorBarracksData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createVariety = async (data) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createVariety",
@@ -381,21 +358,23 @@ export const createVariety = async (data) => {
 };
 
 export const updateVariety = async (data) => {
-
   try {
-    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateVariety", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": token,
-      },
-      body: JSON.stringify({
-        id: data.id,
-        name: data.name,
-        company_id: data.company_id,
-        status: data.status,
-      }),
-    });
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateVariety",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+      }
+    );
 
     if (res.ok) {
       const varietyData = await res.json();
@@ -415,7 +394,6 @@ export const updateVariety = async (data) => {
 };
 
 export const deleteVariety = async (id) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteVariety",
@@ -433,17 +411,14 @@ export const deleteVariety = async (id) => {
     );
 
     if (res.ok) {
-
       const varietyData = await res.json();
 
       if (varietyData.code === "OK") {
         return varietyData.code;
-      }
-      else if (varietyData.code === "ERROR") {
+      } else if (varietyData.code === "ERROR") {
         return varietyData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
@@ -466,24 +441,20 @@ export const getDataSpecies = async (id_company) => {
     );
 
     if (res.ok) {
-
       const speciesData = await res.json();
 
       if (speciesData.code === "OK") {
         return speciesData.species;
-      }
-      else if (speciesData.code === "ERROR") {
+      } else if (speciesData.code === "ERROR") {
         return speciesData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createSpecies = async (data) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createSpecies",
@@ -515,31 +486,31 @@ export const createSpecies = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-
-  catch (err) {
+  } catch (err) {
     console.error("Error al crear el registro:", err);
     throw new Error("Error al intentar crear el registro");
   }
-}
+};
 
 export const updateSpecies = async (data) => {
-
   try {
-    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateSpecies", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": token,
-      },
-      body: JSON.stringify({
-        id: data.id,
-        name: data.name,
-        varieties: data.varieties,
-        company_id: data.company_id,
-        status: data.status,
-      }),
-    });
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateSpecies",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          varieties: data.varieties,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+      }
+    );
 
     if (res.ok) {
       const speciesData = await res.json();
@@ -559,7 +530,6 @@ export const updateSpecies = async (data) => {
 };
 
 export const deleteSpecies = async (id) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteSpecies",
@@ -577,17 +547,14 @@ export const deleteSpecies = async (id) => {
     );
 
     if (res.ok) {
-
       const speciesData = await res.json();
 
       if (speciesData.code === "OK") {
         return speciesData.code;
-      }
-      else if (speciesData.code === "ERROR") {
+      } else if (speciesData.code === "ERROR") {
         return speciesData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
@@ -595,7 +562,6 @@ export const deleteSpecies = async (id) => {
 
 // Production - Seasons
 export const getDataSeasons = async (id_company) => {
-
   try {
     const res = await fetch(
       URLAPI + `/api/v1/configuracion/production/getSeasons/${id_company}`,
@@ -610,24 +576,20 @@ export const getDataSeasons = async (id_company) => {
     );
 
     if (res.ok) {
-
       const seasonsData = await res.json();
 
       if (seasonsData.code === "OK") {
         return seasonsData.seasons;
-      }
-      else if (seasonsData.code === "ERROR") {
+      } else if (seasonsData.code === "ERROR") {
         return seasonsData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createSeason = async (data) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createSeason",
@@ -668,25 +630,27 @@ export const createSeason = async (data) => {
 };
 
 export const updateSeason = async (data) => {
-
   try {
-    const res = await fetch(URLAPI + "/api/v1/configuracion/production/updateSeason", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": token,
-      },
-      body: JSON.stringify({
-        id: data.id,
-        name: data.name,
-        period: data.period,
-        date_from: data.date_from,
-        date_until: data.date_until,
-        shifts: data.shifts,
-        status: data.status,
-        company_id: data.company_id,
-      }),
-    });
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateSeason",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          period: data.period,
+          date_from: data.date_from,
+          date_until: data.date_until,
+          shifts: data.shifts,
+          status: data.status,
+          company_id: data.company_id,
+        }),
+      }
+    );
 
     if (res.ok) {
       const seasonData = await res.json();
@@ -706,7 +670,6 @@ export const updateSeason = async (data) => {
 };
 
 export const deleteSeason = async (id) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteSeason",
@@ -724,18 +687,420 @@ export const deleteSeason = async (id) => {
     );
 
     if (res.ok) {
-
       const seasonData = await res.json();
 
       if (seasonData.code === "OK") {
         return seasonData.code;
-      }
-      else if (seasonData.code === "ERROR") {
+      } else if (seasonData.code === "ERROR") {
         return seasonData.mensaje;
       }
     }
-
   } catch (err) {
     console.error(err);
   }
 };
+
+// Production - Type Collection
+export const getDataTypeCollection = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI +
+        `/api/v1/configuracion/production/getCollectionType/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const typeCollectionData = await res.json();
+
+      if (typeCollectionData.code === "OK") {
+        return typeCollectionData.collections;
+      } else if (typeCollectionData.code === "ERROR") {
+        return typeCollectionData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const createTypeCollection = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createCollectionType",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const typeCollectionData = await res.json();
+
+      if (typeCollectionData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (typeCollectionData.code === "ERROR") {
+        return typeCollectionData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+};
+
+export const updateTypeCollection = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateCollectionType",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+      }
+    );
+
+    if (res.ok) {
+      const typeCollectionData = await res.json();
+
+      if (typeCollectionData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (typeCollectionData.code === "ERROR") {
+        return typeCollectionData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los datos del contratista");
+  }
+};
+
+export const deleteTypeCollection = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteCollectionType",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const typeCollectionData = await res.json();
+
+      if (typeCollectionData.code === "OK") {
+        return typeCollectionData.code;
+      } else if (typeCollectionData.code === "ERROR") {
+        return typeCollectionData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// Production - Calidad
+
+export const getDataQuality = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getQuality/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const qualityData = await res.json();
+
+      if (qualityData.code === "OK") {
+        return qualityData.qualities;
+      } else if (qualityData.code === "ERROR") {
+        return qualityData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const createQuality = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createQuality",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          abbreviation: data.abbreviation,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const qualityData = await res.json();
+
+      if (qualityData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (qualityData.code === "ERROR") {
+        return qualityData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+};
+
+export const updateQuality = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateQuality",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          abbreviation: data.abbreviation,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+      }
+    );
+
+    if (res.ok) {
+      const qualityData = await res.json();
+
+      if (qualityData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (qualityData.code === "ERROR") {
+        return qualityData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los datos del contratista");
+  }
+};
+
+export const deleteQuality = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteQuality",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const qualityData = await res.json();
+
+      if (qualityData.code === "OK") {
+        return qualityData.code;
+      } else if (qualityData.code === "ERROR") {
+        return qualityData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+
+// Production - Balanzas
+
+export const getDataScale = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getScale/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const scaleData = await res.json();
+
+      if (scaleData.code === "OK") {
+        return scaleData.scales;
+      } else if (scaleData.code === "ERROR") {
+        return scaleData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createScale = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createScale",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          location: data.location,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const scaleData = await res.json();
+
+      if (scaleData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (scaleData.code === "ERROR") {
+        return scaleData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+}
+
+export const updateScale = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateScale",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          location: data.location,
+          company_id: data.company_id,
+          status: data.status,
+        }),
+      }
+    );
+
+    if (res.ok) {
+      const scaleData = await res.json();
+
+      if (scaleData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (scaleData.code === "ERROR") {
+        return scaleData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los registros");
+  }
+}
+
+export const deleteScale = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteScale",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const scaleData = await res.json();
+
+      if (scaleData.code === "OK") {
+        return scaleData.code;
+      } else if (scaleData.code === "ERROR") {
+        return scaleData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}

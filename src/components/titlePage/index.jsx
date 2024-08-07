@@ -84,6 +84,9 @@ const TitlePage = () => {
         case "season":
             translatedSegment = "Temporada";
             break;
+        case "type-collection":
+            translatedSegment = "Tipo de recolección";
+            break;
         default:
             translatedSegment = segment;
             break;

@@ -62,6 +62,8 @@ const path = usePathname();
           return "Parametrización de producción";
         case "season":
           return "Temporada";
+        case "type-collection":
+          return "Tipo de recolección";
         default:
           return segment;
       }
