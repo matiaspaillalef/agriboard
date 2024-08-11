@@ -968,6 +968,152 @@ export const deleteQuality = async (id) => {
   }
 };
 
+// Production - Harvest format
+export const getDataHarvestFormat = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getHarvestFormat/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+      }
+    );
+
+    if (res.ok) {
+      const harvestFormatData = await res.json();
+
+      if (harvestFormatData.code === "OK") {
+        return harvestFormatData.formats;
+      } else if (harvestFormatData.code === "ERROR") {
+        return harvestFormatData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const createHarvestFormat = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createHarvestFormat",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          tara_base: data.tara_base,
+          specie: data.specie,
+          min_weight: data.min_weight,
+          max_weight: data.max_weight,
+          average_weight: data.average_weight,
+          quantity_trays: data.quantity_trays,
+          collection: data.collection,
+          status: data.status,
+          company_id: data.company_id, 
+        }),
+
+      }
+    );
+
+    if (res.ok) {
+      const harvestFormatData = await res.json();
+
+      if (harvestFormatData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (harvestFormatData.code === "ERROR") {
+        return harvestFormatData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+};
+
+export const updateHarvestFormat = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateHarvestFormat",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          name: data.name,
+          tara_base: data.tara_base,
+          specie: data.specie,
+          min_weight: data.min_weight,
+          max_weight: data.max_weight,
+          average_weight: data.average_weight,
+          quantity_trays: data.quantity_trays,
+          collection: data.collection,
+          status: data.status,
+          company_id: data.company_id,
+        }),
+      }
+    );
+
+    if (res.ok) {
+      const harvestFormatData = await res.json();
+
+      if (harvestFormatData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (harvestFormatData.code === "ERROR") {
+        return harvestFormatData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar el registro");
+  }
+};
+
+export const deleteHarvestFormat = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteHarvestFormat",
+
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({ id: id }),
+        cache: "no-store",
+      }
+
+    );
+
+    if (res.ok) {
+      const harvestFormatData = await res.json();
+
+      if (harvestFormatData.code === "OK") {
+        return harvestFormatData.code;
+      } else if (harvestFormatData.code === "ERROR") {
+        return harvestFormatData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
 // Production - Balanzas
 
@@ -1098,6 +1244,154 @@ export const deleteScale = async (id) => {
         return scaleData.code;
       } else if (scaleData.code === "ERROR") {
         return scaleData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Production - Register Scale
+
+export const getDataScaleRegister = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getScaleRegister/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const scaleRegisterData = await res.json();
+
+      if (scaleRegisterData.code === "OK") {
+        return scaleRegisterData.registers;
+      } else if (scaleRegisterData.code === "ERROR") {
+        return scaleRegisterData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createScaleRegister = async (data) => {
+
+  console.log("data", data);
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createScaleRegister",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          scale: data.scale,
+          quality: data.quality,
+          date: data.date,
+          boxes: data.boxes,
+          kg_boxes: data.kg_boxes,
+          specie: data.specie,
+          variety: data.variety,
+          season: data.season,
+          company_id: data.company_id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const scaleRegisterData = await res.json();
+
+      if (scaleRegisterData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (scaleRegisterData.code === "ERROR") {
+        return scaleRegisterData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+}
+
+export const updateScaleRegister = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateScaleRegister",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          scale: data.scale,
+          quality: data.quality,
+          date: data.date,
+          boxes: data.boxes,
+          kg_boxes: data.kg_boxes,
+          specie: data.specie,
+          variety: data.variety,
+          season: data.season,
+          company_id: data.company_id,
+        }),
+      }
+    );
+
+    if (res.ok) {
+      const scaleRegisterData = await res.json();
+
+      if (scaleRegisterData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (scaleRegisterData.code === "ERROR") {
+        return scaleRegisterData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los registros");
+  }
+}
+
+export const deleteScaleRegister = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteScaleRegister",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const scaleRegisterData = await res.json();
+
+      if (scaleRegisterData.code === "OK") {
+        return scaleRegisterData.code;
+      } else if (scaleRegisterData.code === "ERROR") {
+        return scaleRegisterData.mensaje;
       }
     }
   } catch (err) {

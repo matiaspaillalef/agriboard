@@ -87,6 +87,18 @@ const TitlePage = () => {
         case "type-collection":
             translatedSegment = "Tipo de recolección";
             break;
+        case "scale":
+            translatedSegment = "Balanza";
+            break;
+        case "scale-register":
+            translatedSegment = "Registro de balanza";
+            break;
+        case "harvest-format":
+            translatedSegment = "Formato de cosecha";
+            break;
+        case "deals":
+            translatedSegment = "Tratos";
+            break;
         default:
             translatedSegment = segment;
             break;

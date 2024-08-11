@@ -64,6 +64,14 @@ const path = usePathname();
           return "Temporada";
         case "type-collection":
           return "Tipo de recolección";
+        case "scale":
+          return "Balanza";
+        case "scale-register":
+          return "Registro de balanza";
+        case "harvest-format":
+          return "Formato de cosecha";
+        case "deals":
+          return "Tratos";
         default:
           return segment;
       }
