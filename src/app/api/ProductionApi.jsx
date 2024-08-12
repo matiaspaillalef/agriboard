@@ -1114,7 +1114,6 @@ export const deleteHarvestFormat = async (id) => {
   }
 };
 
-
 // Production - Balanzas
 
 export const getDataScale = async (id_company) => {
@@ -1398,3 +1397,133 @@ export const deleteScaleRegister = async (id) => {
     console.error(err);
   }
 }
+
+//Production - Deals
+
+export const getDataDeals = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getDeals/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+      }
+    );
+
+    if (res.ok) {
+      const dealsData = await res.json();
+
+      if (dealsData.code === "OK") {
+        return dealsData.deals;
+      } else if (dealsData.code === "ERROR") {
+        return dealsData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createDeal = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createDeal",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const dealData = await res.json();
+
+      if (dealData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (dealData.code === "ERROR") {
+        return dealData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+}
+
+export const updateDeal = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateDeal",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (res.ok) {
+      const dealData = await res.json();
+
+      if (dealData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (dealData.code === "ERROR") {
+        return dealData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los registros");
+  }
+}
+
+export const deleteDeal = async (id) => {
+
+  try {
+    const response = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteDeal",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({ id: id }),
+        cache: "no-store",
+      }
+    );
+
+    if (response.ok) {
+      const dealData = await response.json();
+
+      if (dealData.code === "OK") {
+        return dealData.code;
+      } else {
+        throw new Error(dealData.mensaje);
+      }
+    } else {
+      const errorText = await response.text();
+      throw new Error(`Error en la respuesta del servidor: ${errorText}`);
+    }
+  } catch (err) {
+    console.error("Error en la función deleteDeal:", err.message);
+    return `Error: ${err.message}`;
+  }
+}
+
+

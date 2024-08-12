@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
@@ -25,11 +25,14 @@ import {
   DialogFooter,
 } from "@material-tailwind/react";
 import {
+  getDataQuality,
+  getDataHarvestFormat,
   getDataDeals,
-  updateDeals,
-  createDeals,
-  deleteDeals,
+  updateDeal,
+  createDeal,
+  deleteDeal,
 } from "@/app/api/ProductionApi";
+import { isArray } from "tls";
 
 const CardTableDeals = ({
   data,
@@ -88,10 +91,40 @@ const CardTableDeals = ({
     index: null,
     id: null,
     name: "",
-    abbreviation: "",
+    harvest_format: "",
+    quality: "",
+    price: "",
     status: "",
   });
 
+  const [dataQuality, setDataQuality] = useState([]);
+  const [dataHarvest, setDataHarvest] = useState([]);
+
+  useEffect(() => {
+    const handleNameItems = async () => {
+      const quality = await getDataQuality(companyID);
+      const harvest = await getDataHarvestFormat(companyID);
+
+      setDataQuality(quality);
+      setDataHarvest(harvest);
+    };
+    handleNameItems();
+  }, []);
+
+  //Mapero de datos para la tabla
+  const dataMap = {
+    quality: dataQuality,
+    harvest_format: dataHarvest,
+  };
+
+  const getNameByKey = (key, value) => {
+    if (key === "price") {
+      return `$${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+    }
+
+    const data = dataMap[key];
+    return data?.find((item) => item.id === value)?.name || value;
+  };
 
   const handleOpenShowUser = (user) => {
     //console.log(user);
@@ -138,7 +171,7 @@ const CardTableDeals = ({
         );
       }
 
-      const updateItemApi = await updateDeals(data);
+      const updateItemApi = await updateDeal(data);
       const dataNew = await getDataDeals(companyID);
 
       if (updateItemApi === "OK") {
@@ -165,9 +198,24 @@ const CardTableDeals = ({
     setOpenAlertClone(false);
   };
 
-  const handleCloneAlert = (index, name, abbreviation, status, company_id) => {
+  const handleCloneAlert = (
+    index,
+    name,
+    harvest_format,
+    quality,
+    price,
+    status,
+    company_id
+  ) => {
     //console.log(index, name, varieties, status, company_id);
-    setItemToClone({ name, abbreviation, status, company_id });
+    setItemToClone({
+      name,
+      harvest_format,
+      quality,
+      price,
+      status,
+      company_id,
+    });
     setOpenAlertClone(true);
     setOpenAlert(false);
   };
@@ -181,14 +229,23 @@ const CardTableDeals = ({
   const handleCloseAlertClone = () => {
     setOpenAlertClone(false);
     setOpenAlert(false);
-    setItemToDelete({ index: null, name: "", abbreviation: "", status: "" });
+    setItemToDelete({
+      index: null,
+      name: "",
+      harvest_format: "",
+      quality: "",
+      price: "",
+      status: "",
+      company_id: "",
+    });
   };
 
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
+
     try {
       //if (userConfirmed) {
-      const deleteItem = await deleteDeals(id);
+      const deleteItem = await deleteDeal(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
@@ -210,10 +267,9 @@ const CardTableDeals = ({
   };
 
   const handlerClone = async () => {
-    const { name, abbreviation, status, company_id } = itemToClone;
-
+    const { name, harvest_format, quality, price, status, company_id } = itemToClone;
     try {
-      const cloneItem = await createDeals(itemToClone);
+      const cloneItem = await createDeal(itemToClone);
       const dataNew = await getDataDeals(companyID);
 
       if (cloneItem === "OK") {
@@ -235,15 +291,7 @@ const CardTableDeals = ({
   // Creación
   const onSubmitForm = async (data) => {
     try {
-      const transformedData = {
-        id: Number(data.id) || null,
-        name: data.name.trim(),
-        abbreviation: data.abbreviation.trim(),
-        company_id: Number(data.company_id) || null, // Convierte a número
-        status: data.status.trim(),
-      };
-
-      const createItem = await createDeals(data);
+      const createItem = await createDeal(data);
       const dataNew = await getDataDeals(companyID);
 
       if (createItem === "OK") {
@@ -325,7 +373,7 @@ const CardTableDeals = ({
           className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
         >
           <PlusIcon className="w-5 h-5" />
-          Nueva Calidad
+          Nuevo Trato
         </Button>
       </div>
       {loading ? (
@@ -354,8 +402,8 @@ const CardTableDeals = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={initialData}
-                    filename="Tipos de Calidad"
-                    sheetname="Tipos de Calidad"
+                    filename="Tipos de Trato"
+                    sheetname="Tipos de Trato"
                     titlebutton="Exportar a excel"
                   />
                 )}
@@ -452,11 +500,10 @@ const CardTableDeals = ({
                                     Inactivo
                                   </p>
                                 )
-                              ) : key === "ground" ? (
-                                dataGround.find(
-                                  (ground) => ground.id === row[key]
-                                )?.name
+                              ) : key === "date" ? (
+                                formatDate(row[key]) // Formatea la fecha aquí
                               ) : (
+                                getNameByKey(key, row[key]) ||
                                 formatNumber(row[key])
                               )}
                             </div>
@@ -492,13 +539,16 @@ const CardTableDeals = ({
                             type="button"
                             className="text-sm font-semibold text-gray-800 dark:text-white"
                             onClick={() => {
+                              //console.log('clone',row);
                               handleCloneAlert(
                                 index,
                                 //row.id,
                                 row.name ? row.name : "",
-                                row.abbreviation ? row.abbreviation : "",
+                                row.harvest_format ? row.harvest_format : "",
+                                row.quality ? row.quality : "",
+                                row.price ? row.price : "",
                                 row.status ? row.status : "",
-                                Number(companyID)
+                                row.company_id ? Number(companyID) : ""
                               );
                             }}
                           >
@@ -509,11 +559,12 @@ const CardTableDeals = ({
                             id="remove"
                             type="button"
                             onClick={() => {
-                              //console.log(row);
                               handleOpenAlert(
                                 index,
                                 row.id,
-                                row.name ? row.name : ""
+                                row.scale
+                                  ? getNameByKey("scale", row.scale)
+                                  : ""
                               );
                             }}
                           >
@@ -597,10 +648,10 @@ const CardTableDeals = ({
             </button>
             <DialogHeader className="dark:text-white">
               {openShowUser
-                ? "Datos de Calidad"
+                ? "Datos del Trato"
                 : isEdit
-                ? "Editar Calidad"
-                : "Nueva Calidad"}
+                ? "Editar Trato"
+                : "Nuevo Trato"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -641,25 +692,87 @@ const CardTableDeals = ({
                     </div>
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="abbreviation"
+                        htmlFor="harvest_format"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Abreviación
+                        Formato Cosecha
                       </label>
-                      <input
-                        type="text"
-                        name="abbreviation"
-                        id="abbreviation"
+                      <select
+                        name="harvest_format"
+                        id="harvest_format"
                         required={true}
-                        {...register("abbreviation")}
+                        {...register("harvest_format")}
                         defaultValue={
-                          selectedItem ? selectedItem.abbreviation : ""
+                          selectedItem ? selectedItem.harvest_format : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
+                      >
+                        {isArray(dataHarvest) && dataHarvest.length > 0 ? (
+                          dataHarvest.map(
+                            (item) =>
+                              item.status != 0 && (
+                                <option key={item.id} value={item.id}>
+                                  {item.name}
+                                </option>
+                              )
+                          )
+                        ) : (
+                          <option value="">No hay datos</option>
+                        )}
+                      </select>
+                    </div>
                   </div>
-                  </div>
+
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="quality"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Calidad
+                      </label>
+                      <select
+                        name="quality"
+                        id="quality"
+                        required={true}
+                        {...register("quality")}
+                        defaultValue={selectedItem ? selectedItem.quality : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        {isArray(dataQuality) && dataQuality.length > 0 ? (
+                          dataQuality.map(
+                            (item) =>
+                              item.status != 0 && (
+                                <option key={item.id} value={item.id}>
+                                  {item.name}
+                                </option>
+                              )
+                          )
+                        ) : (
+                          <option value="">No hay datos</option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="price"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Precio
+                      </label>
+                      <input
+                        type="number"
+                        name="price"
+                        id="price"
+                        required={true}
+                        {...register("price")}
+                        defaultValue={selectedItem ? selectedItem.price : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="status"
@@ -706,8 +819,18 @@ const CardTableDeals = ({
                     <strong>{selectedItem.name}</strong>
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Abreviación:</strong>{" "}
-                    {selectedItem.abbreviation}
+                    <strong>Formato Cosecha:</strong>{" "}
+                    {getNameByKey(
+                      "harvest_format",
+                      selectedItem.harvest_format
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Calidad:</strong>{" "}
+                    {getNameByKey("quality", selectedItem.quality)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Precio:</strong> ${formatNumber(selectedItem.price)}
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Estado:</strong>{" "}
@@ -726,7 +849,7 @@ const CardTableDeals = ({
           >
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
-                ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} la Calidad{" "}
+                ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} el Trato{" "}
                 <strong className="font-bold">
                   {openAlert ? itemToDelete.name_item : itemToClone.name}
                 </strong>

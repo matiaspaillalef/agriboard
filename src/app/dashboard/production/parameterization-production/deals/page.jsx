@@ -81,13 +81,13 @@ const ProductionDeals = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableDeals
                 data={dataDeals}
-                thead="Nombre, Abreviación, Estado"
+                thead="Nombre, Conf. Cosecha, Precio, Estado"
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
                 companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
                 datosCompanies={dataCompanies}
-                omitirColumns={["id", "company_id"]}
+                omitirColumns={["id", "company_id", "quality"]}
               />
             </div>
           </div>
