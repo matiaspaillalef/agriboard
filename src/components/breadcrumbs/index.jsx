@@ -72,6 +72,16 @@ const path = usePathname();
           return "Formato de cosecha";
         case "deals":
           return "Tratos";
+        case "quality":
+          return "Calidad";
+        case "manual-upload":
+          return "Carga de producción manual";
+        case "dispatch-guide":
+          return "Guía de despacho";
+        case "operations":
+          return "Operaciones";
+        case "production-report":
+          return "Reporte de producción";
         default:
           return segment;
       }

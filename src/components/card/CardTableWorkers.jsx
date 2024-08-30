@@ -29,11 +29,20 @@ import {
   updateWorker,
   createWorker,
   getDataWorkers,
+  getDataPositions,
+  getDataContractors,
+  getDataSquads,
+  getDataShifts,
 } from "@/app/api/ManagementPeople";
 
-import { ProvitionalCL } from "@/app/data/dataProvisionals";
+import { ProvitionalCL } from "@/app/data/dataSalud";
+import { dataBank, dataAccountType } from "@/app/data/dataBank";
+import { dataSalud } from "@/app/data/dataSalud";
+import { dataAFP } from "@/app/data/dataAFP";
+
 import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
+import { set } from "date-fns";
 
 const CardTableWorkers = ({
   data,
@@ -41,6 +50,7 @@ const CardTableWorkers = ({
   columnsClasses = [],
   omitirColumns = [],
   title,
+  companyID,
   actions,
   tableId,
   downloadBtn,
@@ -230,6 +240,7 @@ const CardTableWorkers = ({
   };
 
   const handleOpenEditUser = (user) => {
+    console.log(user);
     setRutValido(true); //Se pasa en true ya que si leventa la ventada de editar es por que los datos ya fueron validados
     setOpenShowUser(false);
     setSelectedRegion(user.state);
@@ -263,6 +274,18 @@ const CardTableWorkers = ({
         phone_company: data.phone_company,
         date_admission: data.date_admission,
         status: data.status,
+        position: data.position,
+        contractor: data.contractor,
+        squad: data.squad,
+        leader_squad: data.leader_squad,
+        shift: data.shift,
+        wristband: data.wristband,
+        observation: data.observation,
+        bank: data.bank,
+        account_type: data.account_type,
+        account_number: data.account_number,
+        afp: data.afp,
+        health: data.health,
       };
       const updateWorkerApi = await updateWorker(transformedData);
 
@@ -475,6 +498,26 @@ const CardTableWorkers = ({
     return `${year}-${month}-${day}`;
   };
 
+  const [dataPosition, setDataPosition] = useState([]);
+  const [dataContractor, setDataContractor] = useState([]);
+  const [dataSquad, setDataSquad] = useState([]);
+  const [dataShift, setDataShift] = useState([]);
+
+  useEffect(() => {
+    const handleNameItems = async () => {
+      const position = await getDataPositions(companyID);
+      const contractor = await getDataContractors(companyID);
+      const squad = await getDataSquads(companyID);
+      const shift = await getDataShifts(companyID);
+
+      setDataPosition(position);
+      setDataContractor(contractor);
+      setDataSquad(squad);
+      setDataShift(shift);
+    };
+    handleNameItems();
+  }, []);
+
   return (
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
@@ -607,7 +650,6 @@ const CardTableWorkers = ({
                         if (omitirColumns.includes(key)) {
                           return null; // Omitir la columna si está en omitirColumns
                         }
-
                         return (
                           <td
                             key={rowIndex}
@@ -796,6 +838,7 @@ const CardTableWorkers = ({
                     {...register("id")}
                     defaultValue={selectedItem ? selectedItem.id : ""}
                   />
+                  <h3 className="font-bold my-4">Información personal</h3>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-col gap-3 ">
                       <label
@@ -968,6 +1011,8 @@ const CardTableWorkers = ({
                     </div>
                   </div>
 
+                  <h3 className="font-bold my-4">Ubicación</h3>
+
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
                       <label
@@ -1089,6 +1134,7 @@ const CardTableWorkers = ({
                     </div>
                   </div>
 
+                  <h3 className="font-bold my-4">Información laboral</h3>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
                       <label
@@ -1115,6 +1161,304 @@ const CardTableWorkers = ({
                         />
                       </div>
                     </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="position"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Cargo
+                      </label>
+
+                      <select
+                        name="position"
+                        id="position"
+                        required={true}
+                        disabled={openShowUser}
+                        {...register("position")}
+                        defaultValue={selectedItem ? selectedItem.position : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">Selecciona un cargo</option>
+                        {dataPosition &&
+                          dataPosition.map((position) => (
+                            <option key={position.id} value={position.id}>
+                              {position.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="contractor"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Contratista
+                      </label>
+                      <select
+                        name="contractor"
+                        id="contractor"
+                        disabled={openShowUser}
+                        {...register("contractor")}
+                        defaultValue={
+                          selectedItem ? selectedItem.contractor : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">Selecciona un contratista</option>
+                        {dataContractor &&
+                          dataContractor.map((contractor) => (
+                            <option key={contractor.id} value={contractor.id}>
+                              {contractor.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="squad"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Cuadrilla
+                      </label>
+                      <select
+                        name="squad"
+                        id="squad"
+                        disabled={openShowUser}
+                        {...register("squad")}
+                        defaultValue={selectedItem ? selectedItem.squad : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">Selecciona una cuadrilla</option>
+                        {dataSquad &&
+                          dataSquad.map((squad) => (
+                            <option key={squad.id} value={squad.id}>
+                              {squad.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="leader_squad"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Líder de cuadrilla
+                      </label>
+                      <select
+                        name="leader_squad"
+                        id="leader_squad"
+                        disabled={openShowUser}
+                        {...register("leader_squad")}
+                        defaultValue={
+                          selectedItem ? selectedItem.leader_squad : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">
+                          Selecciona un líder de cuadrilla
+                        </option>
+                        <option value="1">Sí</option>
+                        <option value="0">No</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="shift"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Turno
+                      </label>
+                      <select
+                        name="shift"
+                        id="shift"
+                        disabled={openShowUser}
+                        {...register("shift")}
+                        defaultValue={selectedItem ? selectedItem.shift : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">Selecciona un turno</option>
+                        {dataShift &&
+                          dataShift.map((shift) => (
+                            <option key={shift.id} value={shift.id}>
+                              {shift.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="wristband"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Pulsera
+                      </label>
+                      <input
+                        type="text"
+                        name="wristband"
+                        id="wristband"
+                        readOnly={openShowUser}
+                        defaultValue={
+                          selectedItem ? selectedItem.wristband : ""
+                        }
+                        {...register("wristband")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="observation"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Observación
+                      </label>
+                      <textarea
+                        name="observation"
+                        id="observation"
+                        readOnly={openShowUser}
+                        defaultValue={
+                          selectedItem ? selectedItem.observation : ""
+                        }
+                        {...register("observation")}
+                        className="flex h-[120px] w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <h3 className="font-bold my-4">Información legal</h3>
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="bank"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Banco
+                      </label>
+                      <select
+                        name="bank"
+                        id="bank"
+                        disabled={openShowUser}
+                        {...register("bank")}
+                        defaultValue={selectedItem ? selectedItem.bank : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">Selecciona un banco</option>
+                        {dataBank &&
+                          dataBank.map((bank) => (
+                            <option key={bank.bank} value={bank.bank}>
+                              {bank.bank}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="account_type"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Tipo de cuenta
+                      </label>
+                      <select
+                        name="account_type"
+                        id="account_type"
+                        disabled={openShowUser}
+                        {...register("account_type")}
+                        defaultValue={
+                          selectedItem ? selectedItem.account_type : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">Selecciona un tipo de cuenta</option>
+                        {dataAccountType &&
+                          dataAccountType.map((accountType) => (
+                            <option
+                              key={accountType.accountType}
+                              value={accountType.accountType}
+                            >
+                              {accountType.accountType}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="account_number"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Número de cuenta
+                      </label>
+                      <input
+                        type="number"
+                        name="account_number"
+                        id="account_number"
+                        readOnly={openShowUser}
+                        defaultValue={
+                          selectedItem ? selectedItem.account_number : ""
+                        }
+                        {...register("account_number")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="afp"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        AFP
+                      </label>
+                      <select
+                        name="afp"
+                        id="afp"
+                        disabled={openShowUser}
+                        {...register("afp")}
+                        defaultValue={selectedItem ? selectedItem.afp : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">Selecciona una AFP</option>
+                        {dataAFP &&
+                          dataAFP.map((afp) => (
+                            <option key={afp.afp} value={afp.afp}>
+                              {afp.afp}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="health"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Previsión
+                      </label>
+                      <select
+                        name="health"
+                        id="health"
+                        disabled={openShowUser}
+                        {...register("health")}
+                        defaultValue={selectedItem ? selectedItem.health : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="">Selecciona una previsión</option>
+                        {dataSalud &&
+                          dataSalud.map((health) => (
+                            <option key={health.salud} value={health.salud}>
+                              {health.salud}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="status"
@@ -1153,44 +1497,50 @@ const CardTableWorkers = ({
                 <div className="flex flex-col gap-3">
                   <p className="text-md font-semibold text-gray-800 dark:text-white">
                     <strong>
-                      {selectedItem.name} {selectedItem.lastname}{" "}
-                      {selectedItem.lastname2}
+                      {selectedItem.name || "-"} {selectedItem.lastname || "-"}{" "}
+                      {selectedItem.lastname2 || "-"}
                     </strong>
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>RUT:</strong> {selectedItem.rut}
+                    <strong>RUT:</strong> {selectedItem.rut || "-"}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha de nacimiento:</strong>{" "}
+                    <strong>Fecha de nacimiento:</strong>
                     {selectedItem.born_date
                       ? formatDateView(
                           formatDateToInput(selectedItem.born_date)
                         )
                       : "Fecha no registrada"}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Género:</strong> {selectedItem.gender}
+                    <strong>Género:</strong> {selectedItem.gender || "-"}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Estado civil:</strong> {selectedItem.state_civil}
+                    <strong>Estado civil:</strong>{" "}
+                    {selectedItem.state_civil || "-"}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Región:</strong>{" "}
-                    {
-                      StateCL.find(
-                        (state) => state.region_number == selectedItem.state
-                      )?.region
-                    }
+                    <strong>Región:</strong>
+                    {StateCL.find(
+                      (state) => state.region_number == selectedItem.state
+                    )?.region || "-"}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Ciudad:</strong> {selectedItem.city}
+                    <strong>Ciudad:</strong> {selectedItem.city || "-"}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Dirección:</strong> {selectedItem.address}
+                    <strong>Dirección:</strong> {selectedItem.address || "-"}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Teléfono:</strong>{" "}
+                    <strong>Teléfono:</strong>
                     {selectedItem.phone ? (
                       <a
                         href={`tel:${selectedItem.phone}`}
@@ -1203,8 +1553,9 @@ const CardTableWorkers = ({
                       "No registrado"
                     )}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Teléfono de la empresa:</strong>{" "}
+                    <strong>Teléfono de la empresa:</strong>
                     {selectedItem.phone_company ? (
                       <a
                         href={`tel:${selectedItem.phone_company}`}
@@ -1217,14 +1568,111 @@ const CardTableWorkers = ({
                       "No registrado"
                     )}
                   </p>
+
+                  <h3 className="font-bold mt-4 bb-2">Información laboral</h3>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha de ingreso:</strong>{" "}
+                    <strong>Fecha de ingreso:</strong>
                     {formatDateView(
                       formatDateToInput(selectedItem.date_admission)
-                    )}
+                    ) || "-"}
                   </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Estado:</strong>{" "}
+                    <strong>Cargo:</strong>
+                    {dataPosition
+                      ? dataPosition.find(
+                          (position) => position.id == selectedItem.position
+                        )?.name || "-"
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Contratista:</strong>
+                    {dataContractor
+                      ? dataContractor.find(
+                          (contractor) =>
+                            contractor.id == selectedItem.contractor
+                        )?.name || "-"
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Cuadrilla:</strong>
+                    {dataSquad
+                      ? dataSquad.find(
+                          (squad) => squad.id == selectedItem.squad
+                        )?.name || "-"
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Líder de cuadrilla:</strong>
+                    {selectedItem.leader_squad == 1 ? "Sí" : "No"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Turno:</strong>
+                    {dataShift
+                      ? dataShift.find(
+                          (shift) => shift.id == selectedItem.shift
+                        )?.name || "-"
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Pulsera:</strong> {selectedItem.wristband || "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Observación:</strong>{" "}
+                    {selectedItem.observation || "-"}
+                  </p>
+
+                  <h3 className="font-bold mt-4 bb-2">Información legal</h3>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Banco:</strong>
+                    {dataBank
+                      ? dataBank.find((bank) => bank.bank == selectedItem.bank)
+                          ?.bank || "-"
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Tipo de cuenta:</strong>
+                    {dataAccountType
+                      ? dataAccountType.find(
+                          (accountType) =>
+                            accountType.accountType == selectedItem.account_type
+                        )?.accountType || "-"
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Número de cuenta:</strong>{" "}
+                    {selectedItem.account_number || "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>AFP:</strong>
+                    {dataAFP && selectedItem.afp
+                      ? dataAFP.find((afp) => afp.afp == selectedItem.afp)
+                          ?.afp || "-"
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Previsión:</strong>
+                    {dataSalud
+                      ? dataSalud.find(
+                          (health) => health.salud == selectedItem.health
+                        )?.salud || "-"
+                      : "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Estado:</strong>
                     {selectedItem.status == 1 ? "Activo" : "Inactivo"}
                   </p>
                 </div>

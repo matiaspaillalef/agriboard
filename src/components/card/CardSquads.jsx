@@ -29,7 +29,7 @@ import {
   createSquad,
   getDataSquads,
   getDataGroups,
-  getDataWorkers
+  getDataWorkers,
 } from "@/app/api/ManagementPeople";
 
 const CardTableSquads = ({
@@ -136,6 +136,7 @@ const CardTableSquads = ({
       workers: selectedWorkerIds, // Agregamos los IDs de los trabajadores seleccionados
     };
 
+
     const responseCode = await updateSquad(updatedSquad);
     //console.log("Response code:", responseCode);
     if (responseCode === "OK") {
@@ -143,7 +144,7 @@ const CardTableSquads = ({
       setUpdateMessage("Trabajadores asignados correctamente.");
 
       //Esto lo hago para cuando se reabra el modal quede con la data actualizada
-      const squadData = await getDataSquads();
+      const squadData = await getDataSquads(companyID);
       setInitialData(squadData);
 
       setTimeout(() => {
@@ -173,24 +174,41 @@ const CardTableSquads = ({
   };
 
   const handleAddWorkers = (squad) => {
+    console.log("Squad:", squad);
     setSelectSquad(squad);
     setOpenAddWorkers(!openAddWorkers);
 
+    // Convertir la cadena de texto de workers a un array de números
+    const workerIds = JSON.parse(squad.workers);
+
     // Actualizar el estado de los trabajadores para marcar los ya asignados
     const updatedWorkers = workers.map((worker) => ({
-      ...worker,
-      isSelected:
-        Array.isArray(squad.workers) && squad.workers.includes(worker.id),
+        ...worker,
+        isSelected: workerIds.includes(worker.id),
     }));
 
+    console.log("Updated workers:", updatedWorkers);
+
     setWorkers(updatedWorkers);
-  };
+};
+
+
+  console.log("Select squad:", selectSquad);
+  console.log("Workers:", workers);
+  
 
   const handleOpenEditUser = (user) => {
+    const workersJson = JSON.parse(user.workers);
+
+    const updatedUser = {
+      ...user,
+      workers: workersJson,
+    };
+
     setIsEdit(true);
-    setFormData(user);
-    setSelectedItem(user);
-    handleOpen(user);
+    setFormData(updatedUser);
+    setSelectedItem(updatedUser);
+    handleOpen(updatedUser);
   };
 
   const handleOpen = (user) => {
@@ -200,27 +218,38 @@ const CardTableSquads = ({
   };
 
   const onUpdateItem = async (data) => {
-    //console.log("Datos de la empresa a actualizar:", data);
-    try {
-      const updateSquadApi = await updateSquad(data);
+    // Convierte el campo workers de una cadena separada por comas a un array de números
+    const workersArray = data.workers
+      .split(",")
+      .map((workerId) => parseInt(workerId.trim(), 10)) // Convierte a número
+      .filter((workerId) => !isNaN(workerId)); // Filtra valores no válidos
 
-      // Elimina la fila del front-end
+    // Actualiza el campo workers en el objeto de datos
+    const updatedData = {
+      ...data,
+      workers:workersArray,
+    };
+
+    try {
+      const updateSquadApi = await updateSquad(updatedData);
+
+      // Elimina la fila del front-end si la actualización es exitosa
       if (updateSquadApi === "OK") {
-        const updatedData = initialData.map((item) =>
-          item.id == data.id ? { ...data } : item
+        const newData = initialData.map((item) =>
+          item.id === updatedData.id ? updatedData : item
         );
 
-        setInitialData(updatedData);
-        setUpdateMessage("cuadrilla actualizada correctamente");
+        setInitialData(newData);
+        setUpdateMessage("Cuadrilla actualizada correctamente");
         setOpen(false);
       } else {
-        setUpdateMessage("No se pudo actualizar el cuadrilla");
+        setUpdateMessage("No se pudo actualizar la cuadrilla");
       }
     } catch (error) {
       console.error(error);
       // Manejo de errores
       setUpdateMessage(
-        "Error al intentar actualizar el cuadrilla. Inténtalo nuevamente."
+        "Error al intentar actualizar la cuadrilla. Inténtalo nuevamente."
       );
     }
   };
@@ -550,6 +579,8 @@ const CardTableSquads = ({
                               : ""
                           }`}
                         >
+
+                          {console.log("Row:", row)}
                           <Tooltip
                             placement="bottom"
                             className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
@@ -755,6 +786,21 @@ const CardTableSquads = ({
                       <option value="1">Activo</option>
                     </select>
                   </div>
+
+                  <input
+                    type="hidden"
+                    name="company_id"
+                    {...register("company_id")}
+                    defaultValue={companyID}
+                  />
+
+                  <input
+                    type="hidden"
+                    name="workers"
+                    {...register("workers")}
+                    defaultValue={selectedItem ? selectedItem.workers : "[]"}
+                  />
+
                   <div className="flex flex-col gap-3">
                     <button
                       type="submit"

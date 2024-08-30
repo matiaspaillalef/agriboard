@@ -29,8 +29,6 @@ const PeopleManagementSquads = () => {
       const data = await getDataSquads(companyId);
       setDataSquads(data);
 
-      console.log(data);
-
     } catch (error) {
       console.error("Error al obtener datos:", error);
     } finally {
@@ -78,7 +76,7 @@ const PeopleManagementSquads = () => {
               <CardTableSquads
                 data={dataSquads}
                 thead="Nombre, Grupo, Estado"
-                omitirColumns={["id", "workers"]}
+                omitirColumns={["id", "workers", "company_id"]}
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}

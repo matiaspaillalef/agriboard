@@ -1527,3 +1527,419 @@ export const deleteDeal = async (id) => {
 }
 
 
+//Production - Exporters
+
+export const getDataExporters = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getExporters/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+      }
+    );
+
+    if (res.ok) {
+      const exportersData = await res.json();
+
+      if (exportersData.code === "OK") {
+        return exportersData.exporters;
+      } else if (exportersData.code === "ERROR") {
+        return exportersData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createExporter = async (data) => {
+  console.log("data", data);
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createExporter",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const exporterData = await res.json();
+
+      if (exporterData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (exporterData.code === "ERROR") {
+        return exporterData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+}
+
+export const updateExporter = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateExporter",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (res.ok) {
+      const exporterData = await res.json();
+
+      if (exporterData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (exporterData.code === "ERROR") {
+        return exporterData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los registros");
+  }
+}
+
+export const deleteExporter = async (id) => {
+
+  try {
+    const response = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteExporter",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({ id: id }),
+        cache: "no-store",
+      }
+    );
+
+    if (response.ok) {
+      const exporterData = await response.json();
+
+      if (exporterData.code === "OK") {
+        return exporterData.code;
+      } else {
+        throw new Error(exporterData.mensaje);
+      }
+    } else {
+      const errorText = await response.text();
+      throw new Error(`Error en la respuesta del servidor: ${errorText}`);
+    }
+  } catch (err) {
+    console.error("Error en la función deleteExporter:", err.message);
+    return `Error: ${err.message}`;
+  }
+}
+
+//Production - Carga Manual
+
+export const getDataManualHarvesting = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getManualHarvesting/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+      }
+    );
+
+    if (res.ok) {
+      const manualHarvestingData = await res.json();
+
+      if (manualHarvestingData.code === "OK") {
+        return manualHarvestingData.manualHarvesting;
+      } else if (manualHarvestingData.code === "ERROR") {
+        return manualHarvestingData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createManualHarvesting = async (data) => {
+  console.log(data);
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createManualHarvesting",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const manualHarvestingData = await res.json();
+
+      if (manualHarvestingData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (manualHarvestingData.code === "ERROR") {
+        return manualHarvestingData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+}
+
+export const updateManualHarvesting = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateManualHarvesting",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (res.ok) {
+      const manualHarvestingData = await res.json();
+
+      if (manualHarvestingData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (manualHarvestingData.code === "ERROR") {
+        return manualHarvestingData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los registros");
+  }
+}
+
+export const deleteManualHarvesting = async (id) => {
+
+  try {
+    const response = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteManualHarvesting",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({ id: id }),
+        cache: "no-store",
+      }
+    );
+
+    if (response.ok) {
+      const manualHarvestingData = await response.json();
+
+      if (manualHarvestingData.code === "OK") {
+        return manualHarvestingData.code;
+      } else {
+        throw new Error(manualHarvestingData.mensaje);
+      }
+    } else {
+      const errorText = await response.text();
+      throw new Error(`Error en la respuesta del servidor: ${errorText}`);
+    }
+  } catch (err) {
+    console.error("Error en la función deleteManualHarvesting:", err.message);
+    return `Error: ${err.message}`;
+  }
+}
+
+
+// Production - Dispatch Guide
+export const getDataDispatchGuide = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getDispatchGuide/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+      }
+    );
+
+    if (res.ok) {
+      const dispatchGuideData = await res.json();
+
+      if (dispatchGuideData.code === "OK") {
+        return dispatchGuideData.dispatchGuide;
+      } else if (dispatchGuideData.code === "ERROR") {
+        return dispatchGuideData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const createDispatchGuide = async (data) => {
+  console.log(data);
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createDispatchGuide",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const dispatchGuideData = await res.json();
+
+      if (dispatchGuideData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (dispatchGuideData.code === "ERROR") {
+        return dispatchGuideData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+}
+
+export const updateDispatchGuide = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateDispatchGuide",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (res.ok) {
+      const dispatchGuideData = await res.json();
+
+      if (dispatchGuideData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (dispatchGuideData.code === "ERROR") {
+        return dispatchGuideData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los registros");
+  }
+}
+
+export const deleteDispatchGuide = async (id) => {
+
+  try {
+    const response = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteDispatchGuide",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({ id: id }),
+        cache: "no-store",
+      }
+    );
+
+    if (response.ok) {
+      const dispatchGuideData = await response.json();
+
+      if (dispatchGuideData.code === "OK") {
+        return dispatchGuideData.code;
+      } else {
+        throw new Error(dispatchGuideData.mensaje);
+      }
+    } else {
+      const errorText = await response.text();
+      throw new Error(`Error en la respuesta del servidor: ${errorText}`);
+    }
+  } catch (err) {
+    console.error("Error en la función deleteDispatchGuide:", err.message);
+    return `Error: ${err.message}`;
+  }
+}
+
+
+//Results Filter
+export const filterResults = async (filters, id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/filterResults/${id_company}`, // Asumiendo que tu endpoint para filtrar es similar
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(filters), // Envía los filtros como cuerpo de la solicitud
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.results; // Devuelve los resultados filtrados
+      } else if (data.code === "ERROR") {
+        return data.mensaje; // Maneja el error según tu lógica
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};

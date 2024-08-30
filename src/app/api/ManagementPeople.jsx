@@ -513,6 +513,7 @@ export const createSquad = async (data) => {
           name: data.name,
           group: data.group,
           status: data.status,
+          workers: data.workers,
           idCompany: userData.idCompany,
         }),
         cache: "no-store",
@@ -537,6 +538,7 @@ export const createSquad = async (data) => {
 }
 
 export const updateSquad = async (data) => {
+  console.log(data);
   try {
     console.log(data);
     const res = await fetch(
@@ -552,7 +554,7 @@ export const updateSquad = async (data) => {
           name: data.name,
           group: data.group,
           status: data.status,
-          workers: data.workers, // Añadimos la nueva propiedad
+          workers: data.workers, 
         }),
         cache: "no-store",
       }

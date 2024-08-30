@@ -99,6 +99,18 @@ const TitlePage = () => {
         case "deals":
             translatedSegment = "Tratos";
             break;
+        case "quality":
+            translatedSegment = "Calidad";
+            break;
+        case "manual-upload":
+            translatedSegment = "Carga de producción manual";
+            break;
+        case "dispatch-guide":
+            translatedSegment = "Guía de despacho";
+            break;
+        case "production-report":
+            translatedSegment = "Reporte de producción";
+            break;
         default:
             translatedSegment = segment;
             break;
