@@ -2,24 +2,69 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-
 import { useState, useEffect } from "react";
 
 const DynamicChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-const LineChart = (props) => {
-  const { series, options, title } = props;
+const LineChart = ({ data, title }) => {
+  const { humedad, temperatura, fechas } = data;
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Simula un retraso para la carga
     const fetchData = async () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       setLoading(false);
     };
 
     fetchData();
-  }, []);
+  }, [data]); // Dependencia en data para refrescar el componente cuando cambia
+
+  // Configuración de opciones para el gráfico
+  const options = {
+    legend: { show: false },
+    theme: { mode: "light" },
+    chart: { type: "line", height: 800, toolbar: { show: false } },
+    dataLabels: { enabled: false },
+    stroke: { curve: "smooth" },
+    tooltip: {
+      style: { fontSize: "12px", backgroundColor: "#000000" },
+      theme: 'dark',
+      x: { format: "dd/MM/yy" },
+    },
+    grid: { show: true },
+    xaxis: {
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        style: { colors: "#A3AED0", fontSize: "12px", fontWeight: "500" },
+      },
+      categories: fechas,
+    },
+    yaxis: {
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        style: { colors: "#A3AED0", fontSize: "12px", fontWeight: "500" },
+        offsetY: 10,
+      },
+      type: "numeric",
+    },
+  };
+
+  const series = [
+    {
+      name: "Humedad",
+      data: humedad,
+      color: "#4fd273",
+    },
+    {
+      name: "Temperatura",
+      data: temperatura,
+      color: "#0d489b",
+    }
+  ];
 
   return (
     <>
@@ -48,9 +93,13 @@ const LineChart = (props) => {
             <div className="flex flex-col">
               <div className="flex items-start justify-start flex-col gap-2">
                 {series.map((item, index) => (
-                  <span key={index} className={`bg-[${item.color}] py-1 px-3 rounded-[5px] text-${index === 0 ? 'navy-900' : 'white'} text-sm`}>
-                    {item.name}
-                  </span>
+                  <span
+                  key={index}
+                  style={{ backgroundColor: item.color, color: index === 0 ? '#navy-900' : '#ffffff' }}
+                  className="py-1 px-3 rounded-[5px] text-sm"
+                >
+                  {item.name}
+                </span>
                 ))}
               </div>
             </div>
@@ -60,7 +109,7 @@ const LineChart = (props) => {
                 type="line"
                 width="100%"
                 height="250px"
-                series={series.map((item, index) => ({ ...item, name: undefined }))}
+                series={series}
               />
             </div>
           </div>
