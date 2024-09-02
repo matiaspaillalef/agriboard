@@ -82,6 +82,8 @@ const path = usePathname();
           return "Operaciones";
         case "production-report":
           return "Reporte de producción";
+        case "regularization-production":
+          return "Regularización de producción";
         default:
           return segment;
       }

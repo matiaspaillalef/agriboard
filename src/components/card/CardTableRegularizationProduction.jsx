@@ -32,10 +32,10 @@ import {
   getDataQuality,
   getDataSeasons,
   getDataHarvestFormat,
-  getDataManualHarvesting,
-  updateManualHarvesting,
-  createManualHarvesting,
-  deleteManualHarvesting,
+  getDataRegularizationProduction,
+  updateRegularizationProduction,
+  createRegularizationProduction,
+  deleteRegularizationProduction,
 } from "@/app/api/ProductionApi";
 
 import {
@@ -46,7 +46,7 @@ import {
 } from "@/app/api/ManagementPeople";
 import { sync } from "framer-motion";
 
-const CardTableManualHarvesting = ({
+const CardTableRegularizationProduction = ({
   data,
   thead,
   columnsClasses = [],
@@ -295,8 +295,8 @@ const CardTableManualHarvesting = ({
         company_id: Number(companyID),
       };
 
-      const updateItemApi = await updateManualHarvesting(updateData);
-      const dataNew = await getDataManualHarvesting(companyID);
+      const updateItemApi = await updateRegularizationProduction(updateData);
+      const dataNew = await getDataRegularizationProduction(companyID);
 
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
@@ -401,7 +401,7 @@ const CardTableManualHarvesting = ({
     const { index, id } = itemToDelete;
     try {
       //if (userConfirmed) {
-      const deleteItem = await deleteManualHarvesting(id);
+      const deleteItem = await deleteRegularizationProduction(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
@@ -454,8 +454,8 @@ const CardTableManualHarvesting = ({
     } = itemToClone;
 
     try {
-      const cloneItem = await createManualHarvesting(itemToClone);
-      const dataNew = await getDataManualHarvesting(companyID);
+      const cloneItem = await createRegularizationProduction(itemToClone);
+      const dataNew = await getDataRegularizationProduction(companyID);
 
       if (cloneItem === "OK") {
         const updatedData = [...initialData, itemToClone];
@@ -510,8 +510,8 @@ const CardTableManualHarvesting = ({
   
   
       // Enviar datos al servidor
-      const createItem = await createManualHarvesting(transformedData);
-      const dataNew = await getDataManualHarvesting(companyID);
+      const createItem = await createRegularizationProduction(transformedData);
+      const dataNew = await getDataRegularizationProduction(companyID);
   
       if (createItem === "OK") {
         const updatedData = [...initialData, transformedData];
@@ -760,16 +760,7 @@ const CardTableManualHarvesting = ({
           {updateMessage}
         </div>
       )}
-      <div className="mb-3 flex gap-5 ">
-        <Button
-          onClick={handleOpenNewUser}
-          //variant="gradient"
-          className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Nuevo registro
-        </Button>
-      </div>
+
       {loading ? (
         <div role="status" className="max-w-full animate-pulse p-0">
           {/* Titulo */}
@@ -927,47 +918,6 @@ const CardTableManualHarvesting = ({
                             onClick={() => handleOpenEditUser(row)}
                           >
                             <PencilSquareIcon className="w-6 h-6" />
-                          </button>
-
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            onClick={() => {
-                              //console.log('clone',row);
-                              handleCloneAlert(
-                                index,
-                                //row.id,
-                                row.zone,
-                                row.ground,
-                                row.sector,
-                                row.squad,
-                                row.squad_leader,
-                                row.batch,
-                                row.worker,
-                                row.worker_rut,
-                                row.harvest_date,
-                                row.specie,
-                                row.variety,
-                                Number(row.boxes),
-                                Number(row.kg_boxes),
-                                row.quality,
-                                row.hilera,
-                                row.harvest_format,
-                                row.weigher_rut,
-                                row.sync,
-                                row.sync_date,
-                                row.season,
-                                row.turns,
-                                row.date_register,
-                                row.temp,
-                                row.wet,
-                                row.contractor,
-                                row.source ? 1 : 1,
-                                Number(companyID)
-                              );
-                            }}
-                          >
-                            <DocumentDuplicateIcon className="w-6 h-6" />
                           </button>
 
                           <button
@@ -2051,4 +2001,4 @@ const CardTableManualHarvesting = ({
   );
 };
 
-export default CardTableManualHarvesting;
+export default CardTableRegularizationProduction;

@@ -1686,7 +1686,7 @@ export const getDataManualHarvesting = async (id_company) => {
 }
 
 export const createManualHarvesting = async (data) => {
-  console.log(data);
+
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createManualHarvesting",
@@ -1911,6 +1911,66 @@ export const deleteDispatchGuide = async (id) => {
   } catch (err) {
     console.error("Error en la función deleteDispatchGuide:", err.message);
     return `Error: ${err.message}`;
+  }
+}
+
+//Regularization PRoduction
+export const getDataRegularizationProduction = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getRegularizationProduction/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+      }
+    );
+
+    if (res.ok) {
+      const manualHarvestingData = await res.json();
+
+      if (manualHarvestingData.code === "OK") {
+        return manualHarvestingData.manualHarvesting;
+      } else if (manualHarvestingData.code === "ERROR") {
+        return manualHarvestingData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const updateRegularizationProduction = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateRegularizationProduction",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (res.ok) {
+      const manualHarvestingData = await res.json();
+
+      if (manualHarvestingData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (manualHarvestingData.code === "ERROR") {
+        return manualHarvestingData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  }
+  catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los registros");
   }
 }
 

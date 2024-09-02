@@ -1,15 +1,15 @@
 "use client";
 
-import CardTableManualHarvesting from "@/components/card/CardTableManualHarvesting";
-import { getDataGround, getDataManualHarvesting } from "@/app/api/ProductionApi";
+import CardTableRegularizationProduction from "@/components/card/CardTableRegularizationProduction";
+import { getDataGround, getDataRegularizationProduction } from "@/app/api/ProductionApi";
 import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 import { useEffect, useState, useCallback } from "react";
 
 import LoadingData from "@/components/loadingData/loadingData";
 import { set } from "react-hook-form";
 
-const ProductionManualHarvesting = () => {
-  const [dataManualHarvesting, setDataManualHarvesting] = useState([]);
+const ProductionRegularizationProduction = () => {
+  const [dataRegularizationProduction, setDataRegularizationProduction] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [dataCompanies, setDataCompanies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,10 +27,10 @@ const ProductionManualHarvesting = () => {
   const fetchData = useCallback(async (companyId) => {
     setIsLoading(true);
     try {
-      const data = await  getDataManualHarvesting(companyId);
+      const data = await  getDataRegularizationProduction(companyId);
       const companies = await getDataCompanies();
       
-      setDataManualHarvesting(data);
+      setDataRegularizationProduction(data);
       setDataCompanies(companies);
 
     } catch (error) {
@@ -79,8 +79,8 @@ const ProductionManualHarvesting = () => {
         <div className="flex w-full flex-col gap-5 mt-3">
           <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-              <CardTableManualHarvesting
-                data={dataManualHarvesting}
+              <CardTableRegularizationProduction
+                data={dataRegularizationProduction}
                 thead="Campo, Sector, Fecha cosecha, Especie, Variedad, Formato cosecha"    
                 downloadBtn={true}
                 SearchInput={true}
@@ -97,4 +97,4 @@ const ProductionManualHarvesting = () => {
   );
 };
 
-export default ProductionManualHarvesting;
+export default ProductionRegularizationProduction;

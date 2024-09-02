@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Avatar from "@/assets/img/avatars/avatar7.png";
 
@@ -19,6 +19,8 @@ const Navbar = (props) => {
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [selectedGround, setSelectedGround] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
+  const path = usePathname();
 
   useEffect(() => {
     const darkmodeSession = sessionStorage.getItem("darkmode");
@@ -77,7 +79,6 @@ const Navbar = (props) => {
       .toUpperCase();
   };
 
-
   useEffect(() => {
     const companyId = getCompanyIdFromSessionStorage();
     setSelectedCompanyId(companyId);
@@ -107,18 +108,17 @@ const Navbar = (props) => {
       observer.disconnect();
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
-  
+
   // Obtener el valor almacenado en sessionStorage
   const userDataString = sessionStorage.getItem("userData");
   const userData = JSON.parse(userDataString);
-
 
   const handleGroundChange = (event) => {
     const selectedValue = event.target.value;
     setSelectedGround(selectedValue);
     sessionStorage.setItem("selectedGround", selectedValue);
     // Añadir clase al body
-    document.body.classList.forEach(className => {
+    document.body.classList.forEach((className) => {
       if (className.startsWith("ground-")) {
         document.body.classList.remove(className);
       }
@@ -127,7 +127,6 @@ const Navbar = (props) => {
       document.body.classList.add(`ground-${selectedValue}`);
     }
   };
-
 
   return (
     <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
@@ -140,26 +139,28 @@ const Navbar = (props) => {
       </div>
 
       <div className="flex items-center justify-center gap-2">
-        <div className="relative mt-[3px] flex h-[61px] w-[255px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:w-[255px] md:flex-grow-0 md:gap-1 xl:w-[255px] xl:gap-2">
-   
-          <select
-            className="flex h-full w-[250px] items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px] px-5 gap-3 border-none text-[14px]"
-            name="ground"
-            id="ground"
-            value={selectedGround}
-            onChange={handleGroundChange}
-          >
-            {dataGrounds && dataGrounds.length > 0 ? (
-              dataGrounds.map((ground) => (
-                <option key={ground.id} value={ground.id}>
-                  {ground.name}
-                </option>
-              ))
-            ) : (
-              <option value="">No hay datos</option>
-            )}
-          </select>
-        </div>
+        {path === "/dashboard" && (
+          <div className="relative mt-[3px] flex h-[61px] w-[255px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:w-[255px] md:flex-grow-0 md:gap-1 xl:w-[255px] xl:gap-2">
+            <select
+              className="flex h-full w-[250px] items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px] px-5 gap-3 border-none text-[14px]"
+              name="ground"
+              id="ground"
+              value={selectedGround}
+              onChange={handleGroundChange}
+            >
+              {dataGrounds && dataGrounds.length > 0 ? (
+                dataGrounds.map((ground) => (
+                  <option key={ground.id} value={ground.id}>
+                    {ground.name}
+                  </option>
+                ))
+              ) : (
+                <option value="">No hay datos</option>
+              )}
+            </select>
+          </div>
+        )}
+
         <div className="relative mt-[3px] flex h-[61px] w-[355px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:w-[395px] md:flex-grow-0 md:gap-1 xl:w-[395px] xl:gap-2">
           <div className="flex h-full items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px] leading-3 px-5 gap-3">
             👋
