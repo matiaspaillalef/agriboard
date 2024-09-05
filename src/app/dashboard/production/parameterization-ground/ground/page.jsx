@@ -13,13 +13,16 @@ const PeopleManagementGround = () => {
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [dataCompanies, setDataCompanies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [idRole, setIdRole] = useState("");
 
   const getCompanyIdFromSessionStorage = useCallback(() => {
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
+    const userData = JSON.parse(sessionStorage.getItem("userData"));
     if (storedCompanyId) {
+      setIdRole(userData?.rol);
       return storedCompanyId;
     } else {
-      const userData = JSON.parse(sessionStorage.getItem("userData"));
+      setIdRole(userData?.rol);
       return userData?.idCompany || "";
     }
   }, []);
@@ -72,7 +75,14 @@ const PeopleManagementGround = () => {
   return (
     <>
       {isLoading ? (
-        <LoadingData />
+         <div className="flex w-full flex-col gap-5 mt-3 ">
+         <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+           <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6 justify-center">
+              <LoadingData />
+           </div>
+         </div>
+       </div>
+        
       ) : (
         <div className="flex w-full flex-col gap-5 mt-3">
           <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
@@ -82,7 +92,7 @@ const PeopleManagementGround = () => {
                 thead="Nombre, Región, Ciudad, Dirección, Zona, Estado"
                 downloadBtn={true}
                 SearchInput={true}
-                actions={true}
+                actions={idRole == 1 || idRole == 2 ? true: false}
                 companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
                 datosCompanies={dataCompanies}
                 omitirColumns={["id", "latitude", "longitude", "company_id"]}

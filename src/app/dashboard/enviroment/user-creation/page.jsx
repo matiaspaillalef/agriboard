@@ -9,6 +9,8 @@ const UserCreationPage = async () => {
   const dataUsers = await getDataUser();
   const roles = await getRoles();
   const companies = await getDataCompanies();
+
+  console.log(roles);
   
   return (
     <>

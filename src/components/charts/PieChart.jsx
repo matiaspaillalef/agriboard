@@ -87,6 +87,9 @@ const PieChart = ({ data, title }) => {
 
   return (
     <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none p-6">
+      
+      {title && <h4 className="text-xl font-bold text-navy-700 dark:text-white text-left mb-5">{title}</h4>}
+      
       {loading ? (
         <div role="status" className="max-w-full animate-pulse p-0">
           <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none p-6">
@@ -104,7 +107,6 @@ const PieChart = ({ data, title }) => {
             </div>
           ) : (
             <>
-              {title && <h4 className="text-xl font-bold text-navy-700 dark:text-white text-left mb-5">{title}</h4>}
               <div className="mb-auto flex h-[220px] w-full items-center justify-center">
                 <DynamicChart
                   options={options}

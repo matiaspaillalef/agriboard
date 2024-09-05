@@ -47,7 +47,7 @@ const RoleCreationPage = () => {
         open={open}
         handler={handleOpen}
         size="xs"
-        className="p-5 lg:max-w-[25%]"
+        className="p-5 lg:max-w-[25%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
       >
         <button
           type="button"
@@ -70,7 +70,7 @@ const RoleCreationPage = () => {
           </svg>
         </button>
 
-        <DialogHeader>Crea un nuevo rol</DialogHeader>
+        <DialogHeader className="text-gray-800 dark:text-white">Crea un nuevo rol</DialogHeader>
         <DialogBody>
           <form action=" " method="POST">
             <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">

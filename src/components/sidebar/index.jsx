@@ -17,11 +17,15 @@ import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 const Sidebar = ({ open, onClose }) => {
   const [dataCompanies, setDataCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [idRole, setIdRole] = useState("");
+
   const pathname = usePathname();
   const router = useRouter();
 
   function handleLogout() {
     sessionStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("userData");
+    sessionStorage.removeItem("darkmode");
     router.push("/");
   }
 
@@ -29,10 +33,12 @@ const Sidebar = ({ open, onClose }) => {
     // Función para obtener el idCompany almacenado en sessionStorage o userData
     const getStoredCompanyId = () => {
       const storedCompanyId = sessionStorage.getItem('selectedCompanyId');
+      const userData = JSON.parse(sessionStorage.getItem('userData'));
       if (storedCompanyId) {
+        setIdRole(userData?.rol);
         setSelectedCompanyId(storedCompanyId);
       } else {
-        const userData = JSON.parse(sessionStorage.getItem('userData'));
+        setIdRole(userData?.rol);
         if (userData && userData.idCompany) {
           setSelectedCompanyId(userData.idCompany);
         }
@@ -101,7 +107,7 @@ const Sidebar = ({ open, onClose }) => {
           </div>
         </div>
 
-        {dataCompanies && dataCompanies.length > 0 && (
+        {idRole == 1 && dataCompanies && dataCompanies.length > 0 && (
           <div className="px-8 mb-5">
             <label className="block text-sm font-medium text-white dark:text-white mb-2">
               Empresas

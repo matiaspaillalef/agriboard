@@ -26,10 +26,10 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-[type='checkbox']:checked,
+/*[type='checkbox']:checked,
 [type='radio']:checked{
   background-position: -5px;
-}
+}*/
 
 @layer utilities {
   .text-balance {
@@ -43,7 +43,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: white;
+  /*background: white;*/
 }
 
 .loader {

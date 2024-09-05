@@ -284,7 +284,9 @@ const CardTableGround = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
+  const currentItems = initialData
+    ? initialData.slice(indexOfFirstItem, indexOfLastItem)
+    : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -494,7 +496,7 @@ const CardTableGround = ({
               </tbody>
             </table>
           </div>
-         
+
           {initialData.length > 0 && pagination.length > 1 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
@@ -596,7 +598,7 @@ const CardTableGround = ({
                       htmlFor="name"
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                     >
-                      Nombre Campo
+                      Nombre campo
                     </label>
                     <input
                       type="text"
@@ -679,6 +681,7 @@ const CardTableGround = ({
                         type="text"
                         name="address"
                         id="address"
+                        required={true}
                         {...register("address")}
                         defaultValue={selectedItem ? selectedItem.address : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"

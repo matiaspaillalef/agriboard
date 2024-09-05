@@ -53,6 +53,7 @@ const Dashboard = () => {
   const [selectedGround, setSelectedGround] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [idRole, setIdRole] = useState("");
 
   // Función para obtener el ID del ground seleccionado del sessionStorage
   const getSelectedGroundFromSessionStorage = useCallback(() => {
@@ -62,10 +63,12 @@ const Dashboard = () => {
   // Función para obtener el ID de la compañía desde el sessionStorage
   const getCompanyIdFromSessionStorage = useCallback(() => {
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
+    const userData = JSON.parse(sessionStorage.getItem("userData"));
     if (storedCompanyId) {
+      setIdRole(userData?.rol);
       return storedCompanyId;
     } else {
-      const userData = JSON.parse(sessionStorage.getItem("userData"));
+      setIdRole(userData?.rol);
       return userData?.idCompany || "";
     }
   }, []);
@@ -82,14 +85,10 @@ const Dashboard = () => {
         const dataWorkers = await getDataWorkers(companyId, groundId);
         const dataWorkersWeek = await getdataWorkersWeek(companyId, groundId);
         const dataVaritiesDay = await getDataVaritiesDay(companyId, groundId);
-        const dataDispatchGuideDay = await getDataDispatchDay(
-          companyId,
-          groundId
-        );
-        const dataVarietiesSeasonPercentage =
-          await getDataVarietiesSeasonPercentage(companyId, groundId);
-        const dataHumidityTemperatureSeason =
-          await getDataHumidityTemperatureSeason(companyId, groundId);
+        const dataDispatchGuideDay = await getDataDispatchDay(companyId, groundId);
+        const dataVarietiesSeasonPercentage = await getDataVarietiesSeasonPercentage(companyId, groundId);
+        const dataHumidityTemperatureSeason = await getDataHumidityTemperatureSeason(companyId, groundId);
+
         setDataKgDay(dataDay);
         setDataKgSeason(dataSeason);
         setDataWorkers(dataWorkers);
@@ -99,30 +98,20 @@ const Dashboard = () => {
         setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
         setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
       } else {
-        // Si groundId no está definido, obtén los datos de grounds para encontrar el primer id
         const grounds = await getDataGround(companyId);
         if (grounds.length > 0) {
           const firstGroundId = grounds[0].id;
           setSelectedGround(firstGroundId);
+          // Realiza las solicitudes de datos para el primer groundId
           const dataDay = await getDataKgDay(companyId, firstGroundId);
           const dataSeason = await getDataKgSeason(companyId, firstGroundId);
           const dataWorkers = await getDataWorkers(companyId, firstGroundId);
-          const dataWorkersWeek = await getdataWorkersWeek(
-            companyId,
-            firstGroundId
-          );
-          const dataVaritiesDay = await getDataVaritiesDay(
-            companyId,
-            firstGroundId
-          );
-          const dataDispatchGuideDay = await getDataDispatchDay(
-            companyId,
-            firstGroundId
-          );
-          const dataVarietiesSeasonPercentage =
-            await getDataVarietiesSeasonPercentage(companyId, firstGroundId);
-          const dataHumidityTemperatureSeason =
-            await getDataHumidityTemperatureSeason(companyId, firstGroundId);
+          const dataWorkersWeek = await getdataWorkersWeek(companyId, firstGroundId);
+          const dataVaritiesDay = await getDataVaritiesDay(companyId, firstGroundId);
+          const dataDispatchGuideDay = await getDataDispatchDay(companyId, firstGroundId);
+          const dataVarietiesSeasonPercentage = await getDataVarietiesSeasonPercentage(companyId, firstGroundId);
+          const dataHumidityTemperatureSeason = await getDataHumidityTemperatureSeason(companyId, firstGroundId);
+
           setDataKgDay(dataDay);
           setDataKgSeason(dataSeason);
           setDataWorkers(dataWorkers);
@@ -138,7 +127,10 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error al obtener datos:", error);
     } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 3000);
+      //Retraso la carga de la animación de carga para que no se vea tan rápido
     }
   }, []);
 
@@ -308,6 +300,7 @@ const Dashboard = () => {
             },
           ]}
           featured={true}
+          isLoading={isLoading}
         />
 
         <MiniCard
@@ -325,6 +318,7 @@ const Dashboard = () => {
               value: dataKgDayQlty?.kg_boxes || 0,
             },
           ]}
+          isLoading={isLoading}
         />
 
         <MiniCard
@@ -342,6 +336,7 @@ const Dashboard = () => {
               value: dataKgSeasonQlty?.kg_boxes || 0,
             },
           ]}
+          isLoading={isLoading}
         />
 
         <MiniCard
@@ -359,6 +354,7 @@ const Dashboard = () => {
               value: dataWorkersWeek?.workersWeek || 0,
             },
           ]}
+          isLoading={isLoading}
         />
       </div>
       <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -393,6 +389,8 @@ const Dashboard = () => {
             title="Variedad temporada"
           />
         </div>
+
+
 
         <div className="lg:col-span-2">
           <LineChart

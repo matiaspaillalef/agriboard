@@ -3,13 +3,16 @@
 import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
-import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { set, useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
   PlusIcon,
   XMarkIcon,
   PencilSquareIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon,
+  TrashIcon,
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
@@ -133,7 +136,6 @@ const CardTableCompany = ({
   };
 
   const onUpdateItem = async (data) => {
-
     let logoPath = selectedItem.logo; // Conservar la imagen existente
 
     if (file) {
@@ -172,14 +174,6 @@ const CardTableCompany = ({
       "giro",
       "state",
       "city",
-      "address",
-      "phone",
-      "web",
-      "compensation_box",
-      "legal_representative_name",
-      "legal_representative_rut",
-      "legal_representative_phone",
-      "legal_representative_email",
       "status",
     ];
 
@@ -193,7 +187,6 @@ const CardTableCompany = ({
 
     // Elimina la fila del front-end
     if (updateCompanyApi === "OK") {
-
       const updatedData = initialData.map((item) =>
         item.id == data.id ? { ...item, ...updatedDataLogo } : item
       );
@@ -275,60 +268,57 @@ const CardTableCompany = ({
 
   // Creación de empresa
   const onSubmitForm = async (data) => {
-    if (!file) {
-      setUpdateMessage("No se ha seleccionado ningún archivo");
-      //setFile('/public/uploads/agrisoft_logo.png');
-      //console.error("No se ha seleccionado ningún archivo");
-      return;
+    let logoPath = "agrisoft_logo.png";
+
+    if (file) {
+      try {
+        // Consultamos la carga de imagen (logo empresa)
+        const formDataFile = new FormData();
+        formDataFile.set("logo", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formDataFile,
+        });
+
+        if (!res.ok) {
+          const errorMessage = await res.text();
+          throw new Error(`Error al subir el archivo: ${errorMessage}`);
+        }
+
+        const dataLogo = await res.json();
+        logoPath = dataLogo.path; // Actualizamos la ruta con la respuesta del servidor
+      } catch (error) {
+        console.error("Error al subir el archivo:", error);
+        setUpdateMessage(
+          "Error al subir el archivo. Se usará el logo por defecto."
+        );
+      }
+    }
+
+    const updatedDataLogo = {
+      ...data,
+      logo: logoPath,
+    };
+
+    // Asegúrate de que todos los campos requeridos estén presentes
+    const requiredFields = [
+      "name_company",
+      "rut",
+      "giro",
+      "state",
+      "city",
+      "status",
+    ];
+
+    for (const field of requiredFields) {
+      if (!updatedDataLogo[field]) {
+        setUpdateMessage(`Falta el campo: ${field}`);
+        return;
+      }
     }
 
     try {
-      //Consultamos la carga de imagen (logo empresa)
-      const formDataFile = new FormData();
-      console.log('fileeeee',file);
-      formDataFile.set("logo", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formDataFile,
-      });
-
-      if (!res.ok) {
-        const errorMessage = await res.text();
-        throw new Error(`Error al subir el archivo: ${errorMessage}`);
-      }
-
-      const dataLogo = await res.json();
-
-      const updatedDataLogo = {
-        ...data,
-        logo: dataLogo.path,
-      };
-
-      // Asegúrate de que todos los campos requeridos estén presentes
-      const requiredFields = [
-        "name_company",
-        "rut",
-        "giro",
-        "state",
-        "city",
-        "address",
-        "phone",
-        "web",
-        "compensation_box",
-        "legal_representative_name",
-        "legal_representative_rut",
-        "legal_representative_phone",
-        "legal_representative_email",
-        "status",
-      ];
-
-      for (const field of requiredFields) {
-        if (!updatedDataLogo[field]) {
-          throw new Error(`Falta el campo: ${field}`);
-        }
-      }
-
       const createUserapi = await createCompany(updatedDataLogo);
 
       if (createUserapi === "OK") {
@@ -341,7 +331,7 @@ const CardTableCompany = ({
         setOpen(false);
         setUpdateMessage("Empresa creada correctamente");
       } else {
-        setUpdateMessage("Error al crear la empresa");
+        setUpdateMessage(createUserapi);
       }
     } catch (error) {
       console.error("Error en el proceso:", error);
@@ -377,8 +367,9 @@ const CardTableCompany = ({
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
   };
 
-const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPage);
-
+  const totalPages = Math.ceil(
+    (initialData ? initialData.length : 0) / itemsPerPage
+  );
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -387,7 +378,9 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
+  const currentItems = initialData
+    ? initialData.slice(indexOfFirstItem, indexOfLastItem)
+    : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -434,21 +427,16 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
             )}
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {downloadBtn && (
-                <>
+              {Array.isArray(initialData) &&
+                initialData.length > 0 &&
+                downloadBtn && (
                   <ExportarExcel
                     data={initialData}
                     filename="empresas"
                     sheetname="empresas"
                     titlebutton="Exportar a excel"
                   />
-                  <ExportarPDF
-                    data={initialData}
-                    filename="empresas"
-                    titlebutton="Exportar a PDF"
-                  />
-                </>
-              )}
+                )}
 
               {SearchInput && (
                 <input
@@ -543,16 +531,14 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                             ) : key !== "password" ? (
                               // Mostrar el valor formateado, excepto la contraseña
                               key === "compensation_box" ? (
-                                // Transformar el ID de caja de compensación a su nombre correspondiente
                                 ProvitionalCL.find((box) => box.id == row[key])
                                   ?.name || "-"
                               ) : key === "state" ? (
-                                // Transformar el número de región a su nombre correspondiente
                                 StateCL.find(
                                   (state) => state.region_number == row[key]
                                 )?.region || "-"
                               ) : (
-                                formatNumber(row[key])
+                                formatNumber(row[key]) || "-"
                               )
                             ) : (
                               "" // No mostrar la contraseña
@@ -576,20 +562,7 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                           //onClick={() => handleOpen(row)}
                           onClick={() => handleOpenEditUser(row)}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                            />
-                          </svg>
+                          <PencilSquareIcon className="w-6 h-6" />
                         </button>
                         <button
                           id="remove"
@@ -602,20 +575,7 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                             );
                           }}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                            />
-                          </svg>
+                          <TrashIcon className="w-6 h-6" />
                         </button>
                       </td>
                     )}
@@ -624,77 +584,56 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between mt-5">
-            <div className="flex items-center gap-5">
-              <p className="text-sm text-gray-800 dark:text-white">
-                Mostrando {indexOfFirstItem + 1} a{" "}
-                {indexOfLastItem > initialData.length
-                  ? initialData.length
-                  : indexOfLastItem}{" "}
-                de {initialData.length} empresas
-              </p>
-            </div>
-            <div className="flex items-center gap-5">
-              <button
-                type="button"
-                className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                  currentPage === 1 && "hidden"
-                }`}
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              {pagination.map((page) => (
-                <button
-                  key={page}
-                  type="button"
-                  className={`${
-                    currentPage === page
-                      ? "font-semibold text-navy-500 dark:text-navy-300"
-                      : ""
-                  }`}
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                type="button"
-                className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
+
+          {Array.isArray(initialData) &&
+            initialData.length > 0 &&
+            pagination.length > 1 && (
+              <div className="flex items-center justify-between mt-5">
+                <div className="flex items-center gap-5">
+                  <p className="text-sm text-gray-800 dark:text-white">
+                    Mostrando {indexOfFirstItem + 1} a{" "}
+                    {indexOfLastItem > initialData.length
+                      ? initialData.length
+                      : indexOfLastItem}{" "}
+                    de {initialData.length} empresas
+                  </p>
+                </div>
+                <div className="flex items-center gap-5">
+                  <button
+                    type="button"
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                      currentPage === 1 && "hidden"
+                    }`}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <chevronLeftIcon className="w-5 h-5" />
+                  </button>
+                  {pagination.map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`${
+                        currentPage === page
+                          ? "font-semibold text-navy-500 dark:text-navy-300"
+                          : ""
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRightIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            )}
 
           <Dialog
             open={open}
@@ -707,20 +646,7 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
               onClick={handleOpen}
               className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              </svg>
+              <XMarkIcon className="w-5 h-5" />
             </button>
             <DialogHeader className="dark:text-white">
               {isEdit ? "Editar Empresa" : "Crear Empresa"}
@@ -808,10 +734,11 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                       id="name_company"
                       required={true}
                       {...register("name_company")}
-                      defaultValue={selectedItem ? selectedItem.name_company : ""}
+                      defaultValue={
+                        selectedItem ? selectedItem.name_company : ""
+                      }
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     />
-
                   </div>
                   <div className="flex flex-col gap-3">
                     <label
@@ -954,8 +881,10 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                         type="tel"
                         name="phone"
                         id="phone"
-                        {...register("phone", {required: true})}
-                        defaultValue={selectedItem ? selectedItem.phone : formData.phone}
+                        {...register("phone", { required: true })}
+                        defaultValue={
+                          selectedItem ? selectedItem.phone : formData.phone
+                        }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
                       />
                     </div>
@@ -991,7 +920,6 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                     <select
                       name="compensation_box"
                       id="compensation_box"
-                      required={true}
                       {...register("compensation_box")}
                       defaultValue={
                         selectedItem ? selectedItem.compensation_box : ""
@@ -1056,7 +984,8 @@ const totalPages = Math.ceil((initialData ? initialData.length : 0) / itemsPerPa
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
                         />
                       </Rut>
-                      {!rutValido && (
+
+                      {rut && !rutValido && (
                         <span className="text-red-500 text-xs">
                           El rut es inválido
                         </span>

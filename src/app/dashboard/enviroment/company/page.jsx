@@ -12,10 +12,10 @@ const EmpresaPage = async () => {
           <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
             <CardTableCompany
               data={dataCompanies}
-              thead="Empresa, RUT, Región, Ciudad, Teléfono, Caja, RRLL, Teléfono RRLL, Estado"
+              thead="Empresa, RUT, Región, Ciudad, Teléfono, RRLL, Estado"
               downloadBtn={true}
               SearchInput={true}
-              omitirColumns={["id", "giro", "logo", "address", "web", "legal_representative_rut", "legal_representative_email" ]}
+              omitirColumns={["id", "giro", "logo", "address", "web", "legal_representative_rut", "legal_representative_email", "compensation_box", "legal_representative_phone" ]}
               actions={true}
             />
           </div>

@@ -19,6 +19,7 @@ const Navbar = (props) => {
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [selectedGround, setSelectedGround] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [idRole, setIdRole] = useState("");
 
   const path = usePathname();
 
@@ -31,10 +32,12 @@ const Navbar = (props) => {
 
   const getCompanyIdFromSessionStorage = useCallback(() => {
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
+    const userData = JSON.parse(sessionStorage.getItem("userData"));
     if (storedCompanyId) {
+      setIdRole(userData?.rol);
       return storedCompanyId;
     } else {
-      const userData = JSON.parse(sessionStorage.getItem("userData"));
+      setIdRole(userData?.rol);
       return userData?.idCompany || "";
     }
   }, []);
