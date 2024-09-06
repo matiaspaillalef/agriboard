@@ -38,10 +38,12 @@ function LoginPage(props) {
 
   useEffect(() => {
     // Verifica el tema preferido del navegador
-    const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDarkMode = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
     // Obtiene la preferencia guardada en sessionStorage
     const storedDarkMode = JSON.parse(sessionStorage.getItem("darkmode"));
-    
+
     if (storedDarkMode !== null) {
       // Usa la preferencia guardada en sessionStorage
       setDarkmode(storedDarkMode);
@@ -50,7 +52,7 @@ function LoginPage(props) {
       setDarkmode(prefersDarkMode);
       sessionStorage.setItem("darkmode", JSON.stringify(prefersDarkMode));
     }
-    
+
     // Aplica la clase al body
     if (prefersDarkMode) {
       document.body.classList.add("dark");
@@ -91,14 +93,17 @@ function LoginPage(props) {
 
       // Si el checkbox está marcado, guarda los detalles de inicio de sesión en localStorage
       if (rememberMe) {
-        localStorage.setItem("savedUser", JSON.stringify({ username, password }));
+        localStorage.setItem(
+          "savedUser",
+          JSON.stringify({ username, password })
+        );
       } else {
         localStorage.removeItem("savedUser");
       }
 
       const userData = await auth(username, password);
 
-      if (userData.code === 'OK') {
+      if (userData.code === "OK") {
         sessionStorage.setItem("userData", JSON.stringify(userData));
         sessionStorage.setItem("isLoggedIn", true);
         router.push("/dashboard");
@@ -107,7 +112,6 @@ function LoginPage(props) {
         console.error("Error al iniciar sesión:", userData.mensaje);
         sessionStorage.clear();
       }
-
     } catch (error) {
       sessionStorage.clear();
       console.error("Error de red:", error);
@@ -185,7 +189,7 @@ function LoginPage(props) {
 
                 <div className="mb-4 flex items-center justify-between px-2">
                   <div className="flex items-center">
-                    <Checkbox 
+                    <Checkbox
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
                       name="rememberMe"
@@ -196,7 +200,7 @@ function LoginPage(props) {
                   </div>
                   <a
                     className="text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white"
-                    href="#"
+                    href="/forgot-password"
                   >
                     ¿Olvidaste tu contraseña?
                   </a>
