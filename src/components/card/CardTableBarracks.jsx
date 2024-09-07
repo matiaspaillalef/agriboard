@@ -163,16 +163,16 @@ const CardTableBarracks = ({
   };
 
   const handlerRemove = async () => {
-    const { index, id } = itemToDelete;
+    const { id } = itemToDelete;
+
     try {
-      //if (userConfirmed) {
       const deleteItem = await deleteSectorBarrack(id);
 
-      // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
-        const updatedData = [...initialData];
-        updatedData.splice(index, 1);
+        // Filtra el array para eliminar el elemento con el id especificado
+        const updatedData = initialData.filter((item) => item.id !== id);
         setInitialData(updatedData);
+
         setOpenAlert(false);
         setUpdateMessage("Registro eliminado correctamente");
       } else {
@@ -182,7 +182,6 @@ const CardTableBarracks = ({
       }
     } catch (error) {
       console.error(error);
-      // Manejo de errores
       setUpdateMessage("Ocurrió un error al intentar eliminar el registro.");
     }
   };

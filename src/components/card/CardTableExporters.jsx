@@ -611,7 +611,7 @@ const CardTableExporters = ({
                                 row.legal_representative_email
                                   ? row.legal_representative_email
                                   : "",
-                                row.status ? Number(row.status) : "",
+                                  row.status !== undefined && row.status !== null ? Number(row.status) : "",
                                 Number(companyID)
                               );
                             }}

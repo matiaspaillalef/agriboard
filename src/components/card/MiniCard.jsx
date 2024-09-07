@@ -41,7 +41,7 @@ const MiniCard = ({ name, icon: Icon, data, featured, isLoading }) => {
                   className={`h-[10px] w-[50px] dark:bg-gray-200 bg-gray-400 rounded-sm`}
                 ></div>
                 <div
-                  className={`h-[22px] w-[100px] dark:bg-gray-200 bg-gray-400 rounded-sm`}
+                  className={`h-[22px] sm:w-[150px] md:w-[90px] dark:bg-gray-200 bg-gray-400 rounded-sm`}
                 ></div>
               </div>
               <div
@@ -52,7 +52,7 @@ const MiniCard = ({ name, icon: Icon, data, featured, isLoading }) => {
                   className={`h-[10px] w-[50px] dark:bg-gray-200 bg-gray-400 rounded-sm`}
                 ></div>
                 <div
-                  className={`h-[22px] w-[100px] dark:bg-gray-200 bg-gray-400 rounded-sm`}
+                  className={`h-[22px] sm:w-[150px] md:w-[90px] dark:bg-gray-200 bg-gray-400 rounded-sm`}
                 ></div>
               </div>
             </div>

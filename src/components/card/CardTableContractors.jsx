@@ -82,7 +82,6 @@ const CardTableContractors = ({
     }
   }, [data]);
 
-
   const handleRegionChange = (event) => {
     const region = event.target.value;
     setSelectedRegion(region);
@@ -300,7 +299,6 @@ const CardTableContractors = ({
     return <div>No hay datos disponibles.</div>;
   }
 
-
   return (
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
@@ -510,53 +508,55 @@ const CardTableContractors = ({
             </table>
           </div>
 
-          {Array.isArray(initialData) && initialData.length > 0 ? (
-            <div className="flex items-center justify-between mt-5">
-              <div className="flex items-center gap-5">
-                <p className="text-sm text-gray-800 dark:text-white">
-                  Mostrando {indexOfFirstItem + 1} a{" "}
-                  {indexOfLastItem > initialData.length
-                    ? initialData.length
-                    : indexOfLastItem}{" "}
-                  de {initialData.length} contratistas
-                </p>
-              </div>
-              <div className="flex items-center gap-5">
-                <button
-                  type="button"
-                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                    currentPage === 1 && "hidden"
-                  }`}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeftIcon className="w-5 h-5" />
-                </button>
-                {pagination.map((page) => (
+          {Array.isArray(initialData) &&
+            initialData.length > 0 &&
+            pagination.length > 1 && (
+              <div className="flex items-center justify-between mt-5">
+                <div className="flex items-center gap-5">
+                  <p className="text-sm text-gray-800 dark:text-white">
+                    Mostrando {indexOfFirstItem + 1} a{" "}
+                    {indexOfLastItem > initialData.length
+                      ? initialData.length
+                      : indexOfLastItem}{" "}
+                    de {initialData.length} contratistas
+                  </p>
+                </div>
+                <div className="flex items-center gap-5">
                   <button
-                    key={page}
                     type="button"
-                    className={`${
-                      currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                      currentPage === 1 && "hidden"
                     }`}
-                    onClick={() => handlePageChange(page)}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                   >
-                    {page}
+                    <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                ))}
-                <button
-                  type="button"
-                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRightIcon className="w-5 h-5" />
-                </button>
+                  {pagination.map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`${
+                        currentPage === page
+                          ? "font-semibold text-navy-500 dark:text-navy-300"
+                          : ""
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRightIcon className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : null}
+            )}
 
           <Dialog
             open={open}

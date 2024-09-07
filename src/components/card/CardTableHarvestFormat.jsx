@@ -178,7 +178,7 @@ const CardTableHarvestFormat = ({
   };
 
   const onUpdateItem = async (data) => {
-    console.log(data);
+    //console.log(data);
     try {
       if (!data || !data.id) {
         throw new Error(
@@ -226,6 +226,7 @@ const CardTableHarvestFormat = ({
     status,
     company_id
   ) => {
+    //console.log('Status recibido en handleCloneAlert:', status);
     setItemToClone({
       name,
       tara_base,
@@ -238,6 +239,8 @@ const CardTableHarvestFormat = ({
       status,
       company_id,
     });
+
+    console.log(itemToClone);
     setOpenAlertClone(true);
     setOpenAlert(false);
   };
@@ -304,6 +307,8 @@ const CardTableHarvestFormat = ({
       status,
       company_id,
     } = itemToClone;
+
+    console.log(itemToClone);
 
     try {
       const cloneItem = await createHarvestFormat(itemToClone);
@@ -627,7 +632,8 @@ const CardTableHarvestFormat = ({
                                 row.average_weight ? row.average_weight : "",
                                 row.quantity_trays ? row.quantity_trays : "",
                                 row.collection ? row.collection : "",
-                                row.status ? row.status : "",
+                                //row.status ? Number(row.status) : "",
+                                row.status !== undefined && row.status !== null ? Number(row.status) : "",
                                 Number(companyID)
                               );
                             }}

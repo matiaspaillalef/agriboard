@@ -500,7 +500,7 @@ const CardTableScale = ({
                                 //row.id,
                                 row.name ? row.name : "",
                                 row.location ? row.location : "",
-                                row.status ? row.status : "",
+                                row.status !== undefined && row.status !== null ? Number(row.status) : "",
                                 Number(companyID)
                               );
                             }}
