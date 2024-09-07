@@ -267,7 +267,8 @@ const CardTableDeals = ({
   };
 
   const handlerClone = async () => {
-    const { name, harvest_format, quality, price, status, company_id } = itemToClone;
+    const { name, harvest_format, quality, price, status, company_id } =
+      itemToClone;
     try {
       const cloneItem = await createDeal(itemToClone);
       const dataNew = await getDataDeals(companyID);
@@ -547,7 +548,9 @@ const CardTableDeals = ({
                                 row.harvest_format ? row.harvest_format : "",
                                 row.quality ? row.quality : "",
                                 row.price ? row.price : "",
-                                row.status ? row.status : "",
+                                row.status !== undefined && row.status !== null
+                                  ? Number(row.status)
+                                  : "",
                                 row.company_id ? Number(companyID) : ""
                               );
                             }}

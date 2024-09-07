@@ -112,7 +112,11 @@ const TitlePage = () => {
             translatedSegment = "Reporte de producción";
             break;
         case "regularization-production":
-            translatedSegment = "Regularización de producción"
+            translatedSegment = "Regularización de producción";
+            break;
+        case "exporters":
+            translatedSegment = "Exportadoras";
+            break;
         default:
             translatedSegment = segment;
             break;

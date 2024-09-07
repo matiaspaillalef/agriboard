@@ -95,7 +95,6 @@ const CardTableQuality = ({
     status: "",
   });
 
-
   const handleOpenShowUser = (user) => {
     //console.log(user);
     setSelectedItem(user);
@@ -500,7 +499,9 @@ const CardTableQuality = ({
                                 //row.id,
                                 row.name ? row.name : "",
                                 row.abbreviation ? row.abbreviation : "",
-                                row.status ? row.status : "",
+                                row.status !== undefined && row.status !== null
+                                  ? Number(row.status)
+                                  : "",
                                 Number(companyID)
                               );
                             }}
@@ -660,7 +661,7 @@ const CardTableQuality = ({
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
-                  </div>
+                    </div>
                   </div>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-col gap-3">
@@ -709,8 +710,7 @@ const CardTableQuality = ({
                     <strong>{selectedItem.name}</strong>
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Abreviación:</strong>{" "}
-                    {selectedItem.abbreviation}
+                    <strong>Abreviación:</strong> {selectedItem.abbreviation}
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Estado:</strong>{" "}

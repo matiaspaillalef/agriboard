@@ -550,7 +550,7 @@ const CardTableSpecies = ({
                                 //row.id,
                                 row.name ? row.name : "",
                                 row.varieties ? row.varieties : "",
-                                row.status ? row.status : "",
+                                row.status !== undefined && row.status !== null ? Number(row.status) : "",
                                 Number(companyID)
                               );
                             }}

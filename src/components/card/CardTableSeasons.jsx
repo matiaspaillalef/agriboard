@@ -194,11 +194,11 @@ const CardTableSeasons = ({
 
       let updatedData;
 
-      if (selectedShifts != '') {
-      updatedData = { ...data, shifts: selectedShifts };
-    } else {
-      updatedData = { ...data };
-    }
+      if (selectedShifts != "") {
+        updatedData = { ...data, shifts: selectedShifts };
+      } else {
+        updatedData = { ...data };
+      }
 
       const updateItemApi = await updateSeason(updatedData);
       const dataNew = await getDataSeasons(companyID);
@@ -211,10 +211,10 @@ const CardTableSeasons = ({
         setInitialData(updatedList);
         setInitialData(dataNew);
 
-        if (selectedShifts != '') {
+        if (selectedShifts != "") {
           setUpdateMessage("Registro actualizado correctamente");
         }
-        
+
         setOpen(false);
       } else {
         setUpdateMessage("No se pudo actualizar el registro.");
@@ -227,9 +227,9 @@ const CardTableSeasons = ({
 
   useEffect(() => {
     // Define la zona horaria de Chile
-    const timeZone = 'America/Santiago';
+    const timeZone = "America/Santiago";
     const now = moment().tz(timeZone);
-    const localDateString = now.format('YYYY-MM-DD');
+    const localDateString = now.format("YYYY-MM-DD");
 
     // Obtener la hora en segundos desde medianoche
     const nowTime = now.hours() * 3600 + now.minutes() * 60 + now.seconds(); // Total de segundos desde medianoche
@@ -239,29 +239,27 @@ const CardTableSeasons = ({
     const minutes = Math.floor((nowTime % 3600) / 60);
     const seconds = nowTime % 60;
 
-      initialData.forEach((season) => {
-        const endDate = moment(season.date_until).tz(timeZone).format('YYYY-MM-DD');
+    initialData.forEach((season) => {
+      const endDate = moment(season.date_until)
+        .tz(timeZone)
+        .format("YYYY-MM-DD");
 
-        if (endDate < localDateString && season.status === 1) {
+      if (endDate < localDateString && season.status === 1) {
+        const seasonToUpdate = {
+          id: season.id.toString(),
+          name: season.name,
+          period: season.period,
+          date_from: moment(season.date_from).format("YYYY-MM-DD"),
+          date_until: moment(season.date_until).format("YYYY-MM-DD"),
+          status: "2", // Convertir status a string
+          company_id: season.company_id.toString(),
+          shifts: season.shifts,
+        };
 
-          const seasonToUpdate = {
-            id: season.id.toString(),
-            name: season.name,
-            period: season.period,
-            date_from: moment(season.date_from).format('YYYY-MM-DD'),
-            date_until: moment(season.date_until).format('YYYY-MM-DD'),
-            status: '2', // Convertir status a string
-            company_id: season.company_id.toString(),
-            shifts: season.shifts
-          };
-
-          onUpdateItem(seasonToUpdate);
-        }
-      });
-
-
+        onUpdateItem(seasonToUpdate);
+      }
+    });
   }, [initialData, onUpdateItem]);
-
 
   const handleOpenAlert = (index, id, name_item) => {
     setItemToDelete({ index, id, name_item });
@@ -279,15 +277,6 @@ const CardTableSeasons = ({
     status,
     company_id
   ) => {
-    console.log(
-      name,
-      period,
-      date_from,
-      date_until,
-      shifts,
-      status,
-      company_id
-    );
     setItemToClone({
       name,
       period,
@@ -349,7 +338,8 @@ const CardTableSeasons = ({
 
   const handlerClone = async () => {
     const { name, period, date_from, date_until, shifts, status, company_id } =
-      itemToClone;ß
+      itemToClone;
+
     try {
       const cloneItem = await createSeason(itemToClone);
       const dataNew = await getDataSeasons(companyID);
@@ -598,13 +588,14 @@ const CardTableSeasons = ({
                     const isClosingSoon =
                       endDate >= today && endDate <= tenDaysFromNow;
 
-                    const rowClass = row.status === 2
-                    ? "" 
-                    : isClosingSoon
-                    ? "bg-yellow-100" 
-                    : index % 2 !== 0
-                    ? "bg-lightPrimary dark:bg-navy-900"
-                    : "";
+                    const rowClass =
+                      row.status === 2
+                        ? ""
+                        : isClosingSoon
+                        ? "bg-yellow-100"
+                        : index % 2 !== 0
+                        ? "bg-lightPrimary dark:bg-navy-900"
+                        : "";
 
                     return (
                       <tr key={index} role="row" className={rowClass}>
@@ -677,7 +668,10 @@ const CardTableSeasons = ({
                                   row.date_from ? row.date_from : "",
                                   row.date_until ? row.date_until : "",
                                   row.shifts ? row.shifts : "",
-                                  row.status ? row.status : "",
+                                  row.status !== undefined &&
+                                    row.status !== null
+                                    ? Number(row.status)
+                                    : "",
                                   Number(companyID)
                                 );
                               }}
