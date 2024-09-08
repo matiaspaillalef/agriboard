@@ -291,6 +291,188 @@ export const deleteSectorBarrack = async (id) => {
   }
 };
 
+// Production - Attributes Sector Barracks
+
+export const getDataAttributesSector = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI +
+        `/api/v1/configuracion/production/getAttributesSector/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const attributesSectorData = await res.json();
+
+      if (attributesSectorData.code === "OK") {
+        return attributesSectorData.attributes;
+      } else if (attributesSectorData.code === "ERROR") {
+        return attributesSectorData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const createAttributeSector = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/createAttributeSector",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          season: data.season,
+          sector: data.sector,
+          specie: data.specie,
+          variety: data.variety,
+          year_harvest: data.year_harvest,
+          ha_productivas: data.ha_productivas,
+          hileras: data.hileras,
+          plants: data.plants,
+          min_daily_frecuency: data.min_daily_frecuency,
+          max_daily_frecuency: data.max_daily_frecuency,
+          harvest_end: data.harvest_end,
+          stimation_good: data.stimation_good,
+          stimation_regular: data.stimation_regular,
+          stimation_bad: data.stimation_bad,
+          stimation_replant_kg: data.stimation_replant_kg,
+          surface: data.surface,
+          interrow_density: data.interrow_density,
+          row_density: data.row_density,
+          quantity_plants_ha: data.quantity_plants_ha,
+          clasification: data.clasification,
+          rotation: data.rotation,
+          kg_sector: data.kg_sector,
+          kh_hectares: data.kh_hectares,
+          kg_plants: data.kg_plants,
+          porc_regular: data.porc_regular,
+          porc_replant: data.porc_replant,
+          company_id: data.company_id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const attributeSectorData = await res.json();
+
+      if (attributeSectorData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (attributeSectorData.code === "ERROR") {
+        return attributeSectorData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+};
+
+export const updateAttributeSector = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/updateAttributeSector",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+          season: data.season,
+          sector: data.sector,
+          specie: data.specie,
+          variety: data.variety,
+          year_harvest: data.year_harvest,
+          ha_productivas: data.ha_productivas,
+          hileras: data.hileras,
+          plants: data.plants,
+          min_daily_frecuency: data.min_daily_frecuency,
+          max_daily_frecuency: data.max_daily_frecuency,
+          harvest_end: data.harvest_end,
+          stimation_good: data.stimation_good,
+          stimation_regular: data.stimation_regular,
+          stimation_bad: data.stimation_bad,
+          stimation_replant_kg: data.stimation_replant_kg,
+          surface: data.surface,
+          interrow_density: data.interrow_density,
+          row_density: data.row_density,
+          quantity_plants_ha: data.quantity_plants_ha,
+          clasification: data.clasification,
+          rotation: data.rotation,
+          kg_sector: data.kg_sector,
+          kh_hectares: data.kh_hectares,
+          kg_plants: data.kg_plants,
+          porc_regular: data.porc_regular,
+          porc_replant: data.porc_replant,
+          company_id: data.company_id,
+        }),
+      }
+    );
+
+    if (res.ok) {
+      const attributeSectorData = await res.json();
+
+      if (attributeSectorData.code === "OK") {
+        return "OK"; // Indicar que la actualización fue exitosa
+      } else if (attributeSectorData.code === "ERROR") {
+        return attributeSectorData.mensaje; // Manejar el error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error al actualizar los datos del contratista");
+  }
+};
+
+export const deleteAttributeSector = async (id) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/deleteAttributeSector",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const attributeSectorData = await res.json();
+
+      if (attributeSectorData.code === "OK") {
+        return attributeSectorData.code;
+      } else if (attributeSectorData.code === "ERROR") {
+        return attributeSectorData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 // Production - Varieties
 
 export const getDataVarieties = async (id_company) => {
@@ -972,7 +1154,8 @@ export const deleteQuality = async (id) => {
 export const getDataHarvestFormat = async (id_company) => {
   try {
     const res = await fetch(
-      URLAPI + `/api/v1/configuracion/production/getHarvestFormat/${id_company}`,
+      URLAPI +
+        `/api/v1/configuracion/production/getHarvestFormat/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1016,9 +1199,8 @@ export const createHarvestFormat = async (data) => {
           quantity_trays: data.quantity_trays,
           collection: data.collection,
           status: data.status,
-          company_id: data.company_id, 
+          company_id: data.company_id,
         }),
-
       }
     );
 
@@ -1076,8 +1258,7 @@ export const updateHarvestFormat = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     throw new Error("Error al actualizar el registro");
   }
@@ -1097,7 +1278,6 @@ export const deleteHarvestFormat = async (id) => {
         body: JSON.stringify({ id: id }),
         cache: "no-store",
       }
-
     );
 
     if (res.ok) {
@@ -1142,7 +1322,7 @@ export const getDataScale = async (id_company) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createScale = async (data) => {
   try {
@@ -1179,7 +1359,7 @@ export const createScale = async (data) => {
     console.error("Error al crear el registro:", err);
     throw new Error("Error al intentar crear el registro");
   }
-}
+};
 
 export const updateScale = async (data) => {
   try {
@@ -1212,12 +1392,11 @@ export const updateScale = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     throw new Error("Error al actualizar los registros");
   }
-}
+};
 
 export const deleteScale = async (id) => {
   try {
@@ -1248,14 +1427,15 @@ export const deleteScale = async (id) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 // Production - Register Scale
 
 export const getDataScaleRegister = async (id_company) => {
   try {
     const res = await fetch(
-      URLAPI + `/api/v1/configuracion/production/getScaleRegister/${id_company}`,
+      URLAPI +
+        `/api/v1/configuracion/production/getScaleRegister/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1278,10 +1458,9 @@ export const getDataScaleRegister = async (id_company) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createScaleRegister = async (data) => {
-
   console.log("data", data);
   try {
     const res = await fetch(
@@ -1322,7 +1501,7 @@ export const createScaleRegister = async (data) => {
     console.error("Error al crear el registro:", err);
     throw new Error("Error al intentar crear el registro");
   }
-}
+};
 
 export const updateScaleRegister = async (data) => {
   try {
@@ -1360,12 +1539,11 @@ export const updateScaleRegister = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     throw new Error("Error al actualizar los registros");
   }
-}
+};
 
 export const deleteScaleRegister = async (id) => {
   try {
@@ -1396,7 +1574,7 @@ export const deleteScaleRegister = async (id) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 //Production - Deals
 
@@ -1425,7 +1603,7 @@ export const getDataDeals = async (id_company) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createDeal = async (data) => {
   try {
@@ -1453,12 +1631,11 @@ export const createDeal = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Error al crear el registro:", err);
     throw new Error("Error al intentar crear el registro");
   }
-}
+};
 
 export const updateDeal = async (data) => {
   try {
@@ -1485,15 +1662,13 @@ export const updateDeal = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     throw new Error("Error al actualizar los registros");
   }
-}
+};
 
 export const deleteDeal = async (id) => {
-
   try {
     const response = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteDeal",
@@ -1524,8 +1699,7 @@ export const deleteDeal = async (id) => {
     console.error("Error en la función deleteDeal:", err.message);
     return `Error: ${err.message}`;
   }
-}
-
+};
 
 //Production - Exporters
 
@@ -1554,7 +1728,7 @@ export const getDataExporters = async (id_company) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createExporter = async (data) => {
   console.log("data", data);
@@ -1583,12 +1757,11 @@ export const createExporter = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Error al crear el registro:", err);
     throw new Error("Error al intentar crear el registro");
   }
-}
+};
 
 export const updateExporter = async (data) => {
   try {
@@ -1615,15 +1788,13 @@ export const updateExporter = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     throw new Error("Error al actualizar los registros");
   }
-}
+};
 
 export const deleteExporter = async (id) => {
-
   try {
     const response = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteExporter",
@@ -1654,14 +1825,15 @@ export const deleteExporter = async (id) => {
     console.error("Error en la función deleteExporter:", err.message);
     return `Error: ${err.message}`;
   }
-}
+};
 
 //Production - Carga Manual
 
 export const getDataManualHarvesting = async (id_company) => {
   try {
     const res = await fetch(
-      URLAPI + `/api/v1/configuracion/production/getManualHarvesting/${id_company}`,
+      URLAPI +
+        `/api/v1/configuracion/production/getManualHarvesting/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1683,10 +1855,9 @@ export const getDataManualHarvesting = async (id_company) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createManualHarvesting = async (data) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createManualHarvesting",
@@ -1712,12 +1883,11 @@ export const createManualHarvesting = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Error al crear el registro:", err);
     throw new Error("Error al intentar crear el registro");
   }
-}
+};
 
 export const updateManualHarvesting = async (data) => {
   try {
@@ -1744,15 +1914,13 @@ export const updateManualHarvesting = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     throw new Error("Error al actualizar los registros");
   }
-}
+};
 
 export const deleteManualHarvesting = async (id) => {
-
   try {
     const response = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteManualHarvesting",
@@ -1783,14 +1951,14 @@ export const deleteManualHarvesting = async (id) => {
     console.error("Error en la función deleteManualHarvesting:", err.message);
     return `Error: ${err.message}`;
   }
-}
-
+};
 
 // Production - Dispatch Guide
 export const getDataDispatchGuide = async (id_company) => {
   try {
     const res = await fetch(
-      URLAPI + `/api/v1/configuracion/production/getDispatchGuide/${id_company}`,
+      URLAPI +
+        `/api/v1/configuracion/production/getDispatchGuide/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1812,7 +1980,7 @@ export const getDataDispatchGuide = async (id_company) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const createDispatchGuide = async (data) => {
   console.log(data);
@@ -1841,12 +2009,11 @@ export const createDispatchGuide = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Error al crear el registro:", err);
     throw new Error("Error al intentar crear el registro");
   }
-}
+};
 
 export const updateDispatchGuide = async (data) => {
   try {
@@ -1873,15 +2040,13 @@ export const updateDispatchGuide = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     throw new Error("Error al actualizar los registros");
   }
-}
+};
 
 export const deleteDispatchGuide = async (id) => {
-
   try {
     const response = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteDispatchGuide",
@@ -1912,13 +2077,14 @@ export const deleteDispatchGuide = async (id) => {
     console.error("Error en la función deleteDispatchGuide:", err.message);
     return `Error: ${err.message}`;
   }
-}
+};
 
 //Regularization PRoduction
 export const getDataRegularizationProduction = async (id_company) => {
   try {
     const res = await fetch(
-      URLAPI + `/api/v1/configuracion/production/getRegularizationProduction/${id_company}`,
+      URLAPI +
+        `/api/v1/configuracion/production/getRegularizationProduction/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1940,12 +2106,13 @@ export const getDataRegularizationProduction = async (id_company) => {
   } catch (err) {
     console.error(err);
   }
-}
+};
 
 export const updateRegularizationProduction = async (data) => {
   try {
     const res = await fetch(
-      URLAPI + "/api/v1/configuracion/production/updateRegularizationProduction",
+      URLAPI +
+        "/api/v1/configuracion/production/updateRegularizationProduction",
       {
         method: "POST",
         headers: {
@@ -1967,13 +2134,11 @@ export const updateRegularizationProduction = async (data) => {
     } else {
       throw new Error("Error en la solicitud HTTP");
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     throw new Error("Error al actualizar los registros");
   }
-}
-
+};
 
 //Results Filter
 export const filterResults = async (filters, id_company) => {
