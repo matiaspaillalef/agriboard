@@ -34,8 +34,12 @@ import {
   getDataWorkers,
   getDataSquads,
   getDataContractors,
-  getDataShifts
+  getDataShifts,
 } from "@/app/api/ManagementPeople";
+
+import Switch from "@/components/switch";
+
+import { array } from "zod";
 
 const CardTableManualHarvesting = ({
   data,
@@ -90,8 +94,6 @@ const CardTableManualHarvesting = ({
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
-  console.log("datosCompanies", dataTurns);
-
   //Checks para el filtro
 
   const [options, setOptions] = useState({
@@ -134,7 +136,9 @@ const CardTableManualHarvesting = ({
 
         //console.log("fetchedDataGround", fetchedDataGround);
 
-        const filteredWorkers = fetchedDataWorkers.filter(worker => worker.rut);
+        const filteredWorkers = fetchedDataWorkers.filter(
+          (worker) => worker.rut
+        );
 
         setOptions({
           ground: fetchedDataGround,
@@ -252,11 +256,11 @@ const CardTableManualHarvesting = ({
     const item = data?.find((item) => item.id === value);
 
     if (item && (key === "worker" || key === "squad_leader")) {
-        return `${item.name} ${item.lastname}`;
+      return `${item.name} ${item.lastname}`;
     }
 
     return item?.name || value || "-";
-};
+  };
 
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
@@ -278,129 +282,139 @@ const CardTableManualHarvesting = ({
   }
 
   //Exportar Excel datas de front
-  useEffect(() => {
-    if (!companyID) {
-      //console.log("Company ID is not available yet");
-      return;
-    }
+useEffect(() => {
+  if (!companyID) {
+    //console.log("Company ID is not available yet");
+    return;
+  }
 
-    const fetchData = async () => {
-      try {
-        // Aquí llamamos a cada función solo una vez
-        const [
-          fetchedDataSector,
-          fetchedDataSquads,
-          fetchedDataWorkers,
-          fetchedDataVarieties,
-          fetchedDataSpecies,
-          fetchedDataQuality,
-          fetchedDataHarvestFormat,
-          fetchedDataGround,
-          fetchedDataSeasons,
-          fetchedDataTurns,
-          fetchedDataContractors,
-        ] = await Promise.all([
-          getDataSectorBarracks(companyID),
-          getDataSquads(companyID),
-          getDataWorkers(companyID),
-          getDataVarieties(companyID),
-          getDataSpecies(companyID),
-          getDataQuality(companyID),
-          getDataHarvestFormat(companyID), // Asegúrate de que esta función esté definida y retorne los datos correctos
-          getDataGround(companyID),
-          getDataSeasons(companyID),
-          getDataShifts(companyID),
-          getDataContractors(companyID),
-        ]);
+  const fetchData = async () => {
+    try {
+      // Aquí llamamos a cada función solo una vez
+      const [
+        fetchedDataSector,
+        fetchedDataSquads,
+        fetchedDataWorkers,
+        fetchedDataVarieties,
+        fetchedDataSpecies,
+        fetchedDataQuality,
+        fetchedDataHarvestFormat,
+        fetchedDataGround,
+        fetchedDataSeasons,
+        fetchedDataTurns,
+        fetchedDataContractors,
+      ] = await Promise.all([
+        getDataSectorBarracks(companyID),
+        getDataSquads(companyID),
+        getDataWorkers(companyID),
+        getDataVarieties(companyID),
+        getDataSpecies(companyID),
+        getDataQuality(companyID),
+        getDataHarvestFormat(companyID),
+        getDataGround(companyID),
+        getDataSeasons(companyID),
+        getDataShifts(companyID),
+        getDataContractors(companyID),
+      ]);
 
-        // Aquí puedes guardar los datos en el estado si es necesario
-        setDataSector(fetchedDataSector);
-        setDataSquads(fetchedDataSquads);
-        setDataWorkers(fetchedDataWorkers);
-        setDataVarieties(fetchedDataVarieties);
-        setDataSpecies(fetchedDataSpecies);
-        setDataQuality(fetchedDataQuality);
-        setDataHarvestFormat(fetchedDataHarvestFormat);
-        setDataGround(fetchedDataGround);
-        setDataSeasons(fetchedDataSeasons);
-        setDataTurns(fetchedDataTurns);
-        setDataContractors(fetchedDataContractors);
+      // Aquí puedes guardar los datos en el estado si es necesario
+      setDataSector(fetchedDataSector);
+      setDataSquads(fetchedDataSquads);
+      setDataWorkers(fetchedDataWorkers);
+      setDataVarieties(fetchedDataVarieties);
+      setDataSpecies(fetchedDataSpecies);
+      setDataQuality(fetchedDataQuality);
+      setDataHarvestFormat(fetchedDataHarvestFormat);
+      setDataGround(fetchedDataGround);
+      setDataSeasons(fetchedDataSeasons);
+      setDataTurns(fetchedDataTurns);
+      setDataContractors(fetchedDataContractors);
 
-        if (Array.isArray(initialData) && initialData.length > 0) {
-          const formatData = await Promise.all(
-            initialData.map(async (item) => {
-              return {
-                Zona: item.zone,
-                Campo: fetchedDataGround.find(
-                  (ground) => ground.id === item.ground
-                )?.name,
-                Sector: fetchedDataSector.find(
-                  (sector) => sector.id === item.sector
-                )?.name,
-                Cuadrilla: fetchedDataSquads.find(
-                  (squad) => squad.id === item.squad
-                )?.name,
-                "Jefe cuadrilla": fetchedDataWorkers.find(
-                  (worker) => worker.id === item.squad_leader
-                )?.name,
-                Lote: item.batch,
-                Cosechero:
-                  fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.name +
-                  " " +
-                  fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.lastname,
-                "RUT Cosechero": item.worker_rut,
-                "Fecha cosecha": formatDate(item.harvest_date),
-                Contratista: fetchedDataContractors.find(
-                  (contractor) => contractor.id === item.contractor
-                )?.name,
-                Especie: fetchedDataSpecies.find(
-                  (specie) => specie.id === item.specie
-                )?.name,
-                Variedad: fetchedDataVarieties.find(
-                  (variety) => variety.id === item.variety
-                )?.name,
-                Cajas: item.boxes,
-                "Kilos Caja": item.kg_boxes,
-                Calidad: fetchedDataQuality.find(
-                  (quality) => quality.id === item.quality
-                )?.name,
-                Hilera: item.hilera,
-                "Formato cosecha": fetchedDataHarvestFormat.find(
-                  (format) => format.id === item.harvest_format
-                )?.name,
-                Pesador: fetchedDataWorkers.find(
-                  (worker) => worker.id === item.weigher_rut
-                )?.name,
-                Temporada: fetchedDataSeasons.find(
-                  (season) => season.id === item.season
-                )?.name,
-                Turno: fetchedDataTurns.find(
-                  (turn) => turn.id === item.turns
-                )?.name,
+      if (Array.isArray(initialData) && initialData.length > 0) {
+        // Crear mapas para búsquedas rápidas
+        const groundMap = new Map(fetchedDataGround.map(g => [g.id, g.name]));
+        const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
+        const squadMap = new Map(fetchedDataSquads.map(s => [s.id, s.name]));
+        const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
+        const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
+        const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
+        const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
+        const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
+        const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
+        const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
+        const turnMap = new Map(fetchedDataTurns.map(t => [t.id, t.name]));
 
-                
-              };
-            })
-          );
+        // Función para filtrar valores undefined o null
+        const filterUndefinedValues = (obj) => {
+          return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+        };
 
-          //console.log("formatData", formatData);
-          setFormatInitialData(formatData);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+        // Procesar datos y construir cabeceras dinámicamente
+        const rawData = await Promise.all(
+          initialData.map(async (item) => {
+            return {
+              Zona: item.zone || '',
+              Campo: groundMap.get(item.ground) || '',
+              Sector: sectorMap.get(item.sector) || '',
+              Cuadrilla: squadMap.get(item.squad) || '',
+              "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
+              Lote: item.batch || '',
+              Cosechero: workerMap.get(item.worker) || '',
+              "RUT Cosechero": item.worker_rut || '',
+              "Fecha cosecha": item.harvest_date ? formatDate(item.harvest_date) : '',
+              Contratista: contractorMap.get(item.contractor) || '',
+              Especie: specieMap.get(item.specie) || '',
+              Variedad: varietyMap.get(item.variety) || '',
+              Cajas: item.boxes || '',
+              "Kilos Caja": item.kg_boxes || '',
+              Calidad: qualityMap.get(item.quality) || '',
+              Hilera: item.hilera || '',
+              "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
+              Pesador: workerMap.get(item.weigher_rut) || '',
+              Temporada: seasonMap.get(item.season) || '',
+              Turno: turnMap.get(item.turns) || '',
+            };
+          })
+        );
+
+        // Determinar cabeceras basadas en datos reales
+        const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
+
+        // Crear los datos finales con cabeceras dinámicas
+        const formatData = rawData.map(item => {
+          const filteredItem = filterUndefinedValues(item);
+          // Solo mantener las cabeceras que están en `headers`
+          return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
+        });
+
+        //Remover las columnas que no se quieren mostrar, zone e hilera
+        const omitColumns = ["Zona", "Hilera", "Turno"]; // Columnas a omitir, se coloca en español ya que son las cabeceras traducidas
+        const formData = formatData.map((item) => {
+          return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
+        });
+
+        setFormatInitialData(formData);
+
+        //console.log("Datos para exportar:", omitColumns);
+        //console.log("Datos para exportar:", formData);
+        //console.log("Cabeceras:", headers);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
-    fetchData();
-  }, [initialData, companyID]);
+  fetchData();
+}, [initialData, companyID]);
+
 
   //Nuevos
   const [showFilter, setShowFilter] = useState(false);
   const [filters, setFilters] = useState({});
   const [filteredData, setFilteredData] = useState([]);
   const [dataReport, setDataReport] = useState([]);
+  const [checkedIds, setCheckedIds] = useState([]);
+  const [switchState, setSwitchState] = useState(false);
 
   const [fields, setFields] = useState({
     ground: { checked: false, type: "select", label: "Campo" },
@@ -422,62 +436,109 @@ const CardTableManualHarvesting = ({
     weigher_rut: { checked: false, type: "select", label: "Pesador" },
     season: { checked: false, type: "select", label: "Temporada" },
     batch: { checked: false, type: "select", label: "Lote" },
-    //amount: { checked: false, type: 'number' },
   });
+
+  
 
   const handleCheck = (event) => {
     const { id, checked } = event.target;
-
+  
+    // Actualiza los IDs chequeados
+    setCheckedIds((prevCheckedIds) => {
+      if (id === "selectAll") {
+        // Marca todos los checkboxes si "selectAll" está marcado
+        return checked ? Object.keys(fields) : [];
+      } else {
+        // Marca o desmarca el checkbox específico
+        if (checked) {
+          return [...prevCheckedIds, id];
+        } else {
+          return prevCheckedIds.filter((checkedId) => checkedId !== id);
+        }
+      }
+    });
+  
+    // Actualiza el estado de los checkboxes en `fields`
     setFields((prev) => {
       const newFields = { ...prev };
       if (id === "selectAll") {
-        // Seleccionar/Deseleccionar todos los checkboxes
+        // Selecciona/deselecciona todos los checkboxes
         Object.keys(newFields).forEach((key) => {
           newFields[key].checked = checked;
         });
       } else {
-        // Actualizar solo el checkbox específico
-        newFields[id].checked = checked;
+        // Actualiza solo el checkbox específico
+        if (newFields[id]) {
+          newFields[id].checked = checked;
+        }
       }
-
       return newFields;
     });
-
-    // Actualizar filtros basados en la selección de todos
-    const newFilters = checked
-      ? Object.keys(fields).reduce((acc, key) => {
-          acc[key] = "";
-          return acc;
-        }, {})
-      : {};
-
-    setFilters(newFilters);
-
-    // Mostrar u ocultar el filtro según el estado
-    setShowFilter(
-      checked || Object.values(fields).some((field) => field.checked)
-    );
+  
+    // Actualiza los filtros basados en la selección de todos
+    setFilters((prevFilters) => {
+      if (id === "selectAll") {
+        // Selecciona/deselecciona todos los filtros
+        return checked
+          ? Object.keys(fields).reduce((acc, key) => {
+              acc[key] = ""; // Asigna valor vacío o el valor deseado
+              return acc;
+            }, {})
+          : {}; // Limpiar todos los filtros si se desmarca "selectAll"
+      } else {
+        // Actualiza filtros específicos según el ID
+        const updatedFilters = { ...prevFilters };
+        if (checked) {
+          updatedFilters[id] = ""; // Asigna valor vacío o el valor deseado
+        } else {
+          delete updatedFilters[id]; // Elimina el filtro si se desmarca
+        }
+        return updatedFilters;
+      }
+    });
+  
+    setShowFilter(true);
   };
 
   const handleFilterChange = (event) => {
     const { id, value } = event.target;
-    console.log(`Cambiando ${id} a ${value}`); // Esto te ayudará a verificar que el valor se está capturando correctamente.
+    console.log(`Cambiando ${id} a ${value}`); // Verifica el valor capturado
     setFilters((prev) => ({
       ...prev,
       [id]: value,
     }));
-};
+  };
 
+  const handleSwitchChange = (event) => {
+    const isChecked = event.target.checked;
+    setSwitchState(isChecked); // Actualiza el estado del switch
+    // Actualiza el filtro para el switch
+    setFilters((prev) => ({
+      ...prev,
+      totals: isChecked ? 1 : 0, // Convierte el estado del switch a 1 o 0
+    }));
 
+  };
+
+  //console.log("Filtros", filters);
 
   const handleFilterResults = async () => {
-    console.log("filters", filters);
-    try {
-      const results = await filterResults(filters, companyID); // Pasas los filtros y el ID de la compañía
 
+    const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
+      if (key === 'totals' || key === 'from' || key == 'to' || checkedIds.includes(key)) {
+        acc[key] = filters[key];
+      }
+      return acc;
+    }, {});
+
+    //console.log("Filtros con IDs:", filtrosConIds);
+
+    try {
+      const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
+
+      //console.log("Resultados filtrados:", results);
       setInitialData(results);
       setDataReport(results);
-
     } catch (error) {
       console.error("Error al filtrar los resultados:", error);
     }
@@ -565,6 +626,33 @@ const CardTableManualHarvesting = ({
     }
   };
 
+  const translations = {
+    season: "Temporada",
+    boxes: "Cajas",
+    kg_boxes: "Kg Cajas",
+    zone: "Zona",
+    hilera: "Hilera",
+    turns: "Turnos",
+    temp: "Temperatura",
+    wet: "Humedad",
+    sync: "Sincronización",
+    sync_date: "Fecha Sincronización",
+    harvest_date: "Fecha Cosecha",
+    ground: "Campo",
+    sector: "Sector",
+    squad: "Cuadrilla",
+    squad_leader: "Jefe Cuadrilla",
+    worker: "Cosechero",
+    worker_rut: "RUT Cosechero",
+    specie: "Especie",
+    variety: "Variedad",
+    quality: "Calidad",
+    harvest_format: "Formato Cosecha",
+    contractor: "Contratista",
+    weigher_rut: "Pesador",
+    batch: "Lote",
+  };
+
   return (
     <>
       <div className="mb-3 filters">
@@ -610,20 +698,22 @@ const CardTableManualHarvesting = ({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="selectAll"
-              name="selectAll"
-              onChange={handleCheck}
-              className="rounded-sm"
-            />
-            <label
-              htmlFor="selectAll"
-              className="text-sm font-semibold text-gray-800 dark:text-white"
-            >
-              Seleccionar todo
-            </label>
+          <div className="flex items-center gap-[50px]">
+            <div className="check flex gap-2">
+              <input
+                type="checkbox"
+                id="selectAll"
+                name="selectAll"
+                onChange={handleCheck}
+                className="rounded-sm"
+              />
+              <label
+                htmlFor="selectAll"
+                className="text-sm font-semibold text-gray-800 dark:text-white"
+              >
+                Seleccionar todo
+              </label>
+            </div>
           </div>
         </div>
 
@@ -651,6 +741,16 @@ const CardTableManualHarvesting = ({
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2 px-5 py-2 rounded-md">
+          <label
+            htmlFor="selectAll"
+            className="text-sm font-semibold text-gray-800 dark:text-whitee"
+          >
+            Filtrar por totales
+          </label>
+          <Switch id="switchRead" defaultChecked={0} onChange={handleSwitchChange} />
         </div>
 
         <button
@@ -714,43 +814,47 @@ const CardTableManualHarvesting = ({
               mb="24px"
               id="reporteProduccion"
             >
-              {thead && (
+              {initialData && (
                 <thead>
                   <tr role="row">
-                    {columnLabels &&
-                      columnLabels.map((label, index) => {
-                        if (omitirColumns.includes(label)) {
-                          return null; // Omitir la columna si está en omitirColumns
-                        }
-                        return (
-                          <th
-                            key={index}
-                            colSpan={1}
-                            role="columnheader"
-                            className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                          >
-                            <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                    {Array.isArray(initialData) && initialData.length > 0
+                      ? Object.keys(initialData[0]).map((header, index) => {
+                          if (omitirColumns.includes(header)) {
+                            return null; // Omitir la columna si está en omitirColumns
+                          }
+                          return (
+                            <th
+                              key={index}
+                              colSpan={1}
+                              role="columnheader"
+                              className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                             >
-                              {label}
-                            </p>
-                          </th>
-                        );
-                      })}
-                    {/* Aquí se renderiza la columna Actions si actions es true */}
-                    {actions && (
-                      <th
-                        colSpan={1}
-                        role="columnheader"
-                        className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                      >
-                        <p className="text-xs tracking-wide text-gray-600">
-                          Actions
-                        </p>
-                      </th>
-                    )}
+                              <p
+                                className={`text-xs tracking-wide text-gray-600 ${
+                                  columnsClasses[index] || "text-start"
+                                }`}
+                              >
+                                {translations[header] || header}{" "}
+                                {/* Usa la traducción o el nombre original */}
+                              </p>
+                            </th>
+                          );
+                        })
+                      : null}
+                    {/* Aquí se renderiza la columna Actions si actions es true y hay datos */}
+                    {Array.isArray(initialData) &&
+                      initialData.length > 0 &&
+                      actions && (
+                        <th
+                          colSpan={1}
+                          role="columnheader"
+                          className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
+                        >
+                          <p className="text-xs tracking-wide text-gray-600">
+                            Actions
+                          </p>
+                        </th>
+                      )}
                   </tr>
                 </thead>
               )}
@@ -885,83 +989,120 @@ const CardTableManualHarvesting = ({
             <DialogBody>
               {openShowUser && (
                 <div className="flex flex-col gap-3">
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Zona:</strong> {getNameByKey("zone", selectedItem.zone, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Campo:</strong> {getNameByKey("ground", selectedItem.ground, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Sector:</strong> {getNameByKey("sector", selectedItem.sector, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Contratista:</strong> {getNameByKey("contractor", selectedItem.contractor, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Cuadrilla:</strong> {getNameByKey("squad", selectedItem.squad, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Jefe cuadrilla:</strong> {getNameByKey("squad_leader", selectedItem.squad_leader, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Lote:</strong> {getNameByKey("batch", selectedItem.batch, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Cosechero:</strong> {getNameByKey("worker", selectedItem.worker, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>RUT cosechero:</strong> {getNameByKey("worker_rut", selectedItem.worker_rut, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Fecha cosecha:</strong> {formatDate(selectedItem.harvest_date) || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Especie:</strong> {getNameByKey("specie", selectedItem.specie, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Variedad:</strong> {getNameByKey("variety", selectedItem.variety, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>N. de Cajas:</strong> {selectedItem.boxes || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Kg Cajas:</strong> {selectedItem.kg_boxes || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Calidad:</strong> {getNameByKey("quality", selectedItem.quality, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Hilera:</strong> {selectedItem.hilera || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Formato cosecha:</strong> {getNameByKey("harvest_format", selectedItem.harvest_format, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Pesador:</strong> {selectedItem.weigher_rut || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Temporada:</strong> {getNameByKey("season", selectedItem.season, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Turno:</strong> {getNameByKey("turns", selectedItem.turns, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Tempratura:</strong> {selectedItem.temp || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Humedad:</strong> {selectedItem.wet || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Sincronización:</strong> {selectedItem.sync || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Fecha Sincronización:</strong> {selectedItem.sync_date ? formatDate(selectedItem.sync_date) : "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Fecha registro:</strong> {selectedItem.date_register ? formatDate(selectedItem.date_register) : '-'}
-                </p>
-              </div>
-              
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Zona:</strong>{" "}
+                    {getNameByKey("zone", selectedItem.zone, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Campo:</strong>{" "}
+                    {getNameByKey("ground", selectedItem.ground, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Sector:</strong>{" "}
+                    {getNameByKey("sector", selectedItem.sector, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Contratista:</strong>{" "}
+                    {getNameByKey(
+                      "contractor",
+                      selectedItem.contractor,
+                      dataMap
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Cuadrilla:</strong>{" "}
+                    {getNameByKey("squad", selectedItem.squad, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Jefe cuadrilla:</strong>{" "}
+                    {getNameByKey(
+                      "squad_leader",
+                      selectedItem.squad_leader,
+                      dataMap
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Lote:</strong>{" "}
+                    {getNameByKey("batch", selectedItem.batch, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Cosechero:</strong>{" "}
+                    {getNameByKey("worker", selectedItem.worker, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>RUT cosechero:</strong>{" "}
+                    {getNameByKey(
+                      "worker_rut",
+                      selectedItem.worker_rut,
+                      dataMap
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Fecha cosecha:</strong>{" "}
+                    {formatDate(selectedItem.harvest_date) || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Especie:</strong>{" "}
+                    {getNameByKey("specie", selectedItem.specie, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Variedad:</strong>{" "}
+                    {getNameByKey("variety", selectedItem.variety, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>N. de Cajas:</strong> {selectedItem.boxes || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Kg Cajas:</strong> {selectedItem.kg_boxes || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Calidad:</strong>{" "}
+                    {getNameByKey("quality", selectedItem.quality, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Hilera:</strong> {selectedItem.hilera || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Formato cosecha:</strong>{" "}
+                    {getNameByKey(
+                      "harvest_format",
+                      selectedItem.harvest_format,
+                      dataMap
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Pesador:</strong> {selectedItem.weigher_rut || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Temporada:</strong>{" "}
+                    {getNameByKey("season", selectedItem.season, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Turno:</strong>{" "}
+                    {getNameByKey("turns", selectedItem.turns, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Tempratura:</strong> {selectedItem.temp || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Humedad:</strong> {selectedItem.wet || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Sincronización:</strong> {selectedItem.sync || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Fecha Sincronización:</strong>{" "}
+                    {selectedItem.sync_date
+                      ? formatDate(selectedItem.sync_date)
+                      : "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Fecha registro:</strong>{" "}
+                    {selectedItem.date_register
+                      ? formatDate(selectedItem.date_register)
+                      : "-"}
+                  </p>
+                </div>
               )}
             </DialogBody>
           </Dialog>

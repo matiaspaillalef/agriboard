@@ -26,17 +26,16 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-/*[type='checkbox']:checked,
-[type='radio']:checked{
+[id*="switch"][type='checkbox']:checked,
+[id*="switch"][type='radio']:checked{
   background-position: -5px;
-}*/
+}
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
 }
-
 
 .loader-content {
   display: flex;
