@@ -282,120 +282,131 @@ const CardTableManualHarvesting = ({
   }
 
   //Exportar Excel datas de front
-  useEffect(() => {
-    if (!companyID) {
-      //console.log("Company ID is not available yet");
-      return;
-    }
+useEffect(() => {
+  if (!companyID) {
+    //console.log("Company ID is not available yet");
+    return;
+  }
 
-    const fetchData = async () => {
-      try {
-        // Aquí llamamos a cada función solo una vez
-        const [
-          fetchedDataSector,
-          fetchedDataSquads,
-          fetchedDataWorkers,
-          fetchedDataVarieties,
-          fetchedDataSpecies,
-          fetchedDataQuality,
-          fetchedDataHarvestFormat,
-          fetchedDataGround,
-          fetchedDataSeasons,
-          fetchedDataTurns,
-          fetchedDataContractors,
-        ] = await Promise.all([
-          getDataSectorBarracks(companyID),
-          getDataSquads(companyID),
-          getDataWorkers(companyID),
-          getDataVarieties(companyID),
-          getDataSpecies(companyID),
-          getDataQuality(companyID),
-          getDataHarvestFormat(companyID), // Asegúrate de que esta función esté definida y retorne los datos correctos
-          getDataGround(companyID),
-          getDataSeasons(companyID),
-          getDataShifts(companyID),
-          getDataContractors(companyID),
-        ]);
+  const fetchData = async () => {
+    try {
+      // Aquí llamamos a cada función solo una vez
+      const [
+        fetchedDataSector,
+        fetchedDataSquads,
+        fetchedDataWorkers,
+        fetchedDataVarieties,
+        fetchedDataSpecies,
+        fetchedDataQuality,
+        fetchedDataHarvestFormat,
+        fetchedDataGround,
+        fetchedDataSeasons,
+        fetchedDataTurns,
+        fetchedDataContractors,
+      ] = await Promise.all([
+        getDataSectorBarracks(companyID),
+        getDataSquads(companyID),
+        getDataWorkers(companyID),
+        getDataVarieties(companyID),
+        getDataSpecies(companyID),
+        getDataQuality(companyID),
+        getDataHarvestFormat(companyID),
+        getDataGround(companyID),
+        getDataSeasons(companyID),
+        getDataShifts(companyID),
+        getDataContractors(companyID),
+      ]);
 
-        // Aquí puedes guardar los datos en el estado si es necesario
-        setDataSector(fetchedDataSector);
-        setDataSquads(fetchedDataSquads);
-        setDataWorkers(fetchedDataWorkers);
-        setDataVarieties(fetchedDataVarieties);
-        setDataSpecies(fetchedDataSpecies);
-        setDataQuality(fetchedDataQuality);
-        setDataHarvestFormat(fetchedDataHarvestFormat);
-        setDataGround(fetchedDataGround);
-        setDataSeasons(fetchedDataSeasons);
-        setDataTurns(fetchedDataTurns);
-        setDataContractors(fetchedDataContractors);
+      // Aquí puedes guardar los datos en el estado si es necesario
+      setDataSector(fetchedDataSector);
+      setDataSquads(fetchedDataSquads);
+      setDataWorkers(fetchedDataWorkers);
+      setDataVarieties(fetchedDataVarieties);
+      setDataSpecies(fetchedDataSpecies);
+      setDataQuality(fetchedDataQuality);
+      setDataHarvestFormat(fetchedDataHarvestFormat);
+      setDataGround(fetchedDataGround);
+      setDataSeasons(fetchedDataSeasons);
+      setDataTurns(fetchedDataTurns);
+      setDataContractors(fetchedDataContractors);
 
-        if (Array.isArray(initialData) && initialData.length > 0) {
-          const formatData = await Promise.all(
-            initialData.map(async (item) => {
-              return {
-                Zona: item.zone,
-                Campo: fetchedDataGround.find(
-                  (ground) => ground.id === item.ground
-                )?.name,
-                Sector: fetchedDataSector.find(
-                  (sector) => sector.id === item.sector
-                )?.name,
-                Cuadrilla: fetchedDataSquads.find(
-                  (squad) => squad.id === item.squad
-                )?.name,
-                "Jefe cuadrilla": fetchedDataWorkers.find(
-                  (worker) => worker.id === item.squad_leader
-                )?.name,
-                Lote: item.batch,
-                Cosechero:
-                  fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.name +
-                  " " +
-                  fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.lastname,
-                "RUT Cosechero": item.worker_rut,
-                "Fecha cosecha": formatDate(item.harvest_date),
-                Contratista: fetchedDataContractors.find(
-                  (contractor) => contractor.id === item.contractor
-                )?.name,
-                Especie: fetchedDataSpecies.find(
-                  (specie) => specie.id === item.specie
-                )?.name,
-                Variedad: fetchedDataVarieties.find(
-                  (variety) => variety.id === item.variety
-                )?.name,
-                Cajas: item.boxes,
-                "Kilos Caja": item.kg_boxes,
-                Calidad: fetchedDataQuality.find(
-                  (quality) => quality.id === item.quality
-                )?.name,
-                Hilera: item.hilera,
-                "Formato cosecha": fetchedDataHarvestFormat.find(
-                  (format) => format.id === item.harvest_format
-                )?.name,
-                Pesador: fetchedDataWorkers.find(
-                  (worker) => worker.id === item.weigher_rut
-                )?.name,
-                Temporada: fetchedDataSeasons.find(
-                  (season) => season.id === item.season
-                )?.name,
-                Turno: fetchedDataTurns.find((turn) => turn.id === item.turns)
-                  ?.name,
-              };
-            })
-          );
+      if (Array.isArray(initialData) && initialData.length > 0) {
+        // Crear mapas para búsquedas rápidas
+        const groundMap = new Map(fetchedDataGround.map(g => [g.id, g.name]));
+        const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
+        const squadMap = new Map(fetchedDataSquads.map(s => [s.id, s.name]));
+        const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
+        const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
+        const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
+        const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
+        const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
+        const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
+        const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
+        const turnMap = new Map(fetchedDataTurns.map(t => [t.id, t.name]));
 
-          //console.log("formatData", formatData);
-          setFormatInitialData(formatData);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+        // Función para filtrar valores undefined o null
+        const filterUndefinedValues = (obj) => {
+          return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+        };
+
+        // Procesar datos y construir cabeceras dinámicamente
+        const rawData = await Promise.all(
+          initialData.map(async (item) => {
+            return {
+              Zona: item.zone || '',
+              Campo: groundMap.get(item.ground) || '',
+              Sector: sectorMap.get(item.sector) || '',
+              Cuadrilla: squadMap.get(item.squad) || '',
+              "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
+              Lote: item.batch || '',
+              Cosechero: workerMap.get(item.worker) || '',
+              "RUT Cosechero": item.worker_rut || '',
+              "Fecha cosecha": item.harvest_date ? formatDate(item.harvest_date) : '',
+              Contratista: contractorMap.get(item.contractor) || '',
+              Especie: specieMap.get(item.specie) || '',
+              Variedad: varietyMap.get(item.variety) || '',
+              Cajas: item.boxes || '',
+              "Kilos Caja": item.kg_boxes || '',
+              Calidad: qualityMap.get(item.quality) || '',
+              Hilera: item.hilera || '',
+              "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
+              Pesador: workerMap.get(item.weigher_rut) || '',
+              Temporada: seasonMap.get(item.season) || '',
+              Turno: turnMap.get(item.turns) || '',
+            };
+          })
+        );
+
+        // Determinar cabeceras basadas en datos reales
+        const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
+
+        // Crear los datos finales con cabeceras dinámicas
+        const formatData = rawData.map(item => {
+          const filteredItem = filterUndefinedValues(item);
+          // Solo mantener las cabeceras que están en `headers`
+          return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
+        });
+
+        //Remover las columnas que no se quieren mostrar, zone e hilera
+        const omitColumns = ["Zona", "Hilera", "Turno"]; // Columnas a omitir, se coloca en español ya que son las cabeceras traducidas
+        const formData = formatData.map((item) => {
+          return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
+        });
+
+        setFormatInitialData(formData);
+
+        //console.log("Datos para exportar:", omitColumns);
+        //console.log("Datos para exportar:", formData);
+        //console.log("Cabeceras:", headers);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
-    fetchData();
-  }, [initialData, companyID]);
+  fetchData();
+}, [initialData, companyID]);
+
 
   //Nuevos
   const [showFilter, setShowFilter] = useState(false);
@@ -425,31 +436,28 @@ const CardTableManualHarvesting = ({
     weigher_rut: { checked: false, type: "select", label: "Pesador" },
     season: { checked: false, type: "select", label: "Temporada" },
     batch: { checked: false, type: "select", label: "Lote" },
-    //amount: { checked: false, type: 'number' },
   });
 
   
 
   const handleCheck = (event) => {
     const { id, checked } = event.target;
-
+  
     // Actualiza los IDs chequeados
     setCheckedIds((prevCheckedIds) => {
       if (id === "selectAll") {
-        // Si se selecciona/deselecciona todos los checkboxes
+        // Marca todos los checkboxes si "selectAll" está marcado
         return checked ? Object.keys(fields) : [];
       } else {
-        // Actualiza solo el ID específico
+        // Marca o desmarca el checkbox específico
         if (checked) {
-          // Si está marcado, añade el ID al array
           return [...prevCheckedIds, id];
         } else {
-          // Si está desmarcado, elimina el ID del array
           return prevCheckedIds.filter((checkedId) => checkedId !== id);
         }
       }
     });
-
+  
     // Actualiza el estado de los checkboxes en `fields`
     setFields((prev) => {
       const newFields = { ...prev };
@@ -466,7 +474,7 @@ const CardTableManualHarvesting = ({
       }
       return newFields;
     });
-
+  
     // Actualiza los filtros basados en la selección de todos
     setFilters((prevFilters) => {
       if (id === "selectAll") {
@@ -476,24 +484,20 @@ const CardTableManualHarvesting = ({
               acc[key] = ""; // Asigna valor vacío o el valor deseado
               return acc;
             }, {})
-          : {};
+          : {}; // Limpiar todos los filtros si se desmarca "selectAll"
       } else {
         // Actualiza filtros específicos según el ID
         const updatedFilters = { ...prevFilters };
         if (checked) {
           updatedFilters[id] = ""; // Asigna valor vacío o el valor deseado
         } else {
-          delete updatedFilters[id];
+          delete updatedFilters[id]; // Elimina el filtro si se desmarca
         }
         return updatedFilters;
       }
     });
-
-    // Muestra u oculta el filtro según el estado de selección
-    setShowFilter(
-      Object.values(fields).some((field) => field.checked) ||
-        (id === "selectAll" && checked)
-    );
+  
+    setShowFilter(true);
   };
 
   const handleFilterChange = (event) => {
@@ -518,23 +522,16 @@ const CardTableManualHarvesting = ({
 
   //console.log("Filtros", filters);
 
-  const handleFilterResults = async () => {    
+  const handleFilterResults = async () => {
 
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
-      if (key === 'totals' || checkedIds.includes(key)) {
+      if (key === 'totals' || key === 'from' || key == 'to' || checkedIds.includes(key)) {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
 
-    console.log("Filtros con IDs", filtrosConIds);
-
-    /*const filtrosHabilitados = Object.keys(filters).reduce((acc, key) => {
-      if (filters[key] && !isDisabled(key)) { // isDisabled es una función que verifica si el filtro está habilitado
-        acc[key] = filters[key];
-      }
-      return acc;
-    }, {})*/
+    //console.log("Filtros con IDs:", filtrosConIds);
 
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
