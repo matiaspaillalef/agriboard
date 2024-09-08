@@ -34,8 +34,12 @@ import {
   getDataWorkers,
   getDataSquads,
   getDataContractors,
-  getDataShifts
+  getDataShifts,
 } from "@/app/api/ManagementPeople";
+
+import Switch from "@/components/switch";
+
+import { array } from "zod";
 
 const CardTableManualHarvesting = ({
   data,
@@ -90,8 +94,6 @@ const CardTableManualHarvesting = ({
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
-  console.log("datosCompanies", dataTurns);
-
   //Checks para el filtro
 
   const [options, setOptions] = useState({
@@ -134,7 +136,9 @@ const CardTableManualHarvesting = ({
 
         //console.log("fetchedDataGround", fetchedDataGround);
 
-        const filteredWorkers = fetchedDataWorkers.filter(worker => worker.rut);
+        const filteredWorkers = fetchedDataWorkers.filter(
+          (worker) => worker.rut
+        );
 
         setOptions({
           ground: fetchedDataGround,
@@ -252,11 +256,11 @@ const CardTableManualHarvesting = ({
     const item = data?.find((item) => item.id === value);
 
     if (item && (key === "worker" || key === "squad_leader")) {
-        return `${item.name} ${item.lastname}`;
+      return `${item.name} ${item.lastname}`;
     }
 
     return item?.name || value || "-";
-};
+  };
 
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
@@ -376,11 +380,8 @@ const CardTableManualHarvesting = ({
                 Temporada: fetchedDataSeasons.find(
                   (season) => season.id === item.season
                 )?.name,
-                Turno: fetchedDataTurns.find(
-                  (turn) => turn.id === item.turns
-                )?.name,
-
-                
+                Turno: fetchedDataTurns.find((turn) => turn.id === item.turns)
+                  ?.name,
               };
             })
           );
@@ -401,6 +402,8 @@ const CardTableManualHarvesting = ({
   const [filters, setFilters] = useState({});
   const [filteredData, setFilteredData] = useState([]);
   const [dataReport, setDataReport] = useState([]);
+  const [checkedIds, setCheckedIds] = useState([]);
+  const [switchState, setSwitchState] = useState(false);
 
   const [fields, setFields] = useState({
     ground: { checked: false, type: "select", label: "Campo" },
@@ -425,59 +428,120 @@ const CardTableManualHarvesting = ({
     //amount: { checked: false, type: 'number' },
   });
 
+  
+
   const handleCheck = (event) => {
     const { id, checked } = event.target;
 
+    // Actualiza los IDs chequeados
+    setCheckedIds((prevCheckedIds) => {
+      if (id === "selectAll") {
+        // Si se selecciona/deselecciona todos los checkboxes
+        return checked ? Object.keys(fields) : [];
+      } else {
+        // Actualiza solo el ID específico
+        if (checked) {
+          // Si está marcado, añade el ID al array
+          return [...prevCheckedIds, id];
+        } else {
+          // Si está desmarcado, elimina el ID del array
+          return prevCheckedIds.filter((checkedId) => checkedId !== id);
+        }
+      }
+    });
+
+    // Actualiza el estado de los checkboxes en `fields`
     setFields((prev) => {
       const newFields = { ...prev };
       if (id === "selectAll") {
-        // Seleccionar/Deseleccionar todos los checkboxes
+        // Selecciona/deselecciona todos los checkboxes
         Object.keys(newFields).forEach((key) => {
           newFields[key].checked = checked;
         });
       } else {
-        // Actualizar solo el checkbox específico
-        newFields[id].checked = checked;
+        // Actualiza solo el checkbox específico
+        if (newFields[id]) {
+          newFields[id].checked = checked;
+        }
       }
-
       return newFields;
     });
 
-    // Actualizar filtros basados en la selección de todos
-    const newFilters = checked
-      ? Object.keys(fields).reduce((acc, key) => {
-          acc[key] = "";
-          return acc;
-        }, {})
-      : {};
+    // Actualiza los filtros basados en la selección de todos
+    setFilters((prevFilters) => {
+      if (id === "selectAll") {
+        // Selecciona/deselecciona todos los filtros
+        return checked
+          ? Object.keys(fields).reduce((acc, key) => {
+              acc[key] = ""; // Asigna valor vacío o el valor deseado
+              return acc;
+            }, {})
+          : {};
+      } else {
+        // Actualiza filtros específicos según el ID
+        const updatedFilters = { ...prevFilters };
+        if (checked) {
+          updatedFilters[id] = ""; // Asigna valor vacío o el valor deseado
+        } else {
+          delete updatedFilters[id];
+        }
+        return updatedFilters;
+      }
+    });
 
-    setFilters(newFilters);
-
-    // Mostrar u ocultar el filtro según el estado
+    // Muestra u oculta el filtro según el estado de selección
     setShowFilter(
-      checked || Object.values(fields).some((field) => field.checked)
+      Object.values(fields).some((field) => field.checked) ||
+        (id === "selectAll" && checked)
     );
   };
 
   const handleFilterChange = (event) => {
     const { id, value } = event.target;
-    console.log(`Cambiando ${id} a ${value}`); // Esto te ayudará a verificar que el valor se está capturando correctamente.
+    console.log(`Cambiando ${id} a ${value}`); // Verifica el valor capturado
     setFilters((prev) => ({
       ...prev,
       [id]: value,
     }));
-};
+  };
 
+  const handleSwitchChange = (event) => {
+    const isChecked = event.target.checked;
+    setSwitchState(isChecked); // Actualiza el estado del switch
+    // Actualiza el filtro para el switch
+    setFilters((prev) => ({
+      ...prev,
+      totals: isChecked ? 1 : 0, // Convierte el estado del switch a 1 o 0
+    }));
 
+  };
 
-  const handleFilterResults = async () => {
-    console.log("filters", filters);
+  //console.log("Filtros", filters);
+
+  const handleFilterResults = async () => {    
+
+    const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
+      if (key === 'totals' || checkedIds.includes(key)) {
+        acc[key] = filters[key];
+      }
+      return acc;
+    }, {});
+
+    console.log("Filtros con IDs", filtrosConIds);
+
+    /*const filtrosHabilitados = Object.keys(filters).reduce((acc, key) => {
+      if (filters[key] && !isDisabled(key)) { // isDisabled es una función que verifica si el filtro está habilitado
+        acc[key] = filters[key];
+      }
+      return acc;
+    }, {})*/
+
     try {
-      const results = await filterResults(filters, companyID); // Pasas los filtros y el ID de la compañía
+      const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
 
+      //console.log("Resultados filtrados:", results);
       setInitialData(results);
       setDataReport(results);
-
     } catch (error) {
       console.error("Error al filtrar los resultados:", error);
     }
@@ -565,6 +629,33 @@ const CardTableManualHarvesting = ({
     }
   };
 
+  const translations = {
+    season: "Temporada",
+    boxes: "Cajas",
+    kg_boxes: "Kg Cajas",
+    zone: "Zona",
+    hilera: "Hilera",
+    turns: "Turnos",
+    temp: "Temperatura",
+    wet: "Humedad",
+    sync: "Sincronización",
+    sync_date: "Fecha Sincronización",
+    harvest_date: "Fecha Cosecha",
+    ground: "Campo",
+    sector: "Sector",
+    squad: "Cuadrilla",
+    squad_leader: "Jefe Cuadrilla",
+    worker: "Cosechero",
+    worker_rut: "RUT Cosechero",
+    specie: "Especie",
+    variety: "Variedad",
+    quality: "Calidad",
+    harvest_format: "Formato Cosecha",
+    contractor: "Contratista",
+    weigher_rut: "Pesador",
+    batch: "Lote",
+  };
+
   return (
     <>
       <div className="mb-3 filters">
@@ -610,20 +701,22 @@ const CardTableManualHarvesting = ({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="selectAll"
-              name="selectAll"
-              onChange={handleCheck}
-              className="rounded-sm"
-            />
-            <label
-              htmlFor="selectAll"
-              className="text-sm font-semibold text-gray-800 dark:text-white"
-            >
-              Seleccionar todo
-            </label>
+          <div className="flex items-center gap-[50px]">
+            <div className="check flex gap-2">
+              <input
+                type="checkbox"
+                id="selectAll"
+                name="selectAll"
+                onChange={handleCheck}
+                className="rounded-sm"
+              />
+              <label
+                htmlFor="selectAll"
+                className="text-sm font-semibold text-gray-800 dark:text-white"
+              >
+                Seleccionar todo
+              </label>
+            </div>
           </div>
         </div>
 
@@ -651,6 +744,16 @@ const CardTableManualHarvesting = ({
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2 px-5 py-2 rounded-md">
+          <label
+            htmlFor="selectAll"
+            className="text-sm font-semibold text-gray-800 dark:text-whitee"
+          >
+            Filtrar por totales
+          </label>
+          <Switch id="switchRead" defaultChecked={0} onChange={handleSwitchChange} />
         </div>
 
         <button
@@ -714,43 +817,47 @@ const CardTableManualHarvesting = ({
               mb="24px"
               id="reporteProduccion"
             >
-              {thead && (
+              {initialData && (
                 <thead>
                   <tr role="row">
-                    {columnLabels &&
-                      columnLabels.map((label, index) => {
-                        if (omitirColumns.includes(label)) {
-                          return null; // Omitir la columna si está en omitirColumns
-                        }
-                        return (
-                          <th
-                            key={index}
-                            colSpan={1}
-                            role="columnheader"
-                            className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                          >
-                            <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                    {Array.isArray(initialData) && initialData.length > 0
+                      ? Object.keys(initialData[0]).map((header, index) => {
+                          if (omitirColumns.includes(header)) {
+                            return null; // Omitir la columna si está en omitirColumns
+                          }
+                          return (
+                            <th
+                              key={index}
+                              colSpan={1}
+                              role="columnheader"
+                              className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                             >
-                              {label}
-                            </p>
-                          </th>
-                        );
-                      })}
-                    {/* Aquí se renderiza la columna Actions si actions es true */}
-                    {actions && (
-                      <th
-                        colSpan={1}
-                        role="columnheader"
-                        className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                      >
-                        <p className="text-xs tracking-wide text-gray-600">
-                          Actions
-                        </p>
-                      </th>
-                    )}
+                              <p
+                                className={`text-xs tracking-wide text-gray-600 ${
+                                  columnsClasses[index] || "text-start"
+                                }`}
+                              >
+                                {translations[header] || header}{" "}
+                                {/* Usa la traducción o el nombre original */}
+                              </p>
+                            </th>
+                          );
+                        })
+                      : null}
+                    {/* Aquí se renderiza la columna Actions si actions es true y hay datos */}
+                    {Array.isArray(initialData) &&
+                      initialData.length > 0 &&
+                      actions && (
+                        <th
+                          colSpan={1}
+                          role="columnheader"
+                          className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
+                        >
+                          <p className="text-xs tracking-wide text-gray-600">
+                            Actions
+                          </p>
+                        </th>
+                      )}
                   </tr>
                 </thead>
               )}
@@ -885,83 +992,120 @@ const CardTableManualHarvesting = ({
             <DialogBody>
               {openShowUser && (
                 <div className="flex flex-col gap-3">
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Zona:</strong> {getNameByKey("zone", selectedItem.zone, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Campo:</strong> {getNameByKey("ground", selectedItem.ground, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Sector:</strong> {getNameByKey("sector", selectedItem.sector, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Contratista:</strong> {getNameByKey("contractor", selectedItem.contractor, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Cuadrilla:</strong> {getNameByKey("squad", selectedItem.squad, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Jefe cuadrilla:</strong> {getNameByKey("squad_leader", selectedItem.squad_leader, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Lote:</strong> {getNameByKey("batch", selectedItem.batch, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Cosechero:</strong> {getNameByKey("worker", selectedItem.worker, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>RUT cosechero:</strong> {getNameByKey("worker_rut", selectedItem.worker_rut, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Fecha cosecha:</strong> {formatDate(selectedItem.harvest_date) || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Especie:</strong> {getNameByKey("specie", selectedItem.specie, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Variedad:</strong> {getNameByKey("variety", selectedItem.variety, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>N. de Cajas:</strong> {selectedItem.boxes || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Kg Cajas:</strong> {selectedItem.kg_boxes || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Calidad:</strong> {getNameByKey("quality", selectedItem.quality, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Hilera:</strong> {selectedItem.hilera || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Formato cosecha:</strong> {getNameByKey("harvest_format", selectedItem.harvest_format, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Pesador:</strong> {selectedItem.weigher_rut || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Temporada:</strong> {getNameByKey("season", selectedItem.season, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Turno:</strong> {getNameByKey("turns", selectedItem.turns, dataMap)}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Tempratura:</strong> {selectedItem.temp || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Humedad:</strong> {selectedItem.wet || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Sincronización:</strong> {selectedItem.sync || "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Fecha Sincronización:</strong> {selectedItem.sync_date ? formatDate(selectedItem.sync_date) : "-"}
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                  <strong>Fecha registro:</strong> {selectedItem.date_register ? formatDate(selectedItem.date_register) : '-'}
-                </p>
-              </div>
-              
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Zona:</strong>{" "}
+                    {getNameByKey("zone", selectedItem.zone, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Campo:</strong>{" "}
+                    {getNameByKey("ground", selectedItem.ground, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Sector:</strong>{" "}
+                    {getNameByKey("sector", selectedItem.sector, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Contratista:</strong>{" "}
+                    {getNameByKey(
+                      "contractor",
+                      selectedItem.contractor,
+                      dataMap
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Cuadrilla:</strong>{" "}
+                    {getNameByKey("squad", selectedItem.squad, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Jefe cuadrilla:</strong>{" "}
+                    {getNameByKey(
+                      "squad_leader",
+                      selectedItem.squad_leader,
+                      dataMap
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Lote:</strong>{" "}
+                    {getNameByKey("batch", selectedItem.batch, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Cosechero:</strong>{" "}
+                    {getNameByKey("worker", selectedItem.worker, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>RUT cosechero:</strong>{" "}
+                    {getNameByKey(
+                      "worker_rut",
+                      selectedItem.worker_rut,
+                      dataMap
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Fecha cosecha:</strong>{" "}
+                    {formatDate(selectedItem.harvest_date) || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Especie:</strong>{" "}
+                    {getNameByKey("specie", selectedItem.specie, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Variedad:</strong>{" "}
+                    {getNameByKey("variety", selectedItem.variety, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>N. de Cajas:</strong> {selectedItem.boxes || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Kg Cajas:</strong> {selectedItem.kg_boxes || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Calidad:</strong>{" "}
+                    {getNameByKey("quality", selectedItem.quality, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Hilera:</strong> {selectedItem.hilera || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Formato cosecha:</strong>{" "}
+                    {getNameByKey(
+                      "harvest_format",
+                      selectedItem.harvest_format,
+                      dataMap
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Pesador:</strong> {selectedItem.weigher_rut || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Temporada:</strong>{" "}
+                    {getNameByKey("season", selectedItem.season, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Turno:</strong>{" "}
+                    {getNameByKey("turns", selectedItem.turns, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Tempratura:</strong> {selectedItem.temp || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Humedad:</strong> {selectedItem.wet || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Sincronización:</strong> {selectedItem.sync || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Fecha Sincronización:</strong>{" "}
+                    {selectedItem.sync_date
+                      ? formatDate(selectedItem.sync_date)
+                      : "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Fecha registro:</strong>{" "}
+                    {selectedItem.date_register
+                      ? formatDate(selectedItem.date_register)
+                      : "-"}
+                  </p>
+                </div>
               )}
             </DialogBody>
           </Dialog>

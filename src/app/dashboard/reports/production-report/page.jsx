@@ -27,12 +27,12 @@ const ProductionProductionReports = () => {
                 <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
                     <CardTableProductionReports
                         data="[]"
-                        thead="Zona, Campo, Sector, Cuadrilla, Jefe de cuadrilla, Lote, Cosechero, RUT cosechero, Especie, Variedad, Cajas, Kilos Cajas, Calidad, Hilera, Formato cosecha, Pesador, Temporada"
+                        thead=""
                         downloadBtn={true}
                         SearchInput={true}
-                        actions={true}
+                        actions={false}
                         companyID={companyId}
-                        omitirColumns={["id", "company_id", "sync", "sync_date", "turns", "temp", "wet", "harvest_date", "date_register", "contractor", "source"]}
+                        omitirColumns={["id", "company_id", "sync", "sync_date", "turns", "temp", "wet", "harvest_date", "date_register", "contractor", "source", 'zone', 'hilera']}
                     />
                 </div>
             </div>
