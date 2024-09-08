@@ -1,29 +1,64 @@
-import * as XLSX from "xlsx";
+import * as XLSX from 'xlsx';
 
 const ExportarExcel = ({ data, filename, sheetname, titlebutton }) => {
   const exportToExcel = () => {
+    // Crear un nuevo libro de trabajo
     const wb = XLSX.utils.book_new();
+
+    // Convertir los datos en una hoja de cálculo
     const ws = XLSX.utils.json_to_sheet(data);
 
-    //const logo = process.env.NEXT_PUBLIC_CURRENT_URL + '/agrisoft_logo.png';
+    // Definir el estilo de la cabecera
+    const headerStyle = {
+      fill: {
+        fgColor: { rgb: "00FF00" }, // Fondo verde
+      },
+      font: {
+        bold: true,
+        color: { rgb: "FFFFFF" }, // Texto blanco
+        sz: 12, // Tamaño de fuente
+        name: "Arial", // Fuente
+      },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true, // Ajusta el texto a la celda
+      },
+    };
 
-    /*if (logo) {
-      const logoImage = XLSX.utils.base64_to_sheet(logo, { type: 'png' });
-      XLSX.utils.book_append_sheet(wb, logoImage, 'Logo');
-    }*/
+    // Obtener las claves de las columnas (encabezados)
+    const headers = Object.keys(data[0] || {});
 
+    // Aplicar el estilo a las celdas de la cabecera
+    headers.forEach((header, i) => {
+      const cellAddress = { c: i, r: 0 };
+      const cellRef = XLSX.utils.encode_cell(cellAddress);
+
+      if (!ws[cellRef]) ws[cellRef] = {};
+      ws[cellRef].s = headerStyle; // Aplicar estilo
+    });
+
+    // Añadir filtros a la primera fila
+    ws['!autofilter'] = { ref: ws['!ref'] };
+
+    // Ajustar el ancho de las columnas y altura de las filas si es necesario
+    ws['!cols'] = headers.map(() => ({ width: 20 }));
+    ws['!rows'] = [{ hpt: 25 }]; // Ajusta la altura de las filas
+
+    // Definir el nombre del archivo con fecha y hora
     const currentDate = new Date();
     const dateString = currentDate.toISOString().split("T")[0];
     const timeString = currentDate
       .toTimeString()
       .split(" ")[0]
       .replace(/:/g, "");
+    const filenameWithTimestamp = `export_${filename}_${dateString}_${timeString}.xlsx`;
 
-    // Nombre del archivo con fecha y hora
-    const filenameWithTimestamp = `export_${filename}_${dateString}_${timeString}`;
-
+    // Añadir la hoja de cálculo al libro de trabajo
     XLSX.utils.book_append_sheet(wb, ws, sheetname || "Sheet1");
-    XLSX.writeFile(wb, filenameWithTimestamp + ".xlsx" || "export.xlsx");
+
+    // Guardar el archivo
+    XLSX.writeFile(wb, filenameWithTimestamp);
   };
 
   return (
