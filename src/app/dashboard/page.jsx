@@ -33,7 +33,6 @@ import {
   lineChartOptionsTotalSpent,
 } from "../data/dataGraphics";
 import { dataMiniCardDashboard } from "../data/dataMiniCard";
-import { set } from "date-fns";
 
 const fechaActual = new Date();
 
@@ -54,13 +53,12 @@ const Dashboard = () => {
   const [companyId, setCompanyId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [idRole, setIdRole] = useState("");
+  const [error, setError] = useState("");
 
-  // Función para obtener el ID del ground seleccionado del sessionStorage
   const getSelectedGroundFromSessionStorage = useCallback(() => {
     return sessionStorage.getItem("selectedGround");
   }, []);
 
-  // Función para obtener el ID de la compañía desde el sessionStorage
   const getCompanyIdFromSessionStorage = useCallback(() => {
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
     const userData = JSON.parse(sessionStorage.getItem("userData"));
@@ -73,13 +71,12 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Función para realizar el fetch y actualizar los datos
   const fetchDataDay = useCallback(async (companyId, groundId) => {
     setIsLoading(true);
+    setError(""); // Reset error state
 
     try {
       if (groundId) {
-        // Si groundId está definido, obtén los datos de kg para ese groundId
         const dataDay = await getDataKgDay(companyId, groundId);
         const dataSeason = await getDataKgSeason(companyId, groundId);
         const dataWorkers = await getDataWorkers(companyId, groundId);
@@ -102,7 +99,6 @@ const Dashboard = () => {
         if (grounds.length > 0) {
           const firstGroundId = grounds[0].id;
           setSelectedGround(firstGroundId);
-          // Realiza las solicitudes de datos para el primer groundId
           const dataDay = await getDataKgDay(companyId, firstGroundId);
           const dataSeason = await getDataKgSeason(companyId, firstGroundId);
           const dataWorkers = await getDataWorkers(companyId, firstGroundId);
@@ -121,60 +117,48 @@ const Dashboard = () => {
           setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
           setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
         } else {
-          console.error("No grounds found for the company.");
+          setError("No grounds found for the company.");
         }
       }
     } catch (error) {
-      console.error("Error al obtener datos:", error);
+      setError("Error al obtener datos: " + error.message);
     } finally {
       setTimeout(() => {
         setIsLoading(false);
       }, 3000);
-      //Retraso la carga de la animación de carga para que no se vea tan rápido
     }
   }, []);
 
   const fetchKgDataQlty = useCallback(async (companyId, groundId, quality) => {
     setIsLoading(true);
+    setError(""); // Reset error state
 
     try {
       if (groundId) {
-        // Si groundId está definido, obtén los datos de kg para ese groundId
-
         const data = await getDataKgDayQlty(companyId, groundId, quality);
-        const dataKgSeason = await getDataKgSeason(
-          companyId,
-          groundId,
-          quality
-        );
+        const dataKgSeason = await getDataKgSeason(companyId, groundId, quality);
 
         setDataKgDayQlty(data);
         setDataKgSeasonQlty(dataKgSeason);
       } else {
-        // Si groundId no está definido, obtén los datos de grounds para encontrar el primer id
         const grounds = await getDataGround(companyId);
         if (grounds.length > 0) {
           const firstGroundId = grounds[0].id;
           setSelectedGround(firstGroundId);
-          const data = await getDataKgDayQlty(
-            companyId,
-            firstGroundId,
-            quality
-          );
+          const data = await getDataKgDayQlty(companyId, firstGroundId, quality);
           setDataKgDayQlty(data);
           setDataKgSeasonQlty(dataKgSeason);
         } else {
-          console.error("No grounds found for the company.");
+          setError("No grounds found for the company.");
         }
       }
     } catch (error) {
-      console.error("Error al obtener datos:", error);
+      setError("Error al obtener datos: " + error.message);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Función para verificar y actualizar el companyId y selectedGround
   const checkForCompanyAndGroundChange = async () => {
     const body = document.body;
     const companyClass = Array.from(body.classList).find((className) =>
@@ -185,7 +169,7 @@ const Dashboard = () => {
     );
 
     if (companyClass) {
-      const newCompanyId = companyClass.split("-")[1]; // Extraer el ID de la clase
+      const newCompanyId = companyClass.split("-")[1];
       if (newCompanyId !== companyId) {
         setCompanyId(newCompanyId);
         const grounds = await getDataGround(newCompanyId);
@@ -199,7 +183,7 @@ const Dashboard = () => {
     }
 
     if (groundClass) {
-      const newGroundId = groundClass.split("-")[1]; // Extraer el ID de la clase
+      const newGroundId = groundClass.split("-")[1];
       if (newGroundId !== selectedGround) {
         setSelectedGround(newGroundId);
         if (companyId) {
@@ -210,7 +194,6 @@ const Dashboard = () => {
     }
   };
 
-  // Efecto para inicializar companyId y hacer fetch inicial
   useEffect(() => {
     const initialCompanyId = getCompanyIdFromSessionStorage();
     const initialGroundId = getSelectedGroundFromSessionStorage();
@@ -229,7 +212,7 @@ const Dashboard = () => {
             fetchDataDay(initialCompanyId, firstGroundId);
             fetchKgDataQlty(initialCompanyId, firstGroundId, 1);
           } else {
-            console.error("No grounds found for the company.");
+            setError("No grounds found for the company.");
           }
         });
       }
@@ -238,26 +221,22 @@ const Dashboard = () => {
     getCompanyIdFromSessionStorage,
     getSelectedGroundFromSessionStorage,
     fetchDataDay,
+    fetchKgDataQlty,
   ]);
 
-  // Efecto para observar cambios en el body y actualizar el estado
   useEffect(() => {
     const body = document.body;
 
-    // Crear un MutationObserver para observar cambios en el body
     const observer = new MutationObserver(checkForCompanyAndGroundChange);
     observer.observe(body, { attributes: true, attributeFilter: ["class"] });
 
-    // Inicializar el estado con el valor actual del sessionStorage
     checkForCompanyAndGroundChange();
 
-    // Limpiar el observer al desmontar el componente
     return () => {
       observer.disconnect();
     };
-  }, [companyId, selectedGround, fetchDataDay]);
+  }, [companyId, selectedGround, checkForCompanyAndGroundChange]);
 
-  // Efecto para hacer fetch cuando selectedGround cambia
   useEffect(() => {
     if (selectedGround && companyId) {
       fetchDataDay(companyId, selectedGround);
