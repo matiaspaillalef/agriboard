@@ -172,13 +172,18 @@ export const getDataSectorBarracks = async (id_company) => {
       }
     );
 
+    console.log("res", res);
+
     if (res.ok) {
       const sectorBarracksData = await res.json();
+
+
+      console.log("res", sectorBarracksData);
 
       if (sectorBarracksData.code === "OK") {
         return sectorBarracksData.sectors;
       } else if (sectorBarracksData.code === "ERROR") {
-        return sectorBarracksData.mensaje;
+        return sectorBarracksData;
       }
     }
   } catch (err) {

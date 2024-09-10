@@ -239,26 +239,30 @@ const CardTableSeasons = ({
     const minutes = Math.floor((nowTime % 3600) / 60);
     const seconds = nowTime % 60;
 
-    initialData.forEach((season) => {
-      const endDate = moment(season.date_until)
-        .tz(timeZone)
-        .format("YYYY-MM-DD");
+    if (Array.isArray(initialData)) {
+      initialData.forEach((season) => {
+        const endDate = moment(season.date_until)
+          .tz(timeZone)
+          .format("YYYY-MM-DD");
 
-      if (endDate < localDateString && season.status === 1) {
-        const seasonToUpdate = {
-          id: season.id.toString(),
-          name: season.name,
-          period: season.period,
-          date_from: moment(season.date_from).format("YYYY-MM-DD"),
-          date_until: moment(season.date_until).format("YYYY-MM-DD"),
-          status: "2", // Convertir status a string
-          company_id: season.company_id.toString(),
-          shifts: season.shifts,
-        };
+        if (endDate < localDateString && season.status === 1) {
+          const seasonToUpdate = {
+            id: season.id.toString(),
+            name: season.name,
+            period: season.period,
+            date_from: moment(season.date_from).format("YYYY-MM-DD"),
+            date_until: moment(season.date_until).format("YYYY-MM-DD"),
+            status: "2", // Convertir status a string
+            company_id: season.company_id.toString(),
+            shifts: season.shifts,
+          };
 
-        onUpdateItem(seasonToUpdate);
-      }
-    });
+          onUpdateItem(seasonToUpdate);
+        }
+      });
+    } else {
+      console.log("No hay datos");
+    }
   }, [initialData, onUpdateItem]);
 
   const handleOpenAlert = (index, id, name_item) => {
@@ -896,28 +900,31 @@ const CardTableSeasons = ({
                         Turnos
                       </label>
 
-                      {dataShifts.map(
-                        (shift) =>
-                          shift.status == 1 && (
-                            <div key={shift.id} className="flex items-center">
-                              <input
-                                type="checkbox"
-                                id={`shift-${shift.id}`}
-                                name="shifts"
-                                value={shift.id}
-                                checked={selectedShifts.includes(shift.id)}
-                                onChange={() => handleCheckboxChange(shift.id)}
-                                className="mr-2"
-                              />
-                              <label
-                                htmlFor={`shift-${shift.id}`}
-                                className="text-sm font-medium text-gray-800 dark:text-white"
-                              >
-                                {shift.name}
-                              </label>
-                            </div>
-                          )
-                      )}
+                      {Array.isArray(dataShifts) &&
+                        dataShifts.map(
+                          (shift) =>
+                            shift.status == 1 && (
+                              <div key={shift.id} className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  id={`shift-${shift.id}`}
+                                  name="shifts"
+                                  value={shift.id}
+                                  checked={selectedShifts.includes(shift.id)}
+                                  onChange={() =>
+                                    handleCheckboxChange(shift.id)
+                                  }
+                                  className="mr-2"
+                                />
+                                <label
+                                  htmlFor={`shift-${shift.id}`}
+                                  className="text-sm font-medium text-gray-800 dark:text-white"
+                                >
+                                  {shift.name}
+                                </label>
+                              </div>
+                            )
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-3">
