@@ -388,8 +388,10 @@ const CardTableWorkers = ({
     }
   }, [updateMessage]);
 
+  console.log(data);
+
   useEffect(() => {
-    if (data && Object.keys(data).length > 0) {
+    if (data == undefined) {
       setLoading(false);
     }
   }, [data]);
@@ -417,13 +419,15 @@ const CardTableWorkers = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = initialData
+    ? initialData.slice(indexOfFirstItem, indexOfLastItem)
+    : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  if (!data || data.length === 0) {
+  /*if (!data || data.length === 0) {
     return <div>No hay datos disponibles.</div>;
-  }
+  }*/
 
   const formatDateToInput = (date) => {
     if (!date) return "";
@@ -758,7 +762,7 @@ const CardTableWorkers = ({
               </tbody>
             </table>
           </div>
-          {initialData.length > 0 && pagination.length > 1 && (
+          {Array.isArray(initialData) && initialData.length > 0 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
                 <p className="text-sm text-gray-800 dark:text-white">
@@ -1180,12 +1184,18 @@ const CardTableWorkers = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="">Selecciona un cargo</option>
-                        {dataPosition &&
+                        {Array.isArray(dataPosition) &&
+                        dataPosition.length > 0 ? (
                           dataPosition.map((position) => (
                             <option key={position.id} value={position.id}>
                               {position.name}
                             </option>
-                          ))}
+                          ))
+                        ) : (
+                          <option value="">
+                            No hay posiciones disponibles
+                          </option>
+                        )}
                       </select>
                     </div>
 
@@ -1207,12 +1217,18 @@ const CardTableWorkers = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="">Selecciona un contratista</option>
-                        {dataContractor &&
+                        {Array.isArray(dataContractor) &&
+                        dataContractor.length > 0 ? (
                           dataContractor.map((contractor) => (
                             <option key={contractor.id} value={contractor.id}>
                               {contractor.name}
                             </option>
-                          ))}
+                          ))
+                        ) : (
+                          <option value="">
+                            No hay contratistas disponibles
+                          </option>
+                        )}
                       </select>
                     </div>
 
@@ -1232,12 +1248,17 @@ const CardTableWorkers = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="">Selecciona una cuadrilla</option>
-                        {dataSquad &&
+                        {Array.isArray(dataSquad) && dataSquad.length > 0 ? (
                           dataSquad.map((squad) => (
                             <option key={squad.id} value={squad.id}>
                               {squad.name}
                             </option>
-                          ))}
+                          ))
+                        ) : (
+                          <option value="">
+                            No hay escuadrones disponibles
+                          </option>
+                        )}
                       </select>
                     </div>
 
@@ -1282,12 +1303,15 @@ const CardTableWorkers = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="">Selecciona un turno</option>
-                        {dataShift &&
+                        {Array.isArray(dataShift) && dataShift.length > 0 ? (
                           dataShift.map((shift) => (
                             <option key={shift.id} value={shift.id}>
                               {shift.name}
                             </option>
-                          ))}
+                          ))
+                        ) : (
+                          <option value="">No hay turnos disponibles</option>
+                        )}
                       </select>
                     </div>
                   </div>

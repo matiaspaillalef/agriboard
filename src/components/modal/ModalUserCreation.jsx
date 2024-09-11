@@ -9,42 +9,37 @@ import {
   DialogFooter,
 } from "@material-tailwind/react";
 import { useForm } from "react-hook-form";
-import { createUser }  from "@/app/api/ConfiguracionApi";
+import { createUser } from "@/app/api/ConfiguracionApi";
 
 const ModalUserCreation = (props) => {
-
   const [open, setOpen] = useState(false);
-  const {datoscombos} = props;
+  const { datoscombos } = props;
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
-    const  onSubmitForm =  async (data) => {
+  const onSubmitForm = async (data) => {
+    try {
+      const createUserapi = await createUser(data);
+      console.log(createUserapi);
 
-        try {
-      
-            const createUserapi = await createUser(data);
-            console.log(createUserapi);
-      
-            // Elimina la fila del front-end
-            if(createUserapi == "OK") {
-              //aqui se debe recargar la grilla con el usuario recien creado
-              //const updatedData = [...initialData];
-              //updatedData.splice(index, 1);
-              //setInitialData(updatedData); // Actualiza el estado con los datos sin la fila eliminada
-              setOpen(!open);
-            }else {
-              //aqui el else mati :P
-            }
-            
-          } catch (error) {
-            console.error(error);
-            // Manejo de errores
-          }
-
+      // Elimina la fila del front-end
+      if (createUserapi == "OK") {
+        //aqui se debe recargar la grilla con el usuario recien creado
+        //const updatedData = [...initialData];
+        //updatedData.splice(index, 1);
+        //setInitialData(updatedData); // Actualiza el estado con los datos sin la fila eliminada
+        setOpen(!open);
+      } else {
+        //aqui el else mati :P
+      }
+    } catch (error) {
+      console.error(error);
+      // Manejo de errores
+    }
   };
 
   const handleOpen = () => setOpen(!open);
@@ -185,8 +180,12 @@ const ModalUserCreation = (props) => {
                   {...register("menuRol")}
                   className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                 >
-                  {datoscombos.map((rol,index) => { 
-                    return (<option key={index} value={rol.id_rol}>{rol.descripcion}</option>)
+                  {datoscombos.map((rol, index) => {
+                    return (
+                      <option key={index} value={rol.id_rol}>
+                        {rol.descripcion}
+                      </option>
+                    );
                   })}
                 </select>
               </div>
@@ -221,14 +220,14 @@ const ModalUserCreation = (props) => {
         </DialogBody>
       </Dialog>
 
-      <div id="confirmModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <p>¿Estás seguro de que deseas eliminar este usuario?</p>
-    <button id="confirmBtn">Aceptar</button>
-    <button id="cancelBtn">Cancelar</button>
-  </div>
-</div>
+      <div id="confirmModal" className="modal">
+        <div className="modal-content">
+          <span className="close">&times;</span>
+          <p>¿Estás seguro de que deseas eliminar este usuario?</p>
+          <button id="confirmBtn">Aceptar</button>
+          <button id="cancelBtn">Cancelar</button>
+        </div>
+      </div>
     </>
   );
 };
