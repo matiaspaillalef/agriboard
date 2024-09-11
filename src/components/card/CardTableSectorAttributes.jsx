@@ -345,23 +345,37 @@ const CardTableSectorAttributes = ({
 
   // Creación
   const onSubmitForm = async (data) => {
-
     try {
       const transformedData = {
         id: Number(data.id) || null,
-        scale: Number(data.scale) || null,
-        date: data.date,
-        specie: Number(data.specie) || null,
-        variety: Number(data.variety) || null,
-        quality: Number(data.quality) || null,
-        season: Number(data.season) || null,
-        boxes: Number(data.boxes) || null,
-        kg_boxes: Number(data.kg_boxes) || null,
-        company_id: Number(data.company_id) || null,
+        season: Number(data.season),
+        sector: Number(data.sector),
+        specie: Number(data.specie),
+        variety: Number(data.variety),
+        year_harvest: data.year_harvest,
+        ha_productivas: data.ha_productivas,
+        hileras: data.hileras,
+        plants: data.plants,
+        min_daily_frecuency: data.min_daily_frecuency,
+        max_daily_frecuency: data.max_daily_frecuency,
+        harvest_end: Number(data.harvest_end),
+        stimation_good: data.stimation_good,
+        stimation_regular: data.stimation_regular,
+        stimation_bad: data.stimation,
+        stimation_replant_kg: data.stimation_replant_kg,
+        surface: data.surface,
+        interrow_density: data.interrow_density,
+        row_density: data.row_density,
+        quantity_plants_ha: data.quantity_plants_ha,
+        clasification: data.clasification,
+        rotation: data.rotation,
+        kg_sector: data.kg_sector,
+        kg_hectares: data.kg_hectares,
+        kg_plants: data.kg_plants,
+        porc_regular: data.porc_regular,
+        porc_replat: data.porc_replat,
+        company_id: Number(companyID),
       };
-
-      //remove name de transformData
-      delete transformedData.name;
 
       const createItem = await createAttributesSector(transformedData);
       const dataNew = await getDataAttributesSector(companyID);
@@ -432,7 +446,7 @@ const CardTableSectorAttributes = ({
     variety: dataVarieties,
     specie: dataSpecies,
     quality: dataQuality,
-    sector: dataSectorBarracks, 
+    sector: dataSectorBarracks,
     season: dataSeasons,
   };
 
@@ -683,7 +697,9 @@ const CardTableSectorAttributes = ({
                   ))
                 ) : (
                   <tr>
-                    <td className="py-4">No se encontraron registros.</td>
+                    <td className="py-4" colSpan={4}>
+                      No se encontraron registros.
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -782,54 +798,64 @@ const CardTableSectorAttributes = ({
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="scale"
+                        htmlFor="season"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Balanza
+                        Temporada
                       </label>
                       <select
-                        name="scale"
-                        id="scale"
+                        name="season"
+                        id="season"
                         required={true}
-                        {...register("scale")}
-                        defaultValue={selectedItem ? selectedItem.scale : ""}
+                        {...register("season")}
+                        defaultValue={selectedItem ? selectedItem.season : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        {Array.isArray(dataScale) && dataScale.length > 0 ? (
-                          dataScale.map(
-                            (scale) =>
-                              scale.status != 0 && (
-                                <option key={scale.id} value={scale.id}>
-                                  {scale.name}
+                        {Array.isArray(dataSeasons) &&
+                        dataSeasons.length > 0 ? (
+                          dataSeasons.map(
+                            (season) =>
+                              season.status != 0 && (
+                                <option key={season.id} value={season.id}>
+                                  {season.name}
                                 </option>
                               )
                           )
                         ) : (
-                          <option value="">No hay balanzas</option>
+                          <option value="">No hay temporadas</option>
                         )}
                       </select>
                     </div>
 
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="date"
+                        htmlFor="sector"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Fecha
+                        Sector
                       </label>
-                      <input
-                        type="date"
-                        name="date"
-                        id="date"
+                      <select
+                        name="sector"
+                        id="sector"
                         required={true}
-                        {...register("date")}
-                        defaultValue={
-                          selectedItem
-                            ? formatDateForInput(selectedItem.date)
-                            : ""
-                        }
+                        {...register("sector")}
+                        defaultValue={selectedItem ? selectedItem.sector : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
+                      >
+                        {Array.isArray(dataSectorBarracks) &&
+                        dataSectorBarracks.length > 0 ? (
+                          dataSectorBarracks.map(
+                            (sector) =>
+                              sector.status != 0 && (
+                                <option key={sector.id} value={sector.id}>
+                                  {sector.name}
+                                </option>
+                              )
+                          )
+                        ) : (
+                          <option value="">No hay sectores</option>
+                        )}
+                      </select>
                     </div>
 
                     <div className="flex flex-col gap-3">
@@ -893,105 +919,435 @@ const CardTableSectorAttributes = ({
                         )}
                       </select>
                     </div>
-                  </div>
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="quality"
+                        htmlFor="year_harvest"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Calidad
-                      </label>
-                      <select
-                        name="quality"
-                        id="quality"
-                        required={true}
-                        {...register("quality")}
-                        defaultValue={selectedItem ? selectedItem.quality : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        {Array.isArray(dataQuality) &&
-                        dataQuality.length > 0 ? (
-                          dataQuality.map(
-                            (quality) =>
-                              quality.status != 0 && (
-                                <option key={quality.id} value={quality.id}>
-                                  {quality.name}
-                                </option>
-                              )
-                          )
-                        ) : (
-                          <option value="">No hay calidades</option>
-                        )}
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="season"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Temporada
-                      </label>
-                      <select
-                        name="season"
-                        id="season"
-                        required={true}
-                        {...register("season")}
-                        defaultValue={selectedItem ? selectedItem.season : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
-                          dataSeasons.map(
-                            (season) =>
-                              season.status != 0 && (
-                                <option key={season.id} value={season.id}>
-                                  {season.name}
-                                </option>
-                              )
-                          )
-                        ) : (
-                          <option value="">No hay temporadas</option>
-                        )}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="boxes"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        N. de Cajas
+                        Año de cosecha
                       </label>
                       <input
-                        type="number"
-                        name="boxes"
-                        id="boxes"
+                        type="date"
+                        name="year_harvest"
+                        id="year_harvest"
                         required={true}
-                        {...register("boxes")}
-                        defaultValue={selectedItem ? selectedItem.boxes : ""}
+                        {...register("year_harvest")}
+                        defaultValue={
+                          selectedItem
+                            ? formatDateForInput(selectedItem.year_harvest)
+                            : ""
+                        }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
 
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="kg_boxes"
+                        htmlFor="ha_productivas"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Kg Cajas
+                        Ha Productivas
                       </label>
                       <input
                         type="number"
-                        name="kg_boxes"
-                        id="kg_boxes"
+                        name="ha_productivas"
+                        id="ha_productivas"
                         required={true}
-                        step="0.01"
-                        {...register("kg_boxes")}
-                        defaultValue={selectedItem ? selectedItem.kg_boxes : ""}
+                        step={0.01}
+                        {...register("ha_productivas")}
+                        defaultValue={
+                          selectedItem ? selectedItem.ha_productivas : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="hileras"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Hileras
+                      </label>
+                      <input
+                        type="number"
+                        name="hileras"
+                        id="hileras"
+                        required={true}
+                        {...register("hileras")}
+                        defaultValue={selectedItem ? selectedItem.hileras : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="plants"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Plantas
+                      </label>
+                      <input
+                        type="number"
+                        name="plants"
+                        id="plants"
+                        required={true}
+                        {...register("plants")}
+                        defaultValue={selectedItem ? selectedItem.plants : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="min_daily_frecuency"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Frecuencia mínima diaria
+                      </label>
+                      <input
+                        type="number"
+                        name="min_daily_frecuency"
+                        id="min_daily_frecuency"
+                        required={true}
+                        {...register("min_daily_frecuency")}
+                        defaultValue={
+                          selectedItem ? selectedItem.min_daily_frecuency : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="max_daily_frecuency"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Frecuencia máxima diaria
+                      </label>
+                      <input
+                        type="number"
+                        name="max_daily_frecuency"
+                        id="max_daily_frecuency"
+                        required={true}
+                        {...register("max_daily_frecuency")}
+                        defaultValue={
+                          selectedItem ? selectedItem.max_daily_frecuency : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="harvest_end"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Fin de cosecha
+                      </label>
+                      <select
+                        name="harvest_end"
+                        id="harvest_end"
+                        {...register("harvest_end")}
+                        defaultValue={
+                          selectedItem ? selectedItem.harvest_end : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="0">No</option>
+                        <option value="1">Si</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="stimation_good"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estimación de buena
+                      </label>
+                      <input
+                        type="number"
+                        name="stimation_good"
+                        id="stimation_good"
+                        {...register("stimation_good")}
+                        defaultValue={
+                          selectedItem ? selectedItem.stimation_good : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="stimation_regular"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estimación de regular
+                      </label>
+                      <input
+                        type="number"
+                        name="stimation_regular"
+                        id="stimation_regular"
+                        {...register("stimation_regular")}
+                        defaultValue={
+                          selectedItem ? selectedItem.stimation_regular : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="stimation_bad"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estimación de mala
+                      </label>
+                      <input
+                        type="number"
+                        name="stimation_bad"
+                        id="stimation_bad"
+                        {...register("stimation_bad")}
+                        defaultValue={
+                          selectedItem ? selectedItem.stimation_bad : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="stimation_replant_kg"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estimación de replante
+                      </label>
+                      <input
+                        type="number"
+                        name="stimation_replant_kg"
+                        id="stimation_replant_kg"
+                        step={0.01}
+                        {...register("stimation_replant_kg")}
+                        defaultValue={
+                          selectedItem ? selectedItem.stimation_replant_kg : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="surface"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Superficie
+                      </label>
+                      <input
+                        type="number"
+                        name="surface"
+                        id="surface"
+                        step={0.01}
+                        {...register("surface")}
+                        defaultValue={selectedItem ? selectedItem.surface : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="interrow_density"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Densidad entre hileras
+                      </label>
+                      <input
+                        type="number"
+                        name="interrow_density"
+                        id="interrow_density"
+                        step={0.01}
+                        {...register("interrow_density")}
+                        defaultValue={
+                          selectedItem ? selectedItem.interrow_density : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="row_density"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Densidad de hileras
+                      </label>
+                      <input
+                        type="number"
+                        name="row_density"
+                        id="row_density"
+                        step={0.01}
+                        {...register("row_density")}
+                        defaultValue={
+                          selectedItem ? selectedItem.row_density : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="quntity_plants_ha"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Cantidad de plantas por Ha
+                      </label>
+                      <input
+                        type="number"
+                        name="quntity_plants_ha"
+                        id="quntity_plants_ha"
+                        step={0.01}
+                        {...register("quntity_plants_ha")}
+                        defaultValue={
+                          selectedItem ? selectedItem.quntity_plants_ha : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="clasification"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Clasificación
+                      </label>
+                      <input
+                        type="text"
+                        name="clasification"
+                        id="clasification"
+                        {...register("clasification")}
+                        defaultValue={
+                          selectedItem ? selectedItem.clasification : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="rotation"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Rotación
+                      </label>
+                      <input
+                        type="number"
+                        name="rotation"
+                        id="rotation"
+                        step={0.01}
+                        {...register("rotation")}
+                        defaultValue={selectedItem ? selectedItem.rotation : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="kg_sector"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Kg por sector
+                      </label>
+                      <input
+                        type="number"
+                        name="kg_sector"
+                        id="kg_sector"
+                        step={0.01}
+                        {...register("kg_sector")}
+                        defaultValue={
+                          selectedItem ? selectedItem.kg_sector : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="kg_hectares"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Kg por hectáreas
+                      </label>
+                      <input
+                        type="number"
+                        name="kg_hectares"
+                        id="kg_hectares"
+                        step={0.01}
+                        {...register("kg_hectares")}
+                        defaultValue={
+                          selectedItem ? selectedItem.kg_hectares : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="kg_plants"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Kg por plantas
+                      </label>
+                      <input
+                        type="number"
+                        name="kg_plants"
+                        id="kg_plants"
+                        step={0.01}
+                        {...register("kg_plants")}
+                        defaultValue={
+                          selectedItem ? selectedItem.kg_plants : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="porc_regular"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Porcentaje de regular
+                      </label>
+                      <input
+                        type="number"
+                        name="porc_regular"
+                        id="porc_regular"
+                        step={0.01}
+                        {...register("porc_regular")}
+                        defaultValue={
+                          selectedItem ? selectedItem.porc_regular : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="porc_replat"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Porcentaje de replante
+                      </label>
+                      <input
+                        type="number"
+                        name="porc_replat"
+                        id="porc_replat"
+                        step={0.01}
+                        {...register("porc_replat")}
+                        defaultValue={
+                          selectedItem ? selectedItem.porc_replat : ""
+                        }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
@@ -1039,8 +1395,7 @@ const CardTableSectorAttributes = ({
                     {selectedItem.ha_productivas}
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Año plantación:</strong>{" "}
-                    {selectedItem.year_harvest}
+                    <strong>Año plantación:</strong> {selectedItem.year_harvest}
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Frecuencia diaria mínima:</strong>{" "}
@@ -1055,11 +1410,12 @@ const CardTableSectorAttributes = ({
                     {selectedItem.harvest_end == 1 ? "Sí" : "No"}
                   </p>
 
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Densidad de pantación</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    Densidad de pantación
+                  </h3>
                   <div className="flex flex-col gap-3">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                      <strong>Hileras:</strong>{" "}
-                      {selectedItem.hileras}
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Hileras:</strong> {selectedItem.hileras}
                     </p>
                     <p className="text-sm font-semibold text-gray-800 dark:text-white">
                       <strong>Distancia entre hileras:</strong>{" "}
@@ -1074,20 +1430,22 @@ const CardTableSectorAttributes = ({
                       {selectedItem.plants_per_row}
                     </p>
                     <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                      <strong>Número de plantas:</strong>{" "}
-                      {selectedItem.plants}
+                      <strong>Número de plantas:</strong> {selectedItem.plants}
                     </p>
                     <p className="text-sm font-semibold text-gray-800 dark:text-white">
                       <strong>Clasificación:</strong>{" "}
-                      {selectedItem.clasification != null ? selectedItem.clasification : '-'}
+                      {selectedItem.clasification != null
+                        ? selectedItem.clasification
+                        : "-"}
                     </p>
-                </div>
+                  </div>
 
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Proyección de producción</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    Proyección de producción
+                  </h3>
                   <div className="flex flex-col gap-3">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                      <strong>Hileras:</strong>{" "}
-                      {selectedItem.hileras}
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Hileras:</strong> {selectedItem.hileras}
                     </p>
                     <p className="text-sm font-semibold text-gray-800 dark:text-white">
                       <strong>Distancia entre hileras:</strong>{" "}
@@ -1102,16 +1460,16 @@ const CardTableSectorAttributes = ({
                       {selectedItem.plants_per_row}
                     </p>
                     <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                      <strong>Número de plantas:</strong>{" "}
-                      {selectedItem.plants}
+                      <strong>Número de plantas:</strong> {selectedItem.plants}
                     </p>
                     <p className="text-sm font-semibold text-gray-800 dark:text-white">
                       <strong>Clasificación:</strong>{" "}
-                      {selectedItem.clasification != null ? selectedItem.clasification : '-'}
+                      {selectedItem.clasification != null
+                        ? selectedItem.clasification
+                        : "-"}
                     </p>
+                  </div>
                 </div>
-
-              </div>
               )}
             </DialogBody>
           </Dialog>

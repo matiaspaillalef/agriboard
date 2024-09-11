@@ -332,9 +332,10 @@ const CardTableGround = ({
               </h4>
             )}
 
-            {Array.isArray(initialData) && initialData.length > 0 && (
+
               <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-                {downloadBtn && (
+                {Array.isArray(initialData) && initialData.length > 0 &&
+                downloadBtn && (
                   <ExportarExcel
                     data={initialData}
                     filename="campos"
@@ -352,7 +353,7 @@ const CardTableGround = ({
                   />
                 )}
               </div>
-            )}
+           
           </div>
 
           <div className="h-full overflow-x-scroll max-h-dvh">
@@ -497,7 +498,9 @@ const CardTableGround = ({
             </table>
           </div>
 
-          {initialData.length > 0 && pagination.length > 1 && (
+          {Array.isArray(initialData) &&
+            initialData.length > 0 &&
+            pagination.length > 1 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
                 <p className="text-sm text-gray-800 dark:text-white">

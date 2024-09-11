@@ -339,12 +339,15 @@ export const getDataGroups = async (id_company) => {
 
       const groupsData = await res.json();
 
+      //console.log('groupsData:', groupsData)
       if (groupsData.code === "OK") {
         return groupsData.groups;
       }
       else if (groupsData.code === "ERROR") {
         return groupsData.mensaje;
       }
+
+      
 
     }
 
@@ -629,7 +632,7 @@ export const getDataShifts = async (id_company) => {
 
       else if (shiftsData.code === "ERROR") {
         
-        return shiftsData.mensaje;
+        return shiftsData.code;
 
       }
     }
