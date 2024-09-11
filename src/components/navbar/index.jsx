@@ -151,14 +151,14 @@ const Navbar = (props) => {
               value={selectedGround}
               onChange={handleGroundChange}
             >
-              {dataGrounds && dataGrounds.length > 0 ? (
+              {dataGrounds && Array.isArray(dataGrounds) && dataGrounds.length > 0 ? (
                 dataGrounds.map((ground) => (
                   <option key={ground.id} value={ground.id}>
                     {ground.name}
                   </option>
                 ))
               ) : (
-                <option value="">No hay datos</option>
+                <option value="">Sin campos</option>
               )}
             </select>
           </div>

@@ -67,6 +67,8 @@ const PeopleManagementWorkers = () => {
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
+
+
   return (
     <>
       {isLoading ? (
