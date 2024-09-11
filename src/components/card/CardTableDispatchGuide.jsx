@@ -410,7 +410,9 @@ const CardTableDispatchGuide = ({
 
   const getNameByKey = (key, value) => {
     const data = dataMap[key];
-    return data?.find((item) => item.id === value)?.name || value;
+    return Array.isArray(data) 
+      ? data.find((item) => item.id === value)?.name || value
+      : value;
   };
 
   const formatDate = (isoDate) => {
