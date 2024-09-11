@@ -702,7 +702,7 @@ const CardTableSpecies = ({
                         Variedades
                       </label>
 
-                      {dataVarieties.map(
+                      {Array.isArray(dataVarieties) &&  dataVarieties.map(
                         (variety) =>
                           variety.status == 1 && (
                             <div key={variety.id} className="flex items-center">

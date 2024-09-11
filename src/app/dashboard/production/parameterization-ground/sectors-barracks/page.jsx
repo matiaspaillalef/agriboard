@@ -29,9 +29,22 @@ const PeopleManagementSectorsBarracks = () => {
     try {
       const data = await getDataSectorBarracks(companyId);
       const companies = await getDataCompanies();
-      setDataSectors(data);
+
+      console.log("Data de sectores:", data);
+
+      if(data === 'ERROR'){
+        console.log("Error al obtener datos de sectores");
+        setDataSectors([]);
+      }else{
+        setDataSectors(data);
+      }
+
+     
+
+      
       setDataCompanies(companies);
-      //console.log("Data de sectores:", data);
+      console.log("Data de sectores:", data);
+      console.log("Data de empresas:", companies);
 
     } catch (error) {
       console.error("Error al obtener datos:", error);
@@ -70,7 +83,7 @@ const PeopleManagementSectorsBarracks = () => {
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
-  //console.log(dataCompanies);
+  console.log(dataSectors.length);
 
   return (
     <>

@@ -256,7 +256,7 @@ const CardTableBarracks = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = (initialData.length > 0 ? initialData : initialData.mensaje).slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -472,6 +472,8 @@ const CardTableBarracks = ({
               </tbody>
             </table>
           </div>
+          {console.log(initialData)}
+          {console.log(initialData.length)}
           {initialData.length > 0 && pagination.length > 1 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
@@ -494,6 +496,7 @@ const CardTableBarracks = ({
                 >
                   <ChevronLeftIcon className="w-5 h-5" />
                 </button>
+
                 {pagination.map((page) => (
                   <button
                     key={page}
@@ -604,7 +607,7 @@ const CardTableBarracks = ({
                       //onChange={handleRegionChange}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {dataGround.map((ground) => (
+                      {Array.isArray(dataGround) && dataGround.map((ground) => (
                         <option key={ground.id} value={ground.id}>
                           {ground.name}
                         </option>

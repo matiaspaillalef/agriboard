@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
-import { set, useForm } from "react-hook-form";
-import moment from "moment-timezone";
+import ExportarPDF from "@/components/button/ButtonExportPDF";
+import { get, set, useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
   PlusIcon,
@@ -27,15 +27,18 @@ import {
   DialogFooter,
 } from "@material-tailwind/react";
 import {
+  getDataVarieties,
+  getDataSpecies,
+  getDataQuality,
   getDataSeasons,
-  updateSeason,
-  createSeason,
-  deleteSeason,
+  getDataSectorBarracks,
+  getDataAttributesSector,
+  updateAttributesSector,
+  createAttributesSector,
+  deleteAttributesSector,
 } from "@/app/api/ProductionApi";
 
-import { getDataShifts } from "@/app/api/ManagementPeople";
-
-const CardTableSeasons = ({
+const CardTableSectorAttributes = ({
   data,
   thead,
   columnsClasses = [],
@@ -78,30 +81,44 @@ const CardTableSeasons = ({
 
   const [rol, setRol] = useState(""); // control de item por rol
 
-  const [dataShifts, setDataShifts] = useState([]);
-  const [selectedShifts, setSelectedShifts] = useState([]);
+  const [dataSpecies, setDataSpecies] = useState([]);
+  const [dataVarieties, setDataVarieties] = useState([]);
+  const [dataQuality, setDataQuality] = useState([]);
+  const [dataSeasons, setDataSeasons] = useState([]);
+  const [dataScale, setDataScale] = useState([]);
+  const [selectedVarieties, setSelectedVarieties] = useState([]);
+  const [dataSectorBarracks, setDataSectorBarracks] = useState([]);
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
   useEffect(() => {
-    const handleNameShifts = async () => {
-      const shifts = await getDataShifts(companyID);
-      //console.log(shifts);
-      setDataShifts(shifts);
+    const handleNameVarieties = async () => {
+      const varieties = await getDataVarieties(companyID);
+      const species = await getDataSpecies(companyID);
+      const quality = await getDataQuality(companyID);
+      const seasons = await getDataSeasons(companyID);
+      const sector = await getDataSectorBarracks(companyID);
+
+      setDataVarieties(varieties);
+      setDataSpecies(species);
+      setDataQuality(quality);
+      setDataSeasons(seasons);
+      setDataSectorBarracks(sector);
     };
-    handleNameShifts();
+    handleNameVarieties();
   }, []);
 
   useEffect(() => {
     if (selectedItem) {
-      setSelectedShifts(selectedItem.shifts || []); // Asegúrate de que sea un arreglo
+      setSelectedVarieties(selectedItem.varieties || []); // Asegúrate de que sea un arreglo
+      //setValue('varieties', selectedItem.varieties || []); // Actualiza el valor del formulario
     }
   }, [selectedItem]);
 
   const handleCheckboxChange = (id) => {
-    setSelectedShifts((prevSelected) =>
+    setSelectedVarieties((prevSelected) =>
       prevSelected.includes(id)
-        ? prevSelected.filter((shiftId) => shiftId !== id)
+        ? prevSelected.filter((varietyId) => varietyId !== id)
         : [...prevSelected, id]
     );
   };
@@ -118,23 +135,26 @@ const CardTableSeasons = ({
     index: null,
     id: null,
     name: "",
-    period: "",
-    date_from: "",
-    date_until: "",
-    shifts: "",
-    status: "",
+    scale: "",
+    date: "",
+    boxes: "",
+    kg_boxes: "",
+    specie: "",
+    variety: "",
+    season: "",
+    company_id: "",
   });
 
-  const handleNameShifts = (ids) => {
+  const handleNameVarieties = (ids) => {
     if (!Array.isArray(ids)) {
       console.error("El argumento proporcionado no es un array.");
       return "";
     }
 
-    // Encontrar los nombres de los turnos correspondientes a los IDs
+    // Encontrar los nombres de las variedades correspondientes a los IDs
     const names = ids.map((id) => {
-      const shift = dataShifts.find((shift) => shift.id === id);
-      return shift ? shift.name : "";
+      const variety = dataVarieties.find((variety) => variety.id === id);
+      return variety ? variety.name : "";
     });
 
     // Filtrar nombres vacíos y unirlos con comas si hay más de uno
@@ -142,8 +162,8 @@ const CardTableSeasons = ({
     return filteredNames.join(filteredNames.length > 1 ? ", " : "");
   };
 
-  const handleNameShiftsSafe = (ids) => {
-    return Array.isArray(ids) ? handleNameShifts(ids) : "";
+  const handleNameVarietiesSafe = (ids) => {
+    return Array.isArray(ids) ? handleNameVarieties(ids) : "";
   };
 
   const handleOpenShowUser = (user) => {
@@ -184,7 +204,6 @@ const CardTableSeasons = ({
   };
 
   const onUpdateItem = async (data) => {
-    console.log(data);
     try {
       if (!data || !data.id) {
         throw new Error(
@@ -192,16 +211,10 @@ const CardTableSeasons = ({
         );
       }
 
-      let updatedData;
+      const updatedData = { ...data, varieties: selectedVarieties };
 
-      if (selectedShifts != "") {
-        updatedData = { ...data, shifts: selectedShifts };
-      } else {
-        updatedData = { ...data };
-      }
-
-      const updateItemApi = await updateSeason(updatedData);
-      const dataNew = await getDataSeasons(companyID);
+      const updateItemApi = await updateAttributesSector(updatedData);
+      const dataNew = await getDataAttributesSector(companyID);
 
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
@@ -210,11 +223,7 @@ const CardTableSeasons = ({
 
         setInitialData(updatedList);
         setInitialData(dataNew);
-
-        if (selectedShifts != "") {
-          setUpdateMessage("Registro actualizado correctamente");
-        }
-
+        setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
         setUpdateMessage("No se pudo actualizar el registro.");
@@ -225,46 +234,6 @@ const CardTableSeasons = ({
     }
   };
 
-  useEffect(() => {
-    // Define la zona horaria de Chile
-    const timeZone = "America/Santiago";
-    const now = moment().tz(timeZone);
-    const localDateString = now.format("YYYY-MM-DD");
-
-    // Obtener la hora en segundos desde medianoche
-    const nowTime = now.hours() * 3600 + now.minutes() * 60 + now.seconds(); // Total de segundos desde medianoche
-
-    // Calcula las horas, minutos y segundos
-    const hours = Math.floor(nowTime / 3600);
-    const minutes = Math.floor((nowTime % 3600) / 60);
-    const seconds = nowTime % 60;
-
-    if (Array.isArray(initialData)) {
-      initialData.forEach((season) => {
-        const endDate = moment(season.date_until)
-          .tz(timeZone)
-          .format("YYYY-MM-DD");
-
-        if (endDate < localDateString && season.status === 1) {
-          const seasonToUpdate = {
-            id: season.id.toString(),
-            name: season.name,
-            period: season.period,
-            date_from: moment(season.date_from).format("YYYY-MM-DD"),
-            date_until: moment(season.date_until).format("YYYY-MM-DD"),
-            status: "2", // Convertir status a string
-            company_id: season.company_id.toString(),
-            shifts: season.shifts,
-          };
-
-          onUpdateItem(seasonToUpdate);
-        }
-      });
-    } else {
-      console.log("No hay datos");
-    }
-  }, [initialData, onUpdateItem]);
-
   const handleOpenAlert = (index, id, name_item) => {
     setItemToDelete({ index, id, name_item });
     setOpenAlert(true);
@@ -274,20 +243,26 @@ const CardTableSeasons = ({
   const handleCloneAlert = (
     index,
     name,
-    period,
-    date_from,
-    date_until,
-    shifts,
-    status,
+    scale,
+    quality,
+    date,
+    boxes,
+    kg_boxes,
+    specie,
+    variety,
+    season,
     company_id
   ) => {
     setItemToClone({
       name,
-      period,
-      date_from,
-      date_until,
-      shifts,
-      status,
+      scale,
+      quality,
+      date,
+      boxes,
+      kg_boxes,
+      specie,
+      variety,
+      season,
       company_id,
     });
     setOpenAlertClone(true);
@@ -303,23 +278,14 @@ const CardTableSeasons = ({
   const handleCloseAlertClone = () => {
     setOpenAlertClone(false);
     setOpenAlert(false);
-    setItemToDelete({
-      index: null,
-      name: "",
-      period: "",
-      date_from: "",
-      date_until: "",
-      shifts: "",
-      status: "",
-      company_id: "",
-    });
+    setItemToDelete({ index: null, name: "", varieties: "", status: "" });
   };
 
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
     try {
       //if (userConfirmed) {
-      const deleteItem = await deleteSeason(id);
+      const deleteItem = await deleteAttributesSector(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
@@ -341,12 +307,25 @@ const CardTableSeasons = ({
   };
 
   const handlerClone = async () => {
-    const { name, period, date_from, date_until, shifts, status, company_id } =
-      itemToClone;
+    const {
+      scale,
+      date,
+      boxes,
+      quality,
+      kg_boxes,
+      specie,
+      variety,
+      season,
+      company_id,
+    } = itemToClone;
+
+    delete itemToClone.name;
+
+    console.log(itemToClone);
 
     try {
-      const cloneItem = await createSeason(itemToClone);
-      const dataNew = await getDataSeasons(companyID);
+      const cloneItem = await createAttributesSector(itemToClone);
+      const dataNew = await getDataAttributesSector(companyID);
 
       if (cloneItem === "OK") {
         const updatedData = [...initialData, itemToClone];
@@ -366,20 +345,26 @@ const CardTableSeasons = ({
 
   // Creación
   const onSubmitForm = async (data) => {
+
     try {
       const transformedData = {
         id: Number(data.id) || null,
-        name: data.name.trim(),
-        period: data.period.trim(),
-        date_from: data.date_from.trim(),
-        date_until: data.date_until.trim(),
-        shifts: selectedShifts,
-        company_id: Number(data.company_id) || null, // Convierte a número
-        status: data.status.trim(),
+        scale: Number(data.scale) || null,
+        date: data.date,
+        specie: Number(data.specie) || null,
+        variety: Number(data.variety) || null,
+        quality: Number(data.quality) || null,
+        season: Number(data.season) || null,
+        boxes: Number(data.boxes) || null,
+        kg_boxes: Number(data.kg_boxes) || null,
+        company_id: Number(data.company_id) || null,
       };
 
-      const createItem = await createSeason(transformedData);
-      const dataNew = await getDataSeasons(companyID);
+      //remove name de transformData
+      delete transformedData.name;
+
+      const createItem = await createAttributesSector(transformedData);
+      const dataNew = await getDataAttributesSector(companyID);
 
       if (createItem === "OK") {
         const updatedData = [...initialData, transformedData];
@@ -387,7 +372,7 @@ const CardTableSeasons = ({
         setInitialData(updatedData); //Actualizamos la visualización de la tabla
         setInitialData(dataNew); //Actualizamos la visualizacion pero con el id, quizas sea necesario quitar el de ahi arriba
         setOpen(false);
-        setSelectedShifts([]);
+        setSelectedVarieties([]);
         setUpdateMessage("Registro creado correctamente");
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
@@ -442,6 +427,20 @@ const CardTableSeasons = ({
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
+  //Mapero de datos para la tabla
+  const dataMap = {
+    variety: dataVarieties,
+    specie: dataSpecies,
+    quality: dataQuality,
+    sector: dataSectorBarracks, 
+    season: dataSeasons,
+  };
+
+  const getNameByKey = (key, value) => {
+    const data = dataMap[key];
+    return data?.find((item) => item.id === value)?.name || value;
+  };
+
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
     const day = date.getDate();
@@ -451,14 +450,10 @@ const CardTableSeasons = ({
     return `${day} de ${month} de ${year}`;
   };
 
-  const formatDateForInput = (isoDate) => {
-    if (!isoDate) return ""; // Maneja el caso en que la fecha sea null o undefined
-    const date = new Date(isoDate);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // `getMonth()` devuelve 0-11, así que sumamos 1
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  function formatDateForInput(dateString) {
+    if (!dateString) return "";
+    return dateString.substring(0, 10);
+  }
 
   return (
     <>
@@ -479,7 +474,7 @@ const CardTableSeasons = ({
           className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
         >
           <PlusIcon className="w-5 h-5" />
-          Nueva temporada
+          Nuevo registro
         </Button>
       </div>
       {loading ? (
@@ -508,8 +503,8 @@ const CardTableSeasons = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={initialData}
-                    filename="Temporadas"
-                    sheetname="temporadas"
+                    filename="Tipos de recolección"
+                    sheetname="Tipos de recolección"
                     titlebutton="Exportar a excel"
                   />
                 )}
@@ -576,131 +571,116 @@ const CardTableSeasons = ({
               )}
 
               <tbody role="rowgroup">
-                {/* Ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensaje, por eso comprueba si es un array o no, el currentItems es de la paginación */}
+                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no, el currentItems es de la paginación */}
                 {Array.isArray(initialData) && initialData.length > 0 ? (
-                  currentItems.map((row, index) => {
-                    // Calcula si la fila debe tener el fondo amarillo
-                    const endDate = new Date(row.date_until);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const endOfToday = new Date(today);
-                    endOfToday.setHours(15, 59, 59, 999);
+                  currentItems.map((row, index) => (
+                    <tr key={index} role="row">
+                      {Object.keys(row).map((key, rowIndex) => {
+                        if (omitirColumns.includes(key)) {
+                          return null; // Omitir la columna si está en omitirColumns
+                        }
 
-                    const tenDaysFromNow = new Date(today);
-                    tenDaysFromNow.setDate(today.getDate() + 10);
-
-                    const isClosingSoon =
-                      endDate >= today && endDate <= tenDaysFromNow;
-
-                    const rowClass =
-                      row.status === 2
-                        ? ""
-                        : isClosingSoon
-                        ? "bg-yellow-100"
-                        : index % 2 !== 0
-                        ? "bg-lightPrimary dark:bg-navy-900"
-                        : "";
-
-                    return (
-                      <tr key={index} role="row" className={rowClass}>
-                        {Object.keys(row).map((key, rowIndex) => {
-                          if (omitirColumns.includes(key)) {
-                            return null; // Omitir la columna si está en omitirColumns
-                          }
-
-                          return (
-                            <td
-                              key={rowIndex}
-                              role="cell"
-                              className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                                columnsClasses[rowIndex] || "text-left"
-                              }`}
-                            >
-                              <div className="text-base font-medium text-navy-700 dark:text-white">
-                                {key === "status" ? (
-                                  row[key] === 1 ? (
-                                    <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                      Activo
-                                    </p>
-                                  ) : row[key] === 2 ? (
-                                    <p className="inactiveState bg-orange-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                      Cerrado
-                                    </p>
-                                  ) : (
-                                    <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                      Inactivo
-                                    </p>
-                                  )
-                                ) : key === "date_from" ||
-                                  key === "date_until" ? (
-                                  formatDate(row[key])
-                                ) : (
-                                  formatNumber(row[key])
-                                )}
-                              </div>
-                            </td>
-                          );
-                        })}
-                        {actions && (
+                        return (
                           <td
-                            colSpan={columnLabels.length}
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${rowClass}`}
+                            key={rowIndex}
+                            role="cell"
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
+                              index % 2 !== 0
+                                ? "bg-lightPrimary dark:bg-navy-900"
+                                : ""
+                            } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
-                            <button
-                              type="button"
-                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                              onClick={() => handleOpenShowUser(row)}
-                            >
-                              <EyeIcon className="w-6 h-6" />
-                            </button>
-                            <button
-                              type="button"
-                              className="text-sm font-semibold text-gray-800 dark:text-white"
-                              onClick={() => handleOpenEditUser(row)}
-                            >
-                              <PencilSquareIcon className="w-6 h-6" />
-                            </button>
-
-                            <button
-                              type="button"
-                              className="text-sm font-semibold text-gray-800 dark:text-white"
-                              onClick={() => {
-                                handleCloneAlert(
-                                  index,
-                                  row.name ? row.name : "",
-                                  row.period ? row.period : "",
-                                  row.date_from ? row.date_from : "",
-                                  row.date_until ? row.date_until : "",
-                                  row.shifts ? row.shifts : "",
-                                  row.status !== undefined &&
-                                    row.status !== null
-                                    ? Number(row.status)
-                                    : "",
-                                  Number(companyID)
-                                );
-                              }}
-                            >
-                              <DocumentDuplicateIcon className="w-6 h-6" />
-                            </button>
-
-                            <button
-                              id="remove"
-                              type="button"
-                              onClick={() => {
-                                handleOpenAlert(
-                                  index,
-                                  row.id,
-                                  row.name ? row.name : ""
-                                );
-                              }}
-                            >
-                              <TrashIcon className="w-6 h-6" />
-                            </button>
+                            <div className="text-base font-medium text-navy-700 dark:text-white">
+                              {key === "status" ? (
+                                row[key] == 1 ? (
+                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Activo
+                                  </p>
+                                ) : (
+                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Inactivo
+                                  </p>
+                                )
+                              ) : key === "date" ? (
+                                formatDate(row[key]) // Formatea la fecha aquí
+                              ) : (
+                                getNameByKey(key, row[key]) ||
+                                formatNumber(row[key])
+                              )}
+                            </div>
                           </td>
-                        )}
-                      </tr>
-                    );
-                  })
+                        );
+                      })}
+                      {actions && (
+                        <td
+                          colSpan={columnLabels.length}
+                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
+                            index % 2 !== 0
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                            onClick={() => handleOpenShowUser(row)}
+                          >
+                            <EyeIcon className="w-6 h-6" />
+                          </button>
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white"
+                            //onClick={() => handleOpen(row)}
+                            onClick={() => handleOpenEditUser(row)}
+                          >
+                            <PencilSquareIcon className="w-6 h-6" />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white"
+                            onClick={() => {
+                              //console.log('clone',row);
+                              handleCloneAlert(
+                                index,
+                                //row.id,
+                                row.name
+                                  ? row.name
+                                  : getNameByKey("scale", row.scale),
+                                row.scale ? row.scale : "",
+                                row.quality ? row.quality : "",
+                                row.date ? row.date : "",
+                                row.boxes ? row.boxes : "",
+                                row.kg_boxes ? row.kg_boxes : "",
+                                row.specie ? row.specie : "",
+                                row.variety ? row.variety : "",
+                                row.season ? row.season : "",
+                                Number(companyID)
+                              );
+                            }}
+                          >
+                            <DocumentDuplicateIcon className="w-6 h-6" />
+                          </button>
+
+                          <button
+                            id="remove"
+                            type="button"
+                            onClick={() => {
+                              handleOpenAlert(
+                                index,
+                                row.id,
+                                row.scale
+                                  ? getNameByKey("scale", row.scale)
+                                  : ""
+                              );
+                            }}
+                          >
+                            <TrashIcon className="w-6 h-6" />
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
                 ) : (
                   <tr>
                     <td className="py-4">No se encontraron registros.</td>
@@ -775,10 +755,10 @@ const CardTableSeasons = ({
             </button>
             <DialogHeader className="dark:text-white">
               {openShowUser
-                ? "Datos de la temporada"
+                ? "Datos del registro"
                 : isEdit
-                ? "Editar temporada"
-                : "Nueva temporada"}
+                ? "Editar registro"
+                : "Nuevo registro"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -799,153 +779,221 @@ const CardTableSeasons = ({
                         : "grid-cols-12 lg:grid-cols-2"
                     } `}
                   ></div>
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                    <div className="flex flex-col gap-3 ">
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="name"
+                        htmlFor="scale"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Nombre
+                        Balanza
+                      </label>
+                      <select
+                        name="scale"
+                        id="scale"
+                        required={true}
+                        {...register("scale")}
+                        defaultValue={selectedItem ? selectedItem.scale : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        {Array.isArray(dataScale) && dataScale.length > 0 ? (
+                          dataScale.map(
+                            (scale) =>
+                              scale.status != 0 && (
+                                <option key={scale.id} value={scale.id}>
+                                  {scale.name}
+                                </option>
+                              )
+                          )
+                        ) : (
+                          <option value="">No hay balanzas</option>
+                        )}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="date"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Fecha
                       </label>
                       <input
-                        type="text"
-                        name="name"
-                        id="name"
+                        type="date"
+                        name="date"
+                        id="date"
                         required={true}
-                        {...register("name")}
-                        defaultValue={selectedItem ? selectedItem.name : ""}
+                        {...register("date")}
+                        defaultValue={
+                          selectedItem
+                            ? formatDateForInput(selectedItem.date)
+                            : ""
+                        }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
-                  </div>
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                    <div className="flex flex-row flex-wrap gap-3">
+                    <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="period"
-                        className="text-sm font-semibold text-gray-800 dark:text-white basis-full"
+                        htmlFor="specie"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Periodo
+                        Especie
                       </label>
                       <select
-                        name="period"
-                        id="period"
+                        name="specie"
+                        id="specie"
                         required={true}
-                        {...register("period")}
-                        defaultValue={selectedItem ? selectedItem.period : ""}
+                        {...register("specie")}
+                        defaultValue={selectedItem ? selectedItem.specie : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="Anual">Anual</option>
-                        <option value="Bimestral">Bimestral</option>
-                        <option value="Semestral">Semestral</option>
-                        <option value="Trimestral">Trimestral</option>
-                        <option value="Mensual">Mensual</option>
-                        <option value="Semanal">Semanal</option>
-                        <option value="Diario">Diario</option>
+                        {Array.isArray(dataSpecies) &&
+                        dataSpecies.length > 0 ? (
+                          dataSpecies.map(
+                            (specie) =>
+                              specie.status != 0 && (
+                                <option key={specie.id} value={specie.id}>
+                                  {specie.name}
+                                </option>
+                              )
+                          )
+                        ) : (
+                          <option value="">No hay especies</option>
+                        )}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="variety"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Variedad
+                      </label>
+                      <select
+                        name="variety"
+                        id="variety"
+                        required={true}
+                        {...register("variety")}
+                        defaultValue={selectedItem ? selectedItem.variety : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        {Array.isArray(dataSpecies) &&
+                        dataSpecies.length > 0 ? (
+                          dataVarieties.map(
+                            (variety) =>
+                              variety.status != 0 && (
+                                <option key={variety.id} value={variety.id}>
+                                  {variety.name}
+                                </option>
+                              )
+                          )
+                        ) : (
+                          <option value="">No hay variedades</option>
+                        )}
                       </select>
                     </div>
                   </div>
 
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                    <div className="flex flex-row flex-wrap gap-3">
+                    <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="date_from"
-                        className="text-sm font-semibold text-gray-800 dark:text-white basis-full"
+                        htmlFor="quality"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Fecha de inicio
+                        Calidad
                       </label>
-                      <input
-                        type="date"
-                        name="date_from"
-                        id="date_from"
+                      <select
+                        name="quality"
+                        id="quality"
                         required={true}
-                        {...register("date_from")}
-                        defaultValue={
-                          selectedItem
-                            ? formatDateForInput(selectedItem.date_from)
-                            : ""
-                        }
+                        {...register("quality")}
+                        defaultValue={selectedItem ? selectedItem.quality : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
+                      >
+                        {Array.isArray(dataQuality) &&
+                        dataQuality.length > 0 ? (
+                          dataQuality.map(
+                            (quality) =>
+                              quality.status != 0 && (
+                                <option key={quality.id} value={quality.id}>
+                                  {quality.name}
+                                </option>
+                              )
+                          )
+                        ) : (
+                          <option value="">No hay calidades</option>
+                        )}
+                      </select>
                     </div>
-                    <div className="flex flex-row flex-wrap gap-3">
+                    <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="date_until"
-                        className="text-sm font-semibold text-gray-800 dark:text-white basis-full"
+                        htmlFor="season"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Fecha de termino
+                        Temporada
                       </label>
-                      <input
-                        type="date"
-                        name="date_until"
-                        id="date_until"
+                      <select
+                        name="season"
+                        id="season"
                         required={true}
-                        {...register("date_until")}
-                        defaultValue={
-                          selectedItem
-                            ? formatDateForInput(selectedItem.date_until)
-                            : ""
-                        }
+                        {...register("season")}
+                        defaultValue={selectedItem ? selectedItem.season : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
+                      >
+                        {Array.isArray(dataSpecies) &&
+                        dataSpecies.length > 0 ? (
+                          dataSeasons.map(
+                            (season) =>
+                              season.status != 0 && (
+                                <option key={season.id} value={season.id}>
+                                  {season.name}
+                                </option>
+                              )
+                          )
+                        ) : (
+                          <option value="">No hay temporadas</option>
+                        )}
+                      </select>
                     </div>
                   </div>
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                    <div className="flex flex-row flex-wrap gap-3">
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="varieties"
-                        className="text-sm font-semibold text-gray-800 dark:text-white basis-full"
+                        htmlFor="boxes"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Turnos
+                        N. de Cajas
                       </label>
-
-                      {Array.isArray(dataShifts) &&
-                        dataShifts.map(
-                          (shift) =>
-                            shift.status == 1 && (
-                              <div key={shift.id} className="flex items-center">
-                                <input
-                                  type="checkbox"
-                                  id={`shift-${shift.id}`}
-                                  name="shifts"
-                                  value={shift.id}
-                                  checked={selectedShifts.includes(shift.id)}
-                                  onChange={() =>
-                                    handleCheckboxChange(shift.id)
-                                  }
-                                  className="mr-2"
-                                />
-                                <label
-                                  htmlFor={`shift-${shift.id}`}
-                                  className="text-sm font-medium text-gray-800 dark:text-white"
-                                >
-                                  {shift.name}
-                                </label>
-                              </div>
-                            )
-                        )}
+                      <input
+                        type="number"
+                        name="boxes"
+                        id="boxes"
+                        required={true}
+                        {...register("boxes")}
+                        defaultValue={selectedItem ? selectedItem.boxes : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
                     </div>
 
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="status"
+                        htmlFor="kg_boxes"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Estado
+                        Kg Cajas
                       </label>
-                      <select
-                        name="status"
-                        id="status"
+                      <input
+                        type="number"
+                        name="kg_boxes"
+                        id="kg_boxes"
                         required={true}
-                        {...register("status")}
-                        defaultValue={selectedItem ? selectedItem.status : ""}
+                        step="0.01"
+                        {...register("kg_boxes")}
+                        defaultValue={selectedItem ? selectedItem.kg_boxes : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="0">Inactivo</option>
-                        <option value="1">Activo</option>
-                        <option value="2">Cerrado</option>
-                      </select>
+                      />
                     </div>
                   </div>
 
@@ -970,38 +1018,100 @@ const CardTableSeasons = ({
                 </form>
               ) : (
                 <div className="flex flex-col gap-3">
-                  <p className="text-md font-semibold text-gray-800 dark:text-white">
-                    <strong>{selectedItem.name}</strong>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Temporada:</strong>{" "}
+                    {getNameByKey("season", selectedItem.season, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Sector:</strong>{" "}
+                    {getNameByKey("sector", selectedItem.sector, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Especie:</strong>{" "}
+                    {getNameByKey("specie", selectedItem.specie, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Variedad:</strong>{" "}
+                    {getNameByKey("variety", selectedItem.variety, dataMap)}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Ha. productivas:</strong>{" "}
+                    {selectedItem.ha_productivas}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Año plantación:</strong>{" "}
+                    {selectedItem.year_harvest}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Frecuencia diaria mínima:</strong>{" "}
+                    {selectedItem.min_daily_frecuency}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Frecuencia diaria máxima:</strong>{" "}
+                    {selectedItem.max_daily_frecuency}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Cosecha finalizada:</strong>{" "}
+                    {selectedItem.harvest_end == 1 ? "Sí" : "No"}
                   </p>
 
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Densidad de pantación</h3>
+                  <div className="flex flex-col gap-3">
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Periodo:</strong> {selectedItem.period}
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha de inicio:</strong>{" "}
-                    {formatDate(selectedItem.date_from)}
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha de termino:</strong>{" "}
-                    {formatDate(selectedItem.date_until)}
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Variedades:</strong>{" "}
-                    {handleNameShiftsSafe(selectedItem.shifts)}
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Estado:</strong>{" "}
-                    {selectedItem.status == 1
-                      ? "Activo"
-                      : selectedItem.status == 2
-                      ? "Cerrado"
-                      : "Inactivo"}
-                  </p>
+                      <strong>Hileras:</strong>{" "}
+                      {selectedItem.hileras}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Distancia entre hileras:</strong>{" "}
+                      {selectedItem.interrow_density} mts.
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Distancia sobre hileras:</strong>{" "}
+                      {selectedItem.row_density} mts.
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Plantas por hilera:</strong>{" "}
+                      {selectedItem.plants_per_row}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Número de plantas:</strong>{" "}
+                      {selectedItem.plants}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Clasificación:</strong>{" "}
+                      {selectedItem.clasification != null ? selectedItem.clasification : '-'}
+                    </p>
                 </div>
+
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Proyección de producción</h3>
+                  <div className="flex flex-col gap-3">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Hileras:</strong>{" "}
+                      {selectedItem.hileras}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Distancia entre hileras:</strong>{" "}
+                      {selectedItem.interrow_density} mts.
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Distancia sobre hileras:</strong>{" "}
+                      {selectedItem.row_density} mts.
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Plantas por hilera:</strong>{" "}
+                      {selectedItem.plants_per_row}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Número de plantas:</strong>{" "}
+                      {selectedItem.plants}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                      <strong>Clasificación:</strong>{" "}
+                      {selectedItem.clasification != null ? selectedItem.clasification : '-'}
+                    </p>
+                </div>
+
+              </div>
               )}
             </DialogBody>
           </Dialog>
@@ -1015,7 +1125,7 @@ const CardTableSeasons = ({
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
                 ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} la
-                temporada{" "}
+                recolección{" "}
                 <strong className="font-bold">
                   {openAlert ? itemToDelete.name_item : itemToClone.name}
                 </strong>
@@ -1054,4 +1164,4 @@ const CardTableSeasons = ({
   );
 };
 
-export default CardTableSeasons;
+export default CardTableSectorAttributes;
