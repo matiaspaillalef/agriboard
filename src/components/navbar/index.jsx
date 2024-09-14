@@ -134,18 +134,18 @@ const Navbar = (props) => {
   return (
     <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
       <div className="ml-[6px]">
-        <div className="h-6 lg:w-[224px] pt-1">
+        <div className="md:h-6 lg:w-[224px] pt-1">
           <Breadcrumb />
         </div>
 
         <TitlePage />
       </div>
 
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex w-full items-center justify-center gap-2 flex-col md:flex-row md:w-auto">
         {path === "/dashboard" && (
-          <div className="relative mt-[3px] flex h-[61px] w-[255px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:w-[255px] md:flex-grow-0 md:gap-1 xl:w-[255px] xl:gap-2">
+          <div className="relative mt-[3px] flex h-[61px] w-full md:w-[255px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[255px] xl:gap-2">
             <select
-              className="flex h-full w-[250px] items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px] px-5 gap-3 border-none text-[14px]"
+              className="flex h-full w-full items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white md:w-[250px]xl:w-[225px] px-5 gap-3 border-none text-[14px]"
               name="ground"
               id="ground"
               value={selectedGround}
@@ -164,7 +164,7 @@ const Navbar = (props) => {
           </div>
         )}
 
-        <div className="relative mt-[3px] flex h-[61px] w-[355px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:w-[395px] md:flex-grow-0 md:gap-1 xl:w-[395px] xl:gap-2">
+        <div className="relative mt-[3px] flex h-[61px] w-full flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:w-[395px] md:flex-grow-0 md:gap-1 xl:w-[395px] xl:gap-2">
           <div className="flex h-full items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px] leading-3 px-5 gap-3">
             👋
             <div className="flex flex-col">

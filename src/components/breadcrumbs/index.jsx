@@ -92,7 +92,7 @@ const path = usePathname();
   });
 
   return (
-    <div className="h-6 lg:w-[555px] pt-1">
+    <div className="h-full lg:h-6 w-full lg:w-[555px] pt-1 relative">
       {translatedSegments.map((item, index) => (
         <span key={index} className="text-sm font-normal capitalize text-navy-700 hover:underline dark:text-white dark:hover:text-white">
           {index !== translatedSegments.length - 1 ? (
