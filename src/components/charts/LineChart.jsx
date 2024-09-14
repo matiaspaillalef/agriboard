@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 const DynamicChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const LineChart = ({ data, title }) => {
-  const { humedad, temperatura, fechas } = data;
+  const { humedad = [], temperatura = [], fechas = [] } = data || {};
 
   const [loading, setLoading] = useState(true);
 
@@ -40,14 +40,18 @@ const LineChart = ({ data, title }) => {
       labels: {
         style: { colors: "#A3AED0", fontSize: "12px", fontWeight: "500" },
       },
-      categories: fechas,
+      categories: fechas || [],
     },
     yaxis: {
       axisBorder: { show: false },
       axisTicks: { show: false },
       labels: {
         style: { colors: "#A3AED0", fontSize: "12px", fontWeight: "500" },
-        offsetY: 10,
+        offsetY: 0,
+        formatter: (value) => {
+          //return value.toFixed(2);
+          return `${value.toFixed(1)}°`;
+        },
       },
       type: "numeric",
     },
@@ -56,12 +60,12 @@ const LineChart = ({ data, title }) => {
   const series = [
     {
       name: "Humedad",
-      data: humedad,
+      data: humedad || [],
       color: "#4fd273",
     },
     {
       name: "Temperatura",
-      data: temperatura,
+      data: temperatura || [],
       color: "#0d489b",
     }
   ];
