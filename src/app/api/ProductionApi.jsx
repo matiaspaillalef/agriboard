@@ -327,7 +327,9 @@ export const getDataAttributesSector = async (id_company) => {
   }
 };
 
-export const createAttributeSector = async (data) => {
+export const createAttributesSector = async (data) => {
+
+  console.log(data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createAttributeSector",
@@ -360,7 +362,7 @@ export const createAttributeSector = async (data) => {
           clasification: data.clasification,
           rotation: data.rotation,
           kg_sector: data.kg_sector,
-          kh_hectares: data.kh_hectares,
+          kg_hectares: data.kg_hectares,
           kg_plants: data.kg_plants,
           porc_regular: data.porc_regular,
           porc_replant: data.porc_replant,
@@ -387,7 +389,7 @@ export const createAttributeSector = async (data) => {
   }
 };
 
-export const updateAttributeSector = async (data) => {
+export const updateAttributesSector = async (data) => {
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/updateAttributeSector",
@@ -447,7 +449,7 @@ export const updateAttributeSector = async (data) => {
   }
 };
 
-export const deleteAttributeSector = async (id) => {
+export const deleteAttributesSector = async (id) => {
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/deleteAttributeSector",

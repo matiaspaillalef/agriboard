@@ -71,7 +71,48 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchKgDataQlty = useCallback(async (companyId, groundId, quality) => {
+
+    if (!companyId) {
+      setError("Company ID is required.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(""); // Reset error state
+
+    try {
+      if (groundId) {
+        const data = await getDataKgDayQlty(companyId, groundId, quality);
+        const dataKgSeason = await getDataKgSeason(companyId, groundId, quality);
+
+        setDataKgDayQlty(data);
+        setDataKgSeasonQlty(dataKgSeason);
+      } else {
+        const grounds = await getDataGround(companyId);
+        if (grounds.length > 0) {
+          const firstGroundId = grounds[0].id;
+          setSelectedGround(firstGroundId);
+          const data = await getDataKgDayQlty(companyId, firstGroundId, quality);
+          setDataKgDayQlty(data);
+          setDataKgSeasonQlty(dataKgSeason);
+        } else {
+          setError("No grounds found for the company.");
+        }
+      }
+    } catch (error) {
+      setError("Error al obtener datos: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const fetchDataDay = useCallback(async (companyId, groundId) => {
+    if (!companyId) {
+      setError("Company ID is required.");
+      return;
+    }
+
     setIsLoading(true);
     setError(""); // Reset error state
 
@@ -96,8 +137,11 @@ const Dashboard = () => {
         setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
       } else {
         const grounds = await getDataGround(companyId);
-        if (grounds.length > 0) {
+
+        if (Array.isArray(grounds) && grounds.length > 0) {
+          
           const firstGroundId = grounds[0].id;
+
           setSelectedGround(firstGroundId);
           const dataDay = await getDataKgDay(companyId, firstGroundId);
           const dataSeason = await getDataKgSeason(companyId, firstGroundId);
@@ -127,37 +171,9 @@ const Dashboard = () => {
         setIsLoading(false);
       }, 3000);
     }
-  }, []);
+  }, [fetchKgDataQlty]);
 
-  const fetchKgDataQlty = useCallback(async (companyId, groundId, quality) => {
-    setIsLoading(true);
-    setError(""); // Reset error state
 
-    try {
-      if (groundId) {
-        const data = await getDataKgDayQlty(companyId, groundId, quality);
-        const dataKgSeason = await getDataKgSeason(companyId, groundId, quality);
-
-        setDataKgDayQlty(data);
-        setDataKgSeasonQlty(dataKgSeason);
-      } else {
-        const grounds = await getDataGround(companyId);
-        if (grounds.length > 0) {
-          const firstGroundId = grounds[0].id;
-          setSelectedGround(firstGroundId);
-          const data = await getDataKgDayQlty(companyId, firstGroundId, quality);
-          setDataKgDayQlty(data);
-          setDataKgSeasonQlty(dataKgSeason);
-        } else {
-          setError("No grounds found for the company.");
-        }
-      }
-    } catch (error) {
-      setError("Error al obtener datos: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
   const checkForCompanyAndGroundChange = async () => {
     const body = document.body;
@@ -194,35 +210,35 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    const initialCompanyId = getCompanyIdFromSessionStorage();
-    const initialGroundId = getSelectedGroundFromSessionStorage();
+useEffect(() => {
+  const initialCompanyId = getCompanyIdFromSessionStorage();
+  const initialGroundId = getSelectedGroundFromSessionStorage();
 
-    if (initialCompanyId) {
-      setCompanyId(initialCompanyId);
-      if (initialGroundId) {
-        setSelectedGround(initialGroundId);
-        fetchDataDay(initialCompanyId, initialGroundId);
-        fetchKgDataQlty(initialCompanyId, initialGroundId, 1);
-      } else {
-        getDataGround(initialCompanyId).then((grounds) => {
-          if (grounds.length > 0) {
-            const firstGroundId = grounds[0].id;
-            setSelectedGround(firstGroundId);
-            fetchDataDay(initialCompanyId, firstGroundId);
-            fetchKgDataQlty(initialCompanyId, firstGroundId, 1);
-          } else {
-            setError("No grounds found for the company.");
-          }
-        });
-      }
+  if (initialCompanyId) {
+    setCompanyId(initialCompanyId);
+    if (initialGroundId) {
+      setSelectedGround(initialGroundId);
+      fetchDataDay(initialCompanyId, initialGroundId);
+      fetchKgDataQlty(initialCompanyId, initialGroundId, 1);
+    } else {
+      getDataGround(initialCompanyId).then((grounds) => {
+        if (grounds.length > 0) {
+          const firstGroundId = grounds[0].id;
+          setSelectedGround(firstGroundId);
+          fetchDataDay(initialCompanyId, firstGroundId);
+          fetchKgDataQlty(initialCompanyId, firstGroundId, 1);
+        } else {
+          setError("No grounds found for the company.");
+        }
+      }).catch(err => setError("Error fetching grounds: " + err.message));
     }
-  }, [
-    getCompanyIdFromSessionStorage,
-    getSelectedGroundFromSessionStorage,
-    fetchDataDay,
-    fetchKgDataQlty,
-  ]);
+  }
+}, [
+  getCompanyIdFromSessionStorage,
+  getSelectedGroundFromSessionStorage,
+  fetchDataDay,
+  fetchKgDataQlty
+]);
 
   useEffect(() => {
     const body = document.body;

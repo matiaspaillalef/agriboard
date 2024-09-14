@@ -361,7 +361,7 @@ const CardTableSectorAttributes = ({
         harvest_end: Number(data.harvest_end),
         stimation_good: data.stimation_good,
         stimation_regular: data.stimation_regular,
-        stimation_bad: data.stimation,
+        stimation_bad: data.stimation_bad,
         stimation_replant_kg: data.stimation_replant_kg,
         surface: data.surface,
         interrow_density: data.interrow_density,
@@ -373,7 +373,7 @@ const CardTableSectorAttributes = ({
         kg_hectares: data.kg_hectares,
         kg_plants: data.kg_plants,
         porc_regular: data.porc_regular,
-        porc_replat: data.porc_replat,
+        porc_replant: data.porc_replant,
         company_id: Number(companyID),
       };
 
@@ -1197,19 +1197,19 @@ const CardTableSectorAttributes = ({
 
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="quntity_plants_ha"
+                        htmlFor="quantity_plants_ha"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
                         Cantidad de plantas por Ha
                       </label>
                       <input
                         type="number"
-                        name="quntity_plants_ha"
-                        id="quntity_plants_ha"
+                        name="quantity_plants_ha"
+                        id="quantity_plants_ha"
                         step={0.01}
-                        {...register("quntity_plants_ha")}
+                        {...register("quantity_plants_ha")}
                         defaultValue={
-                          selectedItem ? selectedItem.quntity_plants_ha : ""
+                          selectedItem ? selectedItem.quantity_plants_ha : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
@@ -1334,19 +1334,19 @@ const CardTableSectorAttributes = ({
 
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="porc_replat"
+                        htmlFor="porc_replant"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
                         Porcentaje de replante
                       </label>
                       <input
                         type="number"
-                        name="porc_replat"
-                        id="porc_replat"
+                        name="porc_replant"
+                        id="porc_replant"
                         step={0.01}
-                        {...register("porc_replat")}
+                        {...register("porc_replant")}
                         defaultValue={
-                          selectedItem ? selectedItem.porc_replat : ""
+                          selectedItem ? selectedItem.porc_replant : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
