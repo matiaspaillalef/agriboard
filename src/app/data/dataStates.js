@@ -739,7 +739,7 @@ export const StateCL = [
         code: "16304",
       },
       {
-        name: "San Nico",
+        name: "San Nicolás",
         code: "16305",
       },
     ],

@@ -653,6 +653,7 @@ const CardTableGround = ({
                     <select
                       name="city"
                       id="city"
+                      required={true}
                       //value={selectedCity}
                       onChange={(event) => setSelectedCity(event.target.value)}
                       {...register("city")}
@@ -711,6 +712,14 @@ const CardTableGround = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
                       />
                     </div>
+                    <a
+                      htmlFor="link"
+                      href="https://www.gps-coordinates.net/my-location"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                      target="_blank"
+                    >
+                      <span class="text-red-500 text-xs">Conoce tu Ubicación</span>
+                    </a>
                   </div>
                   <div className="flex flex-col gap-3">
                     <label
