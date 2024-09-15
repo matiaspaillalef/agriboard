@@ -815,7 +815,7 @@ const CardTableSectorAttributes = ({
                         dataSeasons.length > 0 ? (
                           dataSeasons.map(
                             (season) =>
-                              season.status != 0 && (
+                              season.status == 1 && (
                                 <option key={season.id} value={season.id}>
                                   {season.name}
                                 </option>

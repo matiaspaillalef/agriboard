@@ -398,7 +398,7 @@ export const createGroup = async (data) => {
 }
 
 export const updateGroup = async (data) => {
-  console.log(data);
+
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/groups/updateGroup",

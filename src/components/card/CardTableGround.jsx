@@ -34,6 +34,7 @@ import {
 import { ProvitionalCL } from "@/app/data/dataProvisionals";
 import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
+import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 
 const CardTableGround = ({
   data,
@@ -73,36 +74,31 @@ const CardTableGround = ({
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
 
-  const [selectedRegion, setSelectedRegion] = useState("XV");
-  const [selectedCity, setSelectedCity] = useState("Arica");
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
 
   const [rut, setRut] = useState("");
   const [rutValido, setRutValido] = useState(false);
 
   const [rol, setRol] = useState(""); // control de item por rol
 
+  useEffect(() => {
+    // Cuando cambia la región, reiniciamos la ciudad seleccionada
+    setSelectedCity(""); // Esto asegura que la opción predeterminada esté seleccionada
+  }, [selectedRegion]);
+
   const handleRegionChange = (event) => {
-    const region = event.target.value;
-    setSelectedRegion(region);
-
-    // Buscar la región seleccionada en los datos de StateCL
-    const selectedRegionData = StateCL.find(
-      (state) => state.region_number === region
-    );
-
-    // Actualizar las comunas correspondientes a la región seleccionada
-    if (selectedRegionData) {
-      const { comunas } = selectedRegionData;
-      // Establecer la primera comuna como la seleccionada por defecto
-      if (comunas && comunas.length > 0) {
-        setSelectedCity(comunas[0].name);
-      } else {
-        setSelectedCity(""); // Resetear la ciudad seleccionada si no hay comunas
-      }
-    } else {
-      setSelectedCity(""); // Resetear la ciudad seleccionada si no se encuentra la región seleccionada
-    }
+    setSelectedRegion(event.target.value);
+    setSelectedCity(""); // Reiniciar la ciudad seleccionada
   };
+
+  const handleCityChange = (event) => {
+    setSelectedCity(event.target.value);
+  };
+
+  const filteredComunas =
+    StateCL.find((state) => state.region_number === selectedRegion)?.comunas ||
+    [];
 
   const [openAlert, setOpenAlert] = useState(false);
 
@@ -155,6 +151,7 @@ const CardTableGround = ({
       };
 
       const updateItemApi = await updateGround(updatedData);
+      const dataNew = await getDataGround(companyID);
 
       //console.log(updateItemApi);
       if (updateItemApi === "OK") {
@@ -163,6 +160,7 @@ const CardTableGround = ({
         );
 
         setInitialData(updatedList);
+        setInitialData(dataNew);
         setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
@@ -228,12 +226,12 @@ const CardTableGround = ({
 
       const createItem = await createGround(data);
 
-      console.log(createItem);
-
       if (createItem === "OK") {
         const updatedData = [...initialData, data];
+        const dataNew = await getDataGround(companyID);
 
         setInitialData(updatedData);
+        setInitialData(dataNew);
         setOpen(false);
         setUpdateMessage("Registro creado correctamente");
       } else {
@@ -332,9 +330,9 @@ const CardTableGround = ({
               </h4>
             )}
 
-
-              <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-                {Array.isArray(initialData) && initialData.length > 0 &&
+            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+              {Array.isArray(initialData) &&
+                initialData.length > 0 &&
                 downloadBtn && (
                   <ExportarExcel
                     data={initialData}
@@ -344,16 +342,15 @@ const CardTableGround = ({
                   />
                 )}
 
-                {SearchInput && (
-                  <input
-                    type="search"
-                    placeholder="Buscar"
-                    className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
-                    onKeyUp={handlerSearch}
-                  />
-                )}
-              </div>
-           
+              {SearchInput && (
+                <input
+                  type="search"
+                  placeholder="Buscar"
+                  className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
+                  onKeyUp={handlerSearch}
+                />
+              )}
+            </div>
           </div>
 
           <div className="h-full overflow-x-scroll max-h-dvh">
@@ -501,52 +498,52 @@ const CardTableGround = ({
           {Array.isArray(initialData) &&
             initialData.length > 0 &&
             pagination.length > 1 && (
-            <div className="flex items-center justify-between mt-5">
-              <div className="flex items-center gap-5">
-                <p className="text-sm text-gray-800 dark:text-white">
-                  Mostrando {indexOfFirstItem + 1} a{" "}
-                  {indexOfLastItem > initialData.length
-                    ? initialData.length
-                    : indexOfLastItem}{" "}
-                  de {initialData.length} registros
-                </p>
-              </div>
-              <div className="flex items-center gap-5">
-                <button
-                  type="button"
-                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                    currentPage === 1 && "hidden"
-                  }`}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeftIcon className="w-5 h-5" />
-                </button>
-                {pagination.map((page) => (
+              <div className="flex items-center justify-between mt-5">
+                <div className="flex items-center gap-5">
+                  <p className="text-sm text-gray-800 dark:text-white">
+                    Mostrando {indexOfFirstItem + 1} a{" "}
+                    {indexOfLastItem > initialData.length
+                      ? initialData.length
+                      : indexOfLastItem}{" "}
+                    de {initialData.length} registros
+                  </p>
+                </div>
+                <div className="flex items-center gap-5">
                   <button
-                    key={page}
                     type="button"
-                    className={`${
-                      currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                      currentPage === 1 && "hidden"
                     }`}
-                    onClick={() => handlePageChange(page)}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                   >
-                    {page}
+                    <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                ))}
-                <button
-                  type="button"
-                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRightIcon className="w-5 h-5" />
-                </button>
+                  {pagination.map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`${
+                        currentPage === page
+                          ? "font-semibold text-navy-500 dark:text-navy-300"
+                          : ""
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRightIcon className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           <Dialog
             open={open}
@@ -632,6 +629,10 @@ const CardTableGround = ({
                       onChange={handleRegionChange}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
+                      <option value="" disabled>
+                        Seleccione una región
+                      </option>
+
                       {StateCL.map((state) => (
                         <option
                           key={state.region_number}
@@ -654,20 +655,20 @@ const CardTableGround = ({
                       name="city"
                       id="city"
                       required={true}
-                      //value={selectedCity}
-                      onChange={(event) => setSelectedCity(event.target.value)}
+                      onChange={handleCityChange}
+                      //onChange={(event) => setSelectedCity(event.target.value)}
                       {...register("city")}
                       defaultValue={selectedItem ? selectedItem.city : ""}
+                      //value={selectedCity}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {selectedRegion &&
-                        StateCL.find(
-                          (state) => state.region_number === selectedRegion
-                        )?.comunas.map((comuna) => (
-                          <option key={comuna.name} value={comuna.name}>
-                            {comuna.name}
-                          </option>
-                        ))}
+                      <option value="">Seleccione una ciudad</option>{" "}
+                      {/* Opción predeterminada */}
+                      {filteredComunas.map((comuna) => (
+                        <option key={comuna.name} value={comuna.name}>
+                          {comuna.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -718,7 +719,9 @@ const CardTableGround = ({
                       className="text-sm font-semibold text-gray-800 dark:text-white"
                       target="_blank"
                     >
-                      <span class="text-red-500 text-xs">Conoce tu Ubicación</span>
+                      <span class="text-red-500 text-xs">
+                        Conoce tu Ubicación
+                      </span>
                     </a>
                   </div>
                   <div className="flex flex-col gap-3">

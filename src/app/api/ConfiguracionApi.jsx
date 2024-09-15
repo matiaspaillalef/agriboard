@@ -190,6 +190,7 @@ export const getDataCompanies = async () => {
     if (res.ok) {
       
       const companiesData = await res.json();
+      console.log(companiesData);
       return companiesData;
       
     }

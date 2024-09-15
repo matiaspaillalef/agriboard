@@ -6,6 +6,9 @@ import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
 import { set, useForm } from "react-hook-form";
 import "@/assets/css/Table.css";
+
+const URLAPI = process.env.NEXT_PUBLIC_API_URL;
+
 import {
   PlusIcon,
   XMarkIcon,
@@ -15,6 +18,7 @@ import {
   ChevronLeftIcon,
   EyeIcon,
   DocumentDuplicateIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
@@ -33,6 +37,8 @@ import {
   createScale,
   deleteScale,
 } from "@/app/api/ProductionApi";
+import { setActive } from "@material-tailwind/react/components/Tabs/TabsContext";
+import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 
 const CardTableScale = ({
   data,
@@ -95,6 +101,7 @@ const CardTableScale = ({
     status: "",
   });
 
+  const [activeMssg, setActiveMssg] = useState(false);
 
   const handleOpenShowUser = (user) => {
     //console.log(user);
@@ -166,6 +173,15 @@ const CardTableScale = ({
     setItemToDelete({ index, id, name_item });
     setOpenAlert(true);
     setOpenAlertClone(false);
+  };
+
+  const handleOpenMssg = (index, id, name_item) => {
+    setActiveMssg(true);
+    setItemToDelete({ index, id, name_item });
+  };
+
+  const handleCloseMssg = () => {
+    setActiveMssg(false);
   };
 
   const handleCloneAlert = (index, name, location, status, company_id) => {
@@ -309,6 +325,56 @@ const CardTableScale = ({
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
+  const [messageContent, setMessageContent] = useState("");
+
+  const handleSendMessage = async (data) => {
+    try {
+      const response = await fetch( URLAPI + "/api/v1/notificationScale", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        alert('Correo enviado exitosamente');
+        handleCloseMssg(); // Cierra el diálogo después de enviar el mensaje
+      } else {
+        alert('Error al enviar el correo');
+      }
+    } catch (error) {
+      console.error('Error al enviar el correo:', error);
+      alert('Error al enviar el correo');
+    }
+  };
+
+  const [companyName, setCompanyName] = useState('');
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getDataCompanies();
+        
+        if (response.code === 'OK' && response.companies) {
+          const company = response.companies.find(comp => comp.id === Number(companyID));
+          
+          if (company) {
+            setCompanyName(company.name_company); // Ajusta esto al campo correcto de tu respuesta
+            setValue('company_id', company.id); // Establecer el valor del input oculto
+          } else {
+            console.error(`Compañía con ID ${companyID} no encontrada.`);
+          }
+        } else {
+          console.error('Respuesta inválida:', response);
+        }
+      } catch (error) {
+        console.error('Error al obtener datos de las compañías:', error);
+      }
+    };
+
+    fetchData();
+  }, [companyID, getDataCompanies]);
+
   return (
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
@@ -321,16 +387,18 @@ const CardTableScale = ({
           {updateMessage}
         </div>
       )}
-      <div className="mb-3 flex gap-5 ">
-        <Button
-          onClick={handleOpenNewUser}
-          //variant="gradient"
-          className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Nueva Balanza
-        </Button>
-      </div>
+      {rol === 1 && (
+        <div className="mb-3 flex gap-5 ">
+          <Button
+            onClick={handleOpenNewUser}
+            //variant="gradient"
+            className="max-w-[300px] linear mt-2 w-full rounded-xl bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
+          >
+            <PlusIcon className="w-5 h-5" />
+            Nueva Balanza
+          </Button>
+        </div>
+      )}
       {loading ? (
         <div role="status" className="max-w-full animate-pulse p-0">
           {/* Titulo */}
@@ -482,45 +550,67 @@ const CardTableScale = ({
                           >
                             <EyeIcon className="w-6 h-6" />
                           </button>
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            //onClick={() => handleOpen(row)}
-                            onClick={() => handleOpenEditUser(row)}
-                          >
-                            <PencilSquareIcon className="w-6 h-6" />
-                          </button>
+                          {rol === 1 && (
+                            <>
+                              <button
+                                type="button"
+                                className="text-sm font-semibold text-gray-800 dark:text-white"
+                                //onClick={() => handleOpen(row)}
+                                onClick={() => handleOpenEditUser(row)}
+                              >
+                                <PencilSquareIcon className="w-6 h-6" />
+                              </button>
+
+                              <button
+                                type="button"
+                                className="text-sm font-semibold text-gray-800 dark:text-white"
+                                onClick={() => {
+                                  handleCloneAlert(
+                                    index,
+                                    //row.id,
+                                    row.name ? row.name : "",
+                                    row.location ? row.location : "",
+                                    row.status !== undefined &&
+                                      row.status !== null
+                                      ? Number(row.status)
+                                      : "",
+                                    Number(companyID)
+                                  );
+                                }}
+                              >
+                                <DocumentDuplicateIcon className="w-6 h-6" />
+                              </button>
+
+                              <button
+                                id="remove"
+                                type="button"
+                                onClick={() => {
+                                  //console.log(row);
+                                  handleOpenAlert(
+                                    index,
+                                    row.id,
+                                    row.name ? row.name : ""
+                                  );
+                                }}
+                              >
+                                <TrashIcon className="w-6 h-6" />
+                              </button>
+                            </>
+                          )}
 
                           <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            onClick={() => {
-                              handleCloneAlert(
-                                index,
-                                //row.id,
-                                row.name ? row.name : "",
-                                row.location ? row.location : "",
-                                row.status !== undefined && row.status !== null ? Number(row.status) : "",
-                                Number(companyID)
-                              );
-                            }}
-                          >
-                            <DocumentDuplicateIcon className="w-6 h-6" />
-                          </button>
-
-                          <button
-                            id="remove"
+                            id="message"
                             type="button"
                             onClick={() => {
                               //console.log(row);
-                              handleOpenAlert(
+                              handleOpenMssg(
                                 index,
                                 row.id,
                                 row.name ? row.name : ""
                               );
                             }}
                           >
-                            <TrashIcon className="w-6 h-6" />
+                            <EnvelopeIcon className="w-6 h-6" />
                           </button>
                         </td>
                       )}
@@ -655,12 +745,10 @@ const CardTableScale = ({
                         id="location"
                         required={true}
                         {...register("location")}
-                        defaultValue={
-                          selectedItem ? selectedItem.location : ""
-                        }
+                        defaultValue={selectedItem ? selectedItem.location : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
-                  </div>
+                    </div>
                   </div>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-col gap-3">
@@ -709,8 +797,7 @@ const CardTableScale = ({
                     <strong>{selectedItem.name}</strong>
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Ubicación:</strong>{" "}
-                    {selectedItem.location}
+                    <strong>Ubicación:</strong> {selectedItem.location}
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Estado:</strong>{" "}
@@ -761,6 +848,62 @@ const CardTableScale = ({
                 )}
               </button>
             </>
+          </Dialog>
+          <Dialog
+            open={activeMssg}
+            handler={handleCloseMssg}
+            size="xs"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+          >
+           
+              <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
+                ¿Seguro que desea enviar un mensaje al administrador por un
+                defecto en la{" "}
+                <strong className="font-bold">
+                  {activeMssg ? itemToDelete.name_item : ""}
+                </strong>
+                ?
+              </h2>
+              <p className="dark:text-white mb-4">
+                Envíanos un mensaje si la pesa seleecionada tiene algún defecto,
+                para que podamos verificarlo y solucionarlo a la brevedad.
+              </p>
+              <button
+                type="button"
+                onClick={handleCloseMssg}
+                className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
+              >
+                <XMarkIcon className="text-white w-5 h-5" />
+              </button>
+              <form onSubmit={handleSubmit(handleSendMessage)} className="w-full">
+              <textarea
+                className="w-full h-40 border rounded p-2"
+                placeholder="Escribe tu mensaje"
+                value={messageContent}
+              onChange={(e) => setMessageContent(e.target.value)}
+              ></textarea>
+              <input
+                type="hidden"
+                name="company_id"
+                {...register("company_id")}
+                
+                defaultValue={companyName}
+              />
+              <input
+                type="hidden"
+                name="name"
+                {...register("name")}
+                defaultValue={activeMssg ? itemToDelete.name_item : ""}
+              />
+              <button
+                type="button"
+                onClick={handleSendMessage}
+                className="bg-blueTertiary text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-2"
+              >
+                <EnvelopeIcon className="text-white w-5 h-5" /> Enviar
+              </button>
+              </form>
+           
           </Dialog>
         </>
       )}

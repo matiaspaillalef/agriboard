@@ -136,15 +136,14 @@ const CardTableBarracks = ({
         const updatedList = initialData.map((item) =>
           item.id === Number(data.id) ? { ...item, ...data } : item
         );
-
-        //Le coloque Number por que llega como string y debe ser number
+        
 
         setInitialData(updatedList);
         setInitialData(dataNew);
         setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
-        setUpdateMessage("No se pudo actualizar el registro.");
+        setUpdateMessage(updateItemApi || "No se pudo actualizar el registro.");
       }
     } catch (error) {
       console.error(error);
@@ -190,27 +189,28 @@ const CardTableBarracks = ({
   const onSubmitForm = async (data) => {
     try {
       const transformedData = {
-        id: Number(data.id) || null, // Convierte a número, o usa null si no hay id
-        name: data.name.trim(), // Elimina espacios en blanco alrededor
-        ground: Number(data.ground) || null, // Convierte a número
-        company_id: Number(data.company_id) || null, // Convierte a número
-        status: data.status.trim(), // Elimina espacios en blanco alrededor
+        name: data.name.trim(),
+        ground: Number(data.ground) || null,
+        company_id: Number(data.company_id) || null,
+        status: data.status.trim(),
       };
 
+      
       const createItem = await createSectorBarrack(transformedData);
       const dataNew = await getDataSectorBarracks(companyID);
 
       if (createItem === "OK") {
-        const updatedData = [...initialData, transformedData];
-
-        setInitialData(updatedData); //Actualizamos la visualización de la tabla
-        setInitialData(dataNew); //Actualizamos la visualizacion pero con el id, quizas sea necesario quitar el de ahi arriba
+        const updatedData = Array.isArray(dataNew)
+          ? dataNew
+          : [...initialData, transformedData];
+        setInitialData(updatedData); // Actualiza con la respuesta nueva
         setOpen(false);
         setUpdateMessage("Registro creado correctamente");
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
       }
     } catch (error) {
+
       console.error("Error al crear el registro:", error);
       setUpdateMessage("Error al intentar crear el registro");
     }
@@ -256,7 +256,9 @@ const CardTableBarracks = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = (initialData.length > 0 ? initialData : initialData.mensaje).slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = (
+    Array.isArray(initialData) && initialData.length > 0 ? initialData : []
+  ).slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -426,17 +428,6 @@ const CardTableBarracks = ({
                               : ""
                           }`}
                         >
-                          {/**Clonar */}
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            onClick={() => handleOpenEditUser(row)}
-
-                          >
-                           <DocumentDuplicateIcon className="w-6 h-6" />
-                          </button>
-                
-
                           <button
                             type="button"
                             className="text-sm font-semibold text-gray-800 dark:text-white"
@@ -472,8 +463,6 @@ const CardTableBarracks = ({
               </tbody>
             </table>
           </div>
-          {console.log(initialData)}
-          {console.log(initialData.length)}
           {initialData.length > 0 && pagination.length > 1 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
@@ -607,11 +596,12 @@ const CardTableBarracks = ({
                       //onChange={handleRegionChange}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {Array.isArray(dataGround) && dataGround.map((ground) => (
-                        <option key={ground.id} value={ground.id}>
-                          {ground.name}
-                        </option>
-                      ))}
+                      {Array.isArray(dataGround) &&
+                        dataGround.map((ground) => (
+                          <option key={ground.id} value={ground.id}>
+                            {ground.name}
+                          </option>
+                        ))}
                     </select>
                   </div>
 
