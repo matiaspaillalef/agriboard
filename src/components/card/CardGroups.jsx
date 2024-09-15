@@ -28,6 +28,7 @@ const CardTableGroups = ({
   omitirColumns = [],
   title,
   actions,
+  companyID,
   tableId,
   downloadBtn,
   SearchInput,
@@ -94,35 +95,42 @@ const CardTableGroups = ({
   };
 
   const onUpdateItem = async (data) => {
-    //console.log("Datos de la empresa a actualizar:", data);
+    console.log("Datos de la empresa a actualizar:", data);
     try {
-      const updateGroupApi = await updateGroup(data);
+        const updateGroupApi = await updateGroup(data);
+        const dataNew = await getDataGroups(companyID);
 
-      // Elimina la fila del front-end
-      if (updateGroupApi === "OK") {
+        // Verifica si la actualización fue exitosa
+        if (updateGroupApi === "OK") {
 
-        const updatedData = initialData.map((item) =>
-          item.id == data.id
-            ? {
-              id: data.id,
-              name: data.name,
-              status: data.status,
-            }
-            : item
-        );
+            // Actualiza la fila en el front-end
+            const updatedData = initialData.map((item) => {
+                console.log("item.id", item.id); // Imprime solo el id del item
 
-        setInitialData(updatedData);
-        setUpdateMessage("Grupo actualizada correctamente");
-        setOpen(false);
-      } else {
-        setUpdateMessage("No se pudo actualizar el grupo");
-      }
+                return item.id === data.id
+                    ? {
+                        id: data.id,
+                        name: data.name,
+                        status: data.status,
+                        id_company: data.company_id,
+                    }
+                    : item;
+            });
+
+            setInitialData(updatedData);
+            setInitialData(dataNew);
+            setUpdateMessage("Grupo actualizado correctamente");
+            setOpen(false);
+        } else {
+            setUpdateMessage("No se pudo actualizar el grupo");
+        }
     } catch (error) {
-      console.error(error);
-      // Manejo de errores
-      setUpdateMessage("Error al intentar actualizar el grupo. Inténtalo nuevamente.");
+        console.error(error);
+        // Manejo de errores
+        setUpdateMessage("Error al intentar actualizar el grupo. Inténtalo nuevamente.");
     }
-  };
+};
+
 
   const handleOpenAlert = (index, id, name) => {
     setItemToDelete({ index, id, name });
@@ -137,7 +145,6 @@ const CardTableGroups = ({
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
 
-    console.log(id);
     try {
       //if (userConfirmed) {
       const deleteGroup = await deleteGroupApi(id);
@@ -161,22 +168,28 @@ const CardTableGroups = ({
 
   // Creación de empresa
   const onSubmitForm = async (data) => {
+
     try {
-      const createGroupapi = await createGroup(data);
-
-      // Agrega la fila del front-end
-      if (createGroupapi == "OK") {
-        const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
-
+      // Crear una copia de los datos y eliminar la propiedad 'id' si existe
+      const { id, ...dataWithoutId } = data;
+  
+      // Enviar datos sin el 'id' a la API
+      const createGroupapi = await createGroup(dataWithoutId);
+  
+      // Agregar la fila del front-end
+      if (createGroupapi === "OK") {
+        const updatedData = [...initialData, dataWithoutId]; // Agregar el nuevo grupo a la lista de datos existente
+  
         setInitialData(updatedData);
-
+  
         const userDataString = sessionStorage.getItem("userData");
         const userData = JSON.parse(userDataString);
         const idCompany = userData.idCompany;
-
-        //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
+  
+        // Hago este fetch para traer la data actualizada de la BD
         const newDataFetch = await getDataGroups(idCompany); 
-
+  
+        // Actualizar el estado con la data obtenida de la BD
         setInitialData(newDataFetch);
         setOpen(false);
         setUpdateMessage("Grupo creado correctamente");
@@ -608,6 +621,14 @@ const CardTableGroups = ({
                       <option value="1">Activo</option>
                     </select>
                   </div>
+
+                  <input
+                    type="hidden"
+                    name="company_id"
+                    {...register("company_id")}
+                    defaultValue={companyID}
+                  />
+
                   <div className="flex flex-col gap-3">
                     <button
                       type="submit"

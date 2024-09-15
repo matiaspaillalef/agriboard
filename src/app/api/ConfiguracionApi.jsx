@@ -27,14 +27,10 @@ export const getDataUser = async () => {
     );
 
     if (res.ok) {
+      
       const userData = await res.json();
+      return  userData;
 
-      if (userData.code === "OK") {
-        return userData.usuarios;
-      }
-      else if (userData.code === "ERROR") {
-        return userData.mensaje;
-      }
     }
   } catch (err) {
     console.error(err);
@@ -59,9 +55,10 @@ export const deleteUser = async (idUser) => {
     );
 
     if (res.ok) {
+      
       const userData = await res.json();
+      return userData;
 
-      return userData.code;
     }
   } catch (err) {
     console.error(err);
@@ -92,11 +89,7 @@ export const createUser = async (data) => {
 
     if (res.ok) {
       const userData = await res.json();
-
-      return userData.code;
-    }
-    else if (userData.code === "ERROR") {
-      return userData.mensaje;
+      return userData;
     }
 
   } catch (err) {
@@ -130,12 +123,10 @@ export const updateUser = async (data) => {
     );
 
     if (res.ok) {
-      const userData = await res.json();
 
-      return userData.code;
-    }
-    else if (userData.code === "ERROR") {
-      return userData.mensaje;
+      const userData = await res.json();
+      return userData
+
     }
 
   } catch (err) {
@@ -197,14 +188,11 @@ export const getDataCompanies = async () => {
     );
 
     if (res.ok) {
+      
       const companiesData = await res.json();
-
-      if (companiesData.code === "OK") {
-        return companiesData.companies;
-      }
-      else if (companiesData.code === "ERROR") {
-        return companiesData.mensaje;
-      }
+      console.log(companiesData);
+      return companiesData;
+      
     }
   } catch (err) {
     console.error(err);
@@ -243,14 +231,10 @@ export const createCompany = async (data) => {
     );
 
     if (res.ok) {
+      
       const companyData = await res.json();
+      return companyData;
 
-      if (companyData.code === "OK") {
-        return companyData.code;
-      }
-      else if (companyData.code === "ERROR") {
-        return companyData.mensaje;
-      }
     }
   } catch (err) {
     console.error(err);
@@ -293,12 +277,7 @@ export const updateCompany = async (data) => {
     if (res.ok) {
       const companyData = await res.json();
 
-      if (companyData.code === "OK") {
-        return companyData.code;
-      }
-      else if (companyData.code === "ERROR") {
-        return companyData.mensaje;
-      }
+      return companyData;
 
     }
   } catch (err) {
@@ -324,14 +303,10 @@ export const deleteCompany = async (id) => {
     );
 
     if (res.ok) {
+      
       const companyData = await res.json();
+      return companyData;
 
-      if (companyData.code === "OK") {
-        return companyData.code;
-      }
-      else if (companyData.code === "ERROR") {
-        return companyData.mensaje;
-      }
     }
   } catch (err) {
     console.error(err);

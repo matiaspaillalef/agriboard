@@ -103,12 +103,12 @@ const CardTableUsers = ({
   };
 
   const onUpdateUser = async (data) => {
-    console.log("Datos del usuario a actualizar:", data);
+
     try {
       const updateUserApi = await updateUser(data);
 
       // Elimina la fila del front-end
-      if (updateUserApi === "OK") {
+      if (updateUserApi.code === "OK") {
         //let { userPassword, ...userDataWithoutPassword } = data; //Acá sacamos password del objeto data
         let userDataWithoutPassword = { ...data };
 
@@ -158,11 +158,16 @@ const CardTableUsers = ({
         );
 
         setInitialData(updatedData);
-        setUpdateMessage("Usuario actualizadocorrectamente");
+
+        setUpdateMessage(updateUserApi.mensaje);
         setOpen(false);
-      } else {
-        setUpdateMessage("No se pudo actualizar el usuario");
+        
+      }else if (updateUserApi.code === "ERROR") {
+
+        setUpdateMessage(updateUserApi.mensaje);
+
       }
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -189,14 +194,28 @@ const CardTableUsers = ({
       const deleteUser = await deleteUserApi(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteUser === "OK") {
-        const updatedData = [...initialData];
-        updatedData.splice(index, 1);
-        setInitialData(updatedData);
+      if (deleteUser.code === "OK") {
+
         setOpenAlert(false);
-        setUpdateMessage("Usuario eliminado correctamente");
-      } else {
-        setUpdateMessage("Error al eliminar el usuario. Inténtalo nuevamente.");
+        setUpdateMessage(deleteUser.mensaje);
+        //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
+        const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
+
+        if(newDataFetch.code  === "OK"){
+
+          setInitialData(newDataFetch.usuarios);
+
+        }else if (newDataFetch.code === "ERROR") {
+
+          setUpdateMessage(newDataFetch.mensaje);
+
+        }
+
+
+      }else if (deleteUser.code === "ERROR") {
+
+        setUpdateMessage(deleteUser.mensaje);
+
       }
     } catch (error) {
       console.error(error);
@@ -211,7 +230,7 @@ const CardTableUsers = ({
     try {
       const createUserapi = await createUser(data);
       // Agrega la fila del front-end
-      if (createUserapi == "OK") {
+      if (createUserapi.code === "OK") {
         //const newUser = { ...data };
         //let { userPassword, ...newUser } = data; // agregamos al fornt el nuevo usuario sin la password
 
@@ -245,13 +264,23 @@ const CardTableUsers = ({
 
         //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
-        console.log(newDataFetch);
-        setInitialData(newDataFetch);
+        
+        if(newDataFetch.code  === "OK"){
+
+          setInitialData(newDataFetch.usuarios);
+
+        }else if (newDataFetch.code === "ERROR") {
+
+          setUpdateMessage(newDataFetch.mensaje);
+
+        }
 
         setOpen(false);
         setUpdateMessage("Usuario creado correctamente");
-      } else {
-        setUpdateMessage(createUserapi);
+      } else if (createUserapi.code === "ERROR") {
+       
+          setUpdateMessage(createUserapi.mensaje);
+        
       }
     } catch (error) {
       console.error(error);
@@ -418,7 +447,6 @@ const CardTableUsers = ({
                         return null; // Omitir la columna si está en omitirColumns
                       }
                       {
-                        console.log(row);
                       }
                       if (key === "password") {
                         return null; // No renderizar el <td> si la clave es "password"

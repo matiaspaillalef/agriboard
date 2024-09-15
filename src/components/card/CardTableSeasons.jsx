@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import { set, useForm } from "react-hook-form";
@@ -15,6 +15,7 @@ import {
   ChevronLeftIcon,
   EyeIcon,
   DocumentDuplicateIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
@@ -82,15 +83,16 @@ const CardTableSeasons = ({
   const [selectedShifts, setSelectedShifts] = useState([]);
 
   const [openShowUser, setOpenShowUser] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const handleNameShifts = async () => {
       const shifts = await getDataShifts(companyID);
-      //console.log(shifts);
       setDataShifts(shifts);
     };
     handleNameShifts();
-  }, []);
+  }, [companyID]);
 
   useEffect(() => {
     if (selectedItem) {
@@ -105,6 +107,15 @@ const CardTableSeasons = ({
         : [...prevSelected, id]
     );
   };
+
+  //Stuatus Raedonly
+  const [isStatusReadonly, setIsStatusReadonly] = useState(false);
+  useEffect(() => {
+    const hasActiveSeason = initialData.filter((season) => season.status === 1);
+
+    if (hasActiveSeason.length > 0) setIsStatusReadonly(true);
+    else setIsStatusReadonly(false);
+  }, [companyID, initialData]);
 
   const [openAlert, setOpenAlert] = useState(false);
   const [openAlertClone, setOpenAlertClone] = useState(false);
@@ -226,15 +237,17 @@ const CardTableSeasons = ({
   };
 
   useEffect(() => {
-    // Define la zona horaria de Chile
+    if (data && data.length > 0) {
+      setInitialData(data);
+    }
+  }, [data]);
+
+  useEffect(() => {
     const timeZone = "America/Santiago";
     const now = moment().tz(timeZone);
     const localDateString = now.format("YYYY-MM-DD");
 
-    // Obtener la hora en segundos desde medianoche
-    const nowTime = now.hours() * 3600 + now.minutes() * 60 + now.seconds(); // Total de segundos desde medianoche
-
-    // Calcula las horas, minutos y segundos
+    const nowTime = now.hours() * 3600 + now.minutes() * 60 + now.seconds();
     const hours = Math.floor(nowTime / 3600);
     const minutes = Math.floor((nowTime % 3600) / 60);
     const seconds = nowTime % 60;
@@ -247,13 +260,13 @@ const CardTableSeasons = ({
 
         if (endDate < localDateString && season.status === 1) {
           const seasonToUpdate = {
-            id: season.id.toString(),
+            id: season.id?.toString() || "", // Usar encadenamiento opcional
             name: season.name,
             period: season.period,
             date_from: moment(season.date_from).format("YYYY-MM-DD"),
             date_until: moment(season.date_until).format("YYYY-MM-DD"),
-            status: "2", // Convertir status a string
-            company_id: season.company_id.toString(),
+            status: "2",
+            company_id: season.company_id?.toString() || "", // Usar encadenamiento opcional
             shifts: season.shifts,
           };
 
@@ -365,17 +378,28 @@ const CardTableSeasons = ({
   };
 
   // Creación
-  const onSubmitForm = async (data) => {
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleModalConfirm = async () => {
+    setIsModalOpen(false);
+    await submitForm();
+  };
+
+  const submitForm = async () => {
+    setIsSubmitting(true);
     try {
       const transformedData = {
-        id: Number(data.id) || null,
-        name: data.name.trim(),
-        period: data.period.trim(),
-        date_from: data.date_from.trim(),
-        date_until: data.date_until.trim(),
-        shifts: selectedShifts,
-        company_id: Number(data.company_id) || null, // Convierte a número
-        status: data.status.trim(),
+        id: Number(formData.id) || null,
+        name: formData.name.trim(),
+        period: formData.period.trim(),
+        date_from: formData.date_from.trim(),
+        date_until: formData.date_until.trim(),
+        shifts: formData.shifts,
+        company_id: Number(formData.company_id) || null,
+        status: Number(formData.status.trim()),
       };
 
       const createItem = await createSeason(transformedData);
@@ -383,11 +407,8 @@ const CardTableSeasons = ({
 
       if (createItem === "OK") {
         const updatedData = [...initialData, transformedData];
-
-        setInitialData(updatedData); //Actualizamos la visualización de la tabla
-        setInitialData(dataNew); //Actualizamos la visualizacion pero con el id, quizas sea necesario quitar el de ahi arriba
-        setOpen(false);
-        setSelectedShifts([]);
+        setInitialData(updatedData);
+        setInitialData(dataNew);
         setUpdateMessage("Registro creado correctamente");
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
@@ -395,6 +416,20 @@ const CardTableSeasons = ({
     } catch (error) {
       console.error("Error al crear el registro:", error);
       setUpdateMessage("Error al intentar crear el registro");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onSubmitForm = async (data) => {
+    // Guardar los datos del formulario en el estado
+    setFormData(data);
+
+    // Verificar si el estado es 1 y mostrar el modal si es necesario
+    if (data.status == 1) {
+      setIsModalOpen(true);
+    } else {
+      await submitForm();
     }
   };
 
@@ -940,12 +975,33 @@ const CardTableSeasons = ({
                         required={true}
                         {...register("status")}
                         defaultValue={selectedItem ? selectedItem.status : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                        className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${
+                          isStatusReadonly &&
+                          selectedItem &&
+                          selectedItem.status != 1 &&
+                          "cursor-not-allowed bg-[#e9e9e9]"
+                        }`}
+                        disabled={
+                          isStatusReadonly &&
+                          selectedItem &&
+                          selectedItem.status != 1
+                        }
                       >
+                        {/*
                         <option value="0">Inactivo</option>
+                        */}
                         <option value="1">Activo</option>
                         <option value="2">Cerrado</option>
                       </select>
+                      {isStatusReadonly &&
+                        selectedItem &&
+                        selectedItem.status != 1 && (
+                          <p className="text-gray-800 dark:text-white bg-yellow-200 rounded-md py-2 px-4 text-sm">
+                            No se puede cambiar el estado de una temporada
+                            cerrada, para cambiar el estado de una temporada
+                            cerrada, debe eliminar la temporada activa actual.
+                          </p>
+                        )}
                     </div>
                   </div>
 
@@ -1046,7 +1102,34 @@ const CardTableSeasons = ({
                   </>
                 )}
               </button>
+              {openAlertClone && itemToClone.status == 1 && (
+                <div className="flex items-start justify-centerm-auto mt-5 bg-red-500 p-2 rounded-sm gap-1">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-white  rounded-full" />
+                  <p className="text-white text-sm">
+                    Advertencia, si clonas una temporada activa, la temporada
+                    activa actual se cerrará automáticamente.
+                  </p>
+                </div>
+              )}
             </>
+          </Dialog>
+
+          <Dialog open={isModalOpen} handler={handleModalClose}>
+            <DialogHeader>Confirmar Creación</DialogHeader>
+            <DialogBody>
+              <p>
+                ¿Está seguro? Si agrega esta nueva temporada, la temporada
+                activa actual se cerrará automáticamente. ¿Desea continuar?
+              </p>
+            </DialogBody>
+            <DialogFooter>
+              <Button color="red" onClick={handleModalClose}>
+                No
+              </Button>
+              <Button color="green" onClick={handleModalConfirm}>
+                Sí
+              </Button>
+            </DialogFooter>
           </Dialog>
         </>
       )}

@@ -3,7 +3,14 @@ import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 
 const EmpresaPage = async () => {
 
-  const dataCompanies = await getDataCompanies();
+  const dataCompaniesfetch  = await getDataCompanies();
+  var dataCompanies;
+  
+  if(dataCompaniesfetch.code === 'OK'){
+
+    dataCompanies =  dataCompaniesfetch.companies;
+
+  }
 
   return (
     <>

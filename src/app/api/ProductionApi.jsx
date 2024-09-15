@@ -177,7 +177,6 @@ export const getDataSectorBarracks = async (id_company) => {
     if (res.ok) {
       const sectorBarracksData = await res.json();
 
-
       console.log("res", sectorBarracksData);
 
       if (sectorBarracksData.code === "OK") {
@@ -194,19 +193,14 @@ export const getDataSectorBarracks = async (id_company) => {
 export const createSectorBarrack = async (data) => {
   try {
     const res = await fetch(
-      URLAPI + "/api/v1/configuracion/production/createSectorBarrack",
+      `${URLAPI}/api/v1/configuracion/production/createSectorBarrack`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": token,
         },
-        body: JSON.stringify({
-          name: data.name,
-          ground: data.ground,
-          company_id: data.company_id,
-          status: data.status,
-        }),
+        body: JSON.stringify(data),
         cache: "no-store",
       }
     );
@@ -220,31 +214,31 @@ export const createSectorBarrack = async (data) => {
         return sectorBarracksData.mensaje; // Manejar el mensaje de error desde la API
       }
     } else {
-      throw new Error("Error en la solicitud HTTP");
+      const errorText = await res.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        return errorJson.mensaje || "Error desconocido"; // Extrae el mensaje de error
+      } catch {
+        return "Error desconocido al procesar la respuesta"; // Si no es JSON válido
+      }
     }
   } catch (err) {
     console.error("Error al crear el registro:", err);
-    throw new Error("Error al intentar crear el registro");
+    return err.message; // Retorna el mensaje de error para mostrar en el frontend
   }
 };
 
 export const updateSectorBarrack = async (data) => {
   try {
     const res = await fetch(
-      URLAPI + "/api/v1/configuracion/production/updateSectorBarrack",
+      `${URLAPI}/api/v1/configuracion/production/updateSectorBarrack`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": token,
         },
-        body: JSON.stringify({
-          id: data.id,
-          name: data.name,
-          ground: data.ground,
-          company_id: data.company_id,
-          status: data.status,
-        }),
+        body: JSON.stringify(data),
       }
     );
 
@@ -257,13 +251,20 @@ export const updateSectorBarrack = async (data) => {
         return sectorBarracksData.mensaje; // Manejar el error desde la API
       }
     } else {
-      throw new Error("Error en la solicitud HTTP");
+      const errorText = await res.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        return errorJson.mensaje || "Error desconocido"; // Extrae el mensaje de error
+      } catch {
+        return "Error desconocido al procesar la respuesta"; // Si no es JSON válido
+      }
     }
   } catch (err) {
-    console.error(err);
-    throw new Error("Error al actualizar los datos del contratista");
+    console.error("Error al actualizar los datos del sector:", err);
+    return "Error al intentar actualizar el registro"; // Mensaje genérico de error
   }
 };
+
 
 export const deleteSectorBarrack = async (id) => {
   try {
@@ -328,7 +329,6 @@ export const getDataAttributesSector = async (id_company) => {
 };
 
 export const createAttributesSector = async (data) => {
-
   console.log(data);
   try {
     const res = await fetch(

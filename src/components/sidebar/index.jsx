@@ -107,7 +107,7 @@ const Sidebar = ({ open, onClose }) => {
           </div>
         </div>
 
-        {idRole == 1 && dataCompanies && dataCompanies.length > 0 && (
+        {idRole == 1 && dataCompanies.code == 'OK' && dataCompanies.companies.length > 0 && (
           <div className="px-8 mb-5">
             <label className="block text-sm font-medium text-white dark:text-white mb-2">
               Empresas
@@ -117,7 +117,7 @@ const Sidebar = ({ open, onClose }) => {
               value={selectedCompanyId}
               onChange={handleChange}
             >
-              {dataCompanies.map((company) => (
+              {dataCompanies.companies.map((company) => (
                 <option key={company.id} value={company.id}>
                   {company.name_company}
                 </option>

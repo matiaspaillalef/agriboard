@@ -142,6 +142,7 @@ const PeopleManagementGroups = () => {
                 data={dataGroups}
                 thead="ID, Nombre, Estado"
                 downloadBtn={true}
+                companyID={selectedCompanyId}
                 SearchInput={true}
                 actions={true}
               />

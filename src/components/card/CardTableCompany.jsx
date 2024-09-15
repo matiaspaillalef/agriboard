@@ -186,7 +186,7 @@ const CardTableCompany = ({
     const updateCompanyApi = await updateCompany(updatedDataLogo);
 
     // Elimina la fila del front-end
-    if (updateCompanyApi === "OK") {
+    if (updateCompanyApi.code === "OK") {
       const updatedData = initialData.map((item) =>
         item.id == data.id ? { ...item, ...updatedDataLogo } : item
       );
@@ -194,8 +194,10 @@ const CardTableCompany = ({
       setInitialData(updatedData);
       setUpdateMessage("Empresa actualizada correctamente");
       setOpen(false);
-    } else {
-      setUpdateMessage("No se pudo actualizar la empresa");
+    }else if (updateCompanyApi.code === "ERROR") {
+
+      setUpdateMessage(updateCompanyApi.mensaje);
+
     }
   };
 
@@ -217,15 +219,20 @@ const CardTableCompany = ({
       const deleteCompany = await deleteCompanyApi(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteCompany === "OK") {
+      if (deleteCompany.code === "OK") {
+
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
         setOpenAlert(false);
-        setUpdateMessage("Empresa eliminado correctamente");
-      } else {
-        setUpdateMessage("Error al eliminar el empresa. Inténtalo nuevamente.");
+        setUpdateMessage(deleteCompany.mensaje);
+
+      }else if (deleteCompany.code === "ERROR") {
+
+        setUpdateMessage(deleteCompany.mensaje);
+  
       }
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -319,19 +326,32 @@ const CardTableCompany = ({
     }
 
     try {
-      const createUserapi = await createCompany(updatedDataLogo);
 
-      if (createUserapi === "OK") {
+      const createCompanyApi = await createCompany(updatedDataLogo);
+
+      if (createCompanyApi.code === "OK") {
         const updatedData = [...initialData, updatedDataLogo];
         setInitialData(updatedData);
 
         const newDataFetch = await getDataCompanies();
-        setInitialData(newDataFetch);
+
+        if(newDataFetch.code  === "OK"){
+
+          setInitialData(newDataFetch.companies);
+
+        }else if (newDataFetch.code === "ERROR") {
+
+          setUpdateMessage(newDataFetch.mensaje);
+
+        }
 
         setOpen(false);
-        setUpdateMessage("Empresa creada correctamente");
-      } else {
-        setUpdateMessage(createUserapi);
+        setUpdateMessage(createCompanyApi.mensaje);
+
+      }else if (createCompanyApi.code === "ERROR") {
+
+        setUpdateMessage(createCompanyApi.mensaje);
+  
       }
     } catch (error) {
       console.error("Error en el proceso:", error);
@@ -829,6 +849,7 @@ const CardTableCompany = ({
                     <select
                       name="city"
                       id="city"
+                      required={true}
                       //value={selectedCity}
                       onChange={(event) => setSelectedCity(event.target.value)}
                       {...register("city")}
@@ -860,6 +881,7 @@ const CardTableCompany = ({
                         type="text"
                         name="address"
                         id="address"
+                        required={true}
                         {...register("address")}
                         defaultValue={selectedItem ? selectedItem.address : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
@@ -881,6 +903,7 @@ const CardTableCompany = ({
                         type="tel"
                         name="phone"
                         id="phone"
+                        required={true}
                         {...register("phone", { required: true })}
                         defaultValue={
                           selectedItem ? selectedItem.phone : formData.phone
@@ -948,6 +971,7 @@ const CardTableCompany = ({
                         type="text"
                         name="legal_representative_name"
                         id="legal_representative_name"
+                        required={true}
                         {...register("legal_representative_name")}
                         defaultValue={
                           selectedItem
@@ -975,6 +999,7 @@ const CardTableCompany = ({
                           type="text"
                           name="legal_representative_rut"
                           id="legal_representative_rut"
+                          required={true}
                           {...register("legal_representative_rut")}
                           defaultValue={
                             selectedItem
@@ -1007,6 +1032,7 @@ const CardTableCompany = ({
                         type="tel"
                         name="legal_representative_phone"
                         id="legal_representative_phone"
+                        required={true}
                         {...register("legal_representative_phone")}
                         defaultValue={
                           selectedItem
@@ -1029,6 +1055,7 @@ const CardTableCompany = ({
                         type="text"
                         name="legal_representative_email"
                         id="legal_representative_email"
+                        required={true}
                         {...register("legal_representative_email")}
                         defaultValue={
                           selectedItem
