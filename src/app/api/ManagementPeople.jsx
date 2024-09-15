@@ -1,3 +1,4 @@
+import { data } from "autoprefixer";
 import jwt from "jsonwebtoken";
 import { date } from "zod";
 
@@ -373,7 +374,7 @@ export const createGroup = async (data) => {
         body: JSON.stringify({
           name: data.name,
           status: data.status,
-          idCompany: userData.idCompany,
+          id_company: data.company_id,
         }),
         cache: "no-store",
       }
@@ -397,6 +398,7 @@ export const createGroup = async (data) => {
 }
 
 export const updateGroup = async (data) => {
+  console.log(data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/groups/updateGroup",
@@ -410,6 +412,7 @@ export const updateGroup = async (data) => {
           id: data.id,
           name: data.name,
           status: data.status,
+          id_company: data.company_id,
         }),
         cache: "no-store",
       }
