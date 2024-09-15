@@ -111,10 +111,10 @@ const CardTableSeasons = ({
   //Stuatus Raedonly
   const [isStatusReadonly, setIsStatusReadonly] = useState(false);
   useEffect(() => {
-    const hasActiveSeason = initialData.filter((season) => season.status === 1);
-
-    if (hasActiveSeason.length > 0) setIsStatusReadonly(true);
-    else setIsStatusReadonly(false);
+    if (Array.isArray(initialData)) {
+      const hasActiveSeason = initialData.filter((season) => season.status === 1);
+      setIsStatusReadonly(hasActiveSeason.length > 0);
+    }
   }, [companyID, initialData]);
 
   const [openAlert, setOpenAlert] = useState(false);
