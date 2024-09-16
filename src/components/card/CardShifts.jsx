@@ -39,6 +39,7 @@ const CardTableShifts = ({
   omitirColumns = [],
   title,
   actions,
+  companyID,
   tableId,
   downloadBtn,
   SearchInput,
@@ -160,16 +161,18 @@ const CardTableShifts = ({
 
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
-    d;
+
     try {
       //if (userConfirmed) {
       const deleteShift = await deleteShiftApi(id);
+      const newData = await getDataShifts(companyID);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteShift === "OK") {
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
+        setInitialData(newData);
         setOpenAlert(false);
         setUpdateMessage("Turno eliminado correctamente");
       } else {

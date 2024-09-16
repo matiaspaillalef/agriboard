@@ -205,43 +205,40 @@ export const getDataPositions = async (id_company) => {
 };
 
 export const createPosition = async (data) => {
+  console.log(data);
   try {
-
-    const userDataString = sessionStorage.getItem("userData");
-    const userData = JSON.parse(userDataString);
-
     const res = await fetch(
-      URLAPI + "/api/v1/management-people/positions/createPosition",
+      `${URLAPI}/api/v1/management-people/positions/createPosition`,
       {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "x-api-key": token,
+          'Content-Type': 'application/json',
+          'x-api-key': token,
         },
         body: JSON.stringify({
           name: data.name,
           status: data.status,
-          idCompany: userData.idCompany,
+          company_id: data.company_id,
         }),
-        cache: "no-store",
+        cache: 'no-store',
       }
     );
 
+    console.log(res);
+
     if (res.ok) {
-
       const positionData = await res.json();
+      console.log(positionData);
 
-      if (positionData.code === "OK") {
-        return positionData.code;
-      }
-      else if (positionData.code === "ERROR") {
-        return positionData.mensaje;
-      }
-
+      return positionData;
+    } else {
+      const errorData = await res.json();
+      return errorData;
     }
 
   } catch (err) {
     console.error(err);
+    return { code: 'ERROR', mensaje: 'Error al realizar la solicitud.' };
   }
 };
 
@@ -259,6 +256,7 @@ export const updatePosition = async (data) => {
           id: data.id,
           name: data.name,
           status: data.status,
+          company_id: data.company_id,
         }),
         cache: "no-store",
       }

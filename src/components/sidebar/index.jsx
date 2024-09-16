@@ -107,7 +107,7 @@ const Sidebar = ({ open, onClose }) => {
           </div>
         </div>
 
-        {idRole == 1 && dataCompanies.code == 'OK' && dataCompanies.companies.length > 0 && (
+        {idRole == 1 && dataCompanies && dataCompanies.code == 'OK' && dataCompanies.companies.length > 0 && (
           <div className="px-8 mb-5">
             <label className="block text-sm font-medium text-white dark:text-white mb-2">
               Empresas

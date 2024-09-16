@@ -34,6 +34,7 @@ const CardTablePositions = ({
   columnsClasses = [],
   omitirColumns = [],
   title,
+  companyID,
   actions,
   tableId,
   downloadBtn,
@@ -98,9 +99,9 @@ const CardTablePositions = ({
   };
 
   const onUpdateItem = async (data) => {
-    //console.log("Datos de la empresa a actualizar:", data);
     try {
       const updatePositionApi = await updatePosition(data);
+      const newData = await getDataPositions(companyID);
 
       // Elimina la fila del front-end
       if (updatePositionApi === "OK") {
@@ -110,11 +111,13 @@ const CardTablePositions = ({
                 id: data.id,
                 name: data.name,
                 status: data.status,
+                //company_id: data.company ? data.company : companyID,
               }
             : item
         );
 
         setInitialData(updatedData);
+        setInitialData(newData);
         setUpdateMessage("Cargo actualizada correctamente");
         setOpen(false);
       } else {
@@ -142,16 +145,17 @@ const CardTablePositions = ({
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
 
-    console.log(id);
     try {
       //if (userConfirmed) {
       const deletePosition = await deletePositionApi(id);
+      const newData = await getDataPositions(companyID);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deletePosition === "OK") {
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
+        setInitialData(newData);
         setOpenAlert(false);
         setUpdateMessage("Cargo eliminado correctamente");
       } else {
@@ -164,33 +168,32 @@ const CardTablePositions = ({
     }
   };
 
-  // Creación de empresa
   const onSubmitForm = async (data) => {
     try {
       const createPositionapi = await createPosition(data);
 
-      // Agrega la fila del front-end
-      if (createPositionapi == "OK") {
-        const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
+      //console.log('Data de creación de cargo:', createPositionapi);
 
+      if (createPositionapi.code === "OK") {
+        const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
         setInitialData(updatedData);
 
         const userDataString = sessionStorage.getItem("userData");
         const userData = JSON.parse(userDataString);
         const idCompany = userData.idCompany;
 
-        //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
+        // Hacer este fetch para traer la data actualizada de la BD
         const newDataFetch = await getDataPositions(idCompany);
 
         setInitialData(newDataFetch);
         setOpen(false);
         setUpdateMessage("Cargo creado correctamente");
       } else {
-        setUpdateMessage(createPositionapi);
+        setUpdateMessage(createPositionapi.mensaje);
       }
     } catch (error) {
       console.error(error);
-      // Manejo de errores
+      setUpdateMessage("Error al enviar el formulario.");
     }
   };
 
@@ -561,6 +564,13 @@ const CardTablePositions = ({
                       <option value="1">Activo</option>
                     </select>
                   </div>
+
+                  <input
+                    type="hidden"
+                    name="company_id"
+                    {...register("company_id")}
+                    defaultValue={companyID}
+                  />
                   <div className="flex flex-col gap-3">
                     <button
                       type="submit"

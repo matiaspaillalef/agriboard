@@ -142,6 +142,7 @@ const PeopleManagementPositions = () => {
                 data={dataPositions}
                 thead="Nombre cargo, Estado"
                 downloadBtn={true}
+                companyID={selectedCompanyId}
                 SearchInput={true}
                 actions={true}
                 omitirColumns={["id"]}
