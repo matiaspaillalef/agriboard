@@ -36,6 +36,7 @@ import {
   updateAttributesSector,
   createAttributesSector,
   deleteAttributesSector,
+  cloneAttributesSector,
 } from "@/app/api/ProductionApi";
 
 const CardTableSectorAttributes = ({
@@ -134,15 +135,6 @@ const CardTableSectorAttributes = ({
   const [itemToClone, setItemToClone] = useState({
     index: null,
     id: null,
-    name: "",
-    scale: "",
-    date: "",
-    boxes: "",
-    kg_boxes: "",
-    specie: "",
-    variety: "",
-    season: "",
-    company_id: "",
   });
 
   const handleNameVarieties = (ids) => {
@@ -212,7 +204,7 @@ const CardTableSectorAttributes = ({
       }
 
       const updatedData = { ...data, varieties: selectedVarieties };
-
+console.log("updatedata" , updatedData);
       const updateItemApi = await updateAttributesSector(updatedData);
       const dataNew = await getDataAttributesSector(companyID);
 
@@ -241,29 +233,10 @@ const CardTableSectorAttributes = ({
   };
 
   const handleCloneAlert = (
-    index,
-    name,
-    scale,
-    quality,
-    date,
-    boxes,
-    kg_boxes,
-    specie,
-    variety,
-    season,
-    company_id
+    id,
   ) => {
     setItemToClone({
-      name,
-      scale,
-      quality,
-      date,
-      boxes,
-      kg_boxes,
-      specie,
-      variety,
-      season,
-      company_id,
+      id,
     });
     setOpenAlertClone(true);
     setOpenAlert(false);
@@ -308,23 +281,14 @@ const CardTableSectorAttributes = ({
 
   const handlerClone = async () => {
     const {
-      scale,
-      date,
-      boxes,
-      quality,
-      kg_boxes,
-      specie,
-      variety,
-      season,
-      company_id,
+      id,
     } = itemToClone;
 
-    delete itemToClone.name;
-
     console.log(itemToClone);
+    console.log(id);
 
     try {
-      const cloneItem = await createAttributesSector(itemToClone);
+      const cloneItem = await cloneAttributesSector(itemToClone);
       const dataNew = await getDataAttributesSector(companyID);
 
       if (cloneItem === "OK") {
@@ -358,7 +322,6 @@ const CardTableSectorAttributes = ({
         plants: data.plants,
         min_daily_frecuency: data.min_daily_frecuency,
         max_daily_frecuency: data.max_daily_frecuency,
-        harvest_end: Number(data.harvest_end),
         stimation_good: data.stimation_good,
         stimation_regular: data.stimation_regular,
         stimation_bad: data.stimation_bad,
@@ -376,6 +339,7 @@ const CardTableSectorAttributes = ({
         porc_replant: data.porc_replant,
         company_id: Number(companyID),
       };
+      console.log(data.year_harvest);
 
       const createItem = await createAttributesSector(transformedData);
       const dataNew = await getDataAttributesSector(companyID);
@@ -925,19 +889,19 @@ const CardTableSectorAttributes = ({
                         htmlFor="year_harvest"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Año de cosecha
+                        Año de plantación
                       </label>
                       <input
-                        type="date"
+                        type="number"
                         name="year_harvest"
                         id="year_harvest"
+                        placeholder="YYYY"
                         required={true}
+                        min="2018" // Cambia esto según tu rango de años permitido
+                        max="2030" // Cambia esto según tu rango de años permitido
+                        pattern="\d{4}" // Acepta solo 4 dígitos
                         {...register("year_harvest")}
-                        defaultValue={
-                          selectedItem
-                            ? formatDateForInput(selectedItem.year_harvest)
-                            : ""
-                        }
+                        defaultValue={selectedItem ? selectedItem.year_harvest : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
@@ -953,7 +917,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="ha_productivas"
                         id="ha_productivas"
-                        required={true}
                         step={0.01}
                         {...register("ha_productivas")}
                         defaultValue={
@@ -974,7 +937,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="hileras"
                         id="hileras"
-                        required={true}
                         {...register("hileras")}
                         defaultValue={selectedItem ? selectedItem.hileras : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -992,7 +954,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="plants"
                         id="plants"
-                        required={true}
                         {...register("plants")}
                         defaultValue={selectedItem ? selectedItem.plants : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -1010,7 +971,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="min_daily_frecuency"
                         id="min_daily_frecuency"
-                        required={true}
                         {...register("min_daily_frecuency")}
                         defaultValue={
                           selectedItem ? selectedItem.min_daily_frecuency : ""
@@ -1030,7 +990,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="max_daily_frecuency"
                         id="max_daily_frecuency"
-                        required={true}
                         {...register("max_daily_frecuency")}
                         defaultValue={
                           selectedItem ? selectedItem.max_daily_frecuency : ""
@@ -1038,28 +997,6 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="harvest_end"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Fin de cosecha
-                      </label>
-                      <select
-                        name="harvest_end"
-                        id="harvest_end"
-                        {...register("harvest_end")}
-                        defaultValue={
-                          selectedItem ? selectedItem.harvest_end : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="0">No</option>
-                        <option value="1">Si</option>
-                      </select>
-                    </div>
-
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="stimation_good"
@@ -1405,11 +1342,6 @@ const CardTableSectorAttributes = ({
                     <strong>Frecuencia diaria máxima:</strong>{" "}
                     {selectedItem.max_daily_frecuency}
                   </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Cosecha finalizada:</strong>{" "}
-                    {selectedItem.harvest_end == 1 ? "Sí" : "No"}
-                  </p>
-
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                     Densidad de pantación
                   </h3>
