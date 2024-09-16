@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
@@ -133,6 +133,14 @@ const CardTableScale = ({
 
     setRol(userRol);
   };
+
+  useEffect(() => {
+    const userDataString = sessionStorage.getItem("userData");
+    const userData = JSON.parse(userDataString);
+    const userRol = userData.rol;
+
+    setRol(userRol);
+  }, []);
 
   const handleOpen = (user) => {
     reset();
@@ -328,47 +336,54 @@ const CardTableScale = ({
   const [messageContent, setMessageContent] = useState("");
 
   const handleSendMessage = async (data) => {
+    const updateData = {
+      company_id: data.company_id,
+      name: data.name,
+      messageContent: data.messageContent,
+    };
     try {
-      const response = await fetch( URLAPI + "/api/v1/notificationScale", {
-        method: 'POST',
+      const response = await fetch(URLAPI + "/api/v1/notificationScale", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(updateData),
       });
 
       if (response.ok) {
-        alert('Correo enviado exitosamente');
+        //alert('Correo enviado exitosamente');
         handleCloseMssg(); // Cierra el diálogo después de enviar el mensaje
       } else {
-        alert('Error al enviar el correo');
+        //alert('Error al enviar el correo');
       }
     } catch (error) {
-      console.error('Error al enviar el correo:', error);
-      alert('Error al enviar el correo');
+      console.error("Error al enviar el correo:", error);
+      //alert('Error al enviar el correo');
     }
   };
 
-  const [companyName, setCompanyName] = useState('');
+  const [companyName, setCompanyName] = useState("");
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getDataCompanies();
-        
-        if (response.code === 'OK' && response.companies) {
-          const company = response.companies.find(comp => comp.id === Number(companyID));
-          
+
+        if (response.code === "OK" && response.companies) {
+          const company = response.companies.find(
+            (comp) => comp.id === Number(companyID)
+          );
+
           if (company) {
             setCompanyName(company.name_company); // Ajusta esto al campo correcto de tu respuesta
-            setValue('company_id', company.id); // Establecer el valor del input oculto
+            //setValue('company_id', company.id); // Establecer el valor del input oculto
           } else {
             console.error(`Compañía con ID ${companyID} no encontrada.`);
           }
         } else {
-          console.error('Respuesta inválida:', response);
+          console.error("Respuesta inválida:", response);
         }
       } catch (error) {
-        console.error('Error al obtener datos de las compañías:', error);
+        console.error("Error al obtener datos de las compañías:", error);
       }
     };
 
@@ -597,21 +612,22 @@ const CardTableScale = ({
                               </button>
                             </>
                           )}
-
-                          <button
-                            id="message"
-                            type="button"
-                            onClick={() => {
-                              //console.log(row);
-                              handleOpenMssg(
-                                index,
-                                row.id,
-                                row.name ? row.name : ""
-                              );
-                            }}
-                          >
-                            <EnvelopeIcon className="w-6 h-6" />
-                          </button>
+                          {rol != 1 && (
+                            <button
+                              id="message"
+                              type="button"
+                              onClick={() => {
+                                //console.log(row);
+                                handleOpenMssg(
+                                  index,
+                                  row.id,
+                                  row.name ? row.name : ""
+                                );
+                              }}
+                            >
+                              <EnvelopeIcon className="w-6 h-6" />
+                            </button>
+                          )}
                         </td>
                       )}
                     </tr>
@@ -855,7 +871,7 @@ const CardTableScale = ({
             size="xs"
             className="p-5 lg:max-w-[25%] dark:bg-navy-900"
           >
-           
+            <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
                 ¿Seguro que desea enviar un mensaje al administrador por un
                 defecto en la{" "}
@@ -865,7 +881,7 @@ const CardTableScale = ({
                 ?
               </h2>
               <p className="dark:text-white mb-4">
-                Envíanos un mensaje si la pesa seleecionada tiene algún defecto,
+                Envíanos un mensaje si la pesa seleccionada tiene algún defecto,
                 para que podamos verificarlo y solucionarlo a la brevedad.
               </p>
               <button
@@ -875,35 +891,37 @@ const CardTableScale = ({
               >
                 <XMarkIcon className="text-white w-5 h-5" />
               </button>
-              <form onSubmit={handleSubmit(handleSendMessage)} className="w-full">
-              <textarea
-                className="w-full h-40 border rounded p-2"
-                placeholder="Escribe tu mensaje"
-                value={messageContent}
-              onChange={(e) => setMessageContent(e.target.value)}
-              ></textarea>
-              <input
-                type="hidden"
-                name="company_id"
-                {...register("company_id")}
-                
-                defaultValue={companyName}
-              />
-              <input
-                type="hidden"
-                name="name"
-                {...register("name")}
-                defaultValue={activeMssg ? itemToDelete.name_item : ""}
-              />
-              <button
-                type="button"
-                onClick={handleSendMessage}
-                className="bg-blueTertiary text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-2"
+              <form
+                onSubmit={handleSubmit(handleSendMessage)}
+                className="w-full"
               >
-                <EnvelopeIcon className="text-white w-5 h-5" /> Enviar
-              </button>
+                <textarea
+                  className="w-full h-40 border rounded p-2"
+                  placeholder="Escribe tu mensaje"
+                  //value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  {...register("messageContent", { required: true })}
+                ></textarea>
+                <input
+                  type="hidden"
+                  name="company_id"
+                  {...register("company_id")}
+                  defaultValue={companyName}
+                />
+                <input
+                  type="hidden"
+                  name="name"
+                  {...register("name")}
+                  defaultValue={activeMssg ? itemToDelete.name_item : ""}
+                />
+                <button
+                  type="submit"
+                  className="bg-blueTertiary text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-2"
+                >
+                  <EnvelopeIcon className="text-white w-5 h-5" /> Enviar
+                </button>
               </form>
-           
+            </>
           </Dialog>
         </>
       )}
