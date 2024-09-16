@@ -129,12 +129,38 @@ const CardTableSectorAttributes = ({
   const [itemToDelete, setItemToDelete] = useState({
     index: null,
     id: null,
-    name_item: "",
+    sector: "",
   });
 
   const [itemToClone, setItemToClone] = useState({
     index: null,
     id: null,
+    season: "",
+    sector: "",
+    specie: "",
+    variety: "",
+    year_harvest: "",
+    ha_productivas: "",
+    hileras: "",
+    plants: "",
+    min_daily_frecuency: "",
+    max_daily_frecuency: "",
+    stimation_good: "",
+    stimation_regular: "",
+    stimation_bad: "",
+    stimation_replant_kg: "",
+    surface: "",
+    interrow_density: "",
+    row_density: "",
+    quantity_plants_ha: "",
+    clasification: "",
+    rotation: "",
+    kg_sector: "",
+    kg_hectares: "",
+    kg_plants: "",
+    porc_regular: "",
+    porc_replant: "",
+    company_id: "",
   });
 
   const handleNameVarieties = (ids) => {
@@ -204,7 +230,7 @@ const CardTableSectorAttributes = ({
       }
 
       const updatedData = { ...data, varieties: selectedVarieties };
-console.log("updatedata" , updatedData);
+//console.log("updatedata" , updatedData);
       const updateItemApi = await updateAttributesSector(updatedData);
       const dataNew = await getDataAttributesSector(companyID);
 
@@ -226,17 +252,69 @@ console.log("updatedata" , updatedData);
     }
   };
 
-  const handleOpenAlert = (index, id, name_item) => {
-    setItemToDelete({ index, id, name_item });
+  const handleOpenAlert = (index, id, sector) => {
+    setItemToDelete({ index, id, sector });
     setOpenAlert(true);
     setOpenAlertClone(false);
   };
 
   const handleCloneAlert = (
     id,
+    season,
+    sector,
+    specie,
+    variety,
+    year_harvest,
+    ha_productivas,
+    hileras,
+    plants,
+    min_daily_frecuency,
+    max_daily_frecuency,
+    stimation_good,
+    stimation_regular,
+    stimation_bad,
+    stimation_replant_kg,
+    surface,
+    interrow_density,
+    row_density,
+    quantity_plants_ha,
+    clasification,
+    rotation,
+    kg_sector,
+    kg_hectares,
+    kg_plants,
+    porc_regular,
+    porc_replant,
+    company_id
   ) => {
     setItemToClone({
       id,
+      season,
+      sector,
+      specie,
+      variety,
+      year_harvest,
+      ha_productivas,
+      hileras,
+      plants,
+      min_daily_frecuency,
+      max_daily_frecuency,
+      stimation_good,
+      stimation_regular,
+      stimation_bad,
+      stimation_replant_kg,
+      surface,
+      interrow_density,
+      row_density,
+      quantity_plants_ha,
+      clasification,
+      rotation,
+      kg_sector,
+      kg_hectares,
+      kg_plants,
+      porc_regular,
+      porc_replant,
+      company_id
     });
     setOpenAlertClone(true);
     setOpenAlert(false);
@@ -283,9 +361,6 @@ console.log("updatedata" , updatedData);
     const {
       id,
     } = itemToClone;
-
-    console.log(itemToClone);
-    console.log(id);
 
     try {
       const cloneItem = await cloneAttributesSector(itemToClone);
@@ -339,7 +414,6 @@ console.log("updatedata" , updatedData);
         porc_replant: data.porc_replant,
         company_id: Number(companyID),
       };
-      console.log(data.year_harvest);
 
       const createItem = await createAttributesSector(transformedData);
       const dataNew = await getDataAttributesSector(companyID);
@@ -401,7 +475,7 @@ console.log("updatedata" , updatedData);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = (initialData && Array.isArray(initialData)) ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -620,19 +694,33 @@ console.log("updatedata" , updatedData);
                             onClick={() => {
                               //console.log('clone',row);
                               handleCloneAlert(
-                                index,
-                                //row.id,
-                                row.name
-                                  ? row.name
-                                  : getNameByKey("scale", row.scale),
-                                row.scale ? row.scale : "",
-                                row.quality ? row.quality : "",
-                                row.date ? row.date : "",
-                                row.boxes ? row.boxes : "",
-                                row.kg_boxes ? row.kg_boxes : "",
-                                row.specie ? row.specie : "",
-                                row.variety ? row.variety : "",
-                                row.season ? row.season : "",
+                                //index,
+                                row.id,
+                                row.season,
+                                row.sector,
+                                row.specie,
+                                row.variety,
+                                row.year_harvest,
+                                row.ha_productivas,
+                                row.hileras,
+                                row.plants,
+                                row.min_daily_frecuency,
+                                row.max_daily_frecuency,
+                                row.stimation_good,
+                                row.stimation_regular,
+                                row.stimation_bad,
+                                row.stimation_replant_kg,
+                                row.surface,
+                                row.interrow_density,
+                                row.row_density,
+                                row.quantity_plants_ha,
+                                row.clasification,
+                                row.rotation,
+                                row.kg_sector,
+                                row.kg_hectares,
+                                row.kg_plants,
+                                row.porc_regular,
+                                row.porc_replant,
                                 Number(companyID)
                               );
                             }}
@@ -647,8 +735,8 @@ console.log("updatedata" , updatedData);
                               handleOpenAlert(
                                 index,
                                 row.id,
-                                row.scale
-                                  ? getNameByKey("scale", row.scale)
+                                row.sector
+                                  ? getNameByKey("sector", row.sector)
                                   : ""
                               );
                             }}
@@ -1414,10 +1502,10 @@ console.log("updatedata" , updatedData);
           >
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
-                ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} la
-                recolección{" "}
+                ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} los
+                atributos del sector{" "}
                 <strong className="font-bold">
-                  {openAlert ? itemToDelete.name_item : itemToClone.name}
+                  {openAlert ? itemToDelete.sector : getNameByKey("sector", itemToClone.sector, dataMap)}
                 </strong>
                 ?
               </h2>

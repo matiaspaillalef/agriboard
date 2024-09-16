@@ -670,6 +670,7 @@ export const createShift = async (data) => {
           sunday_opening_time: data.sunday_opening_time,
           sunday_closing_time: data.sunday_closing_time,
           status: data.status,
+          id_company: data.id_company
         }),
         cache: "no-store",
       }
@@ -685,6 +686,7 @@ export const createShift = async (data) => {
 }
 
 export const updateShift = async (data) => {
+
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/shifts/updateShift",
@@ -697,25 +699,27 @@ export const updateShift = async (data) => {
         body: JSON.stringify({
           id: data.id,
           name: data.name,
-          monday_opening_time: data.monday_opening_time,
-          monday_closing_time: data.monday_closing_time,
-          tuesday_opening_time: data.tuesday_opening_time,
-          tuesday_closing_time: data.tuesday_closing_time,
-          wednesday_opening_time: data.wednesday_opening_time,
-          wednesday_closing_time: data.wednesday_closing_time,
-          thursday_opening_time: data.thursday_opening_time,
-          thursday_closing_time: data.thursday_closing_time,
-          friday_opening_time: data.friday_opening_time,
-          friday_closing_time: data.friday_closing_time,
-          saturday_opening_time: data.saturday_opening_time,
-          saturday_closing_time: data.saturday_closing_time,
-          sunday_opening_time: data.sunday_opening_time,
-          sunday_closing_time: data.sunday_closing_time,
+          monday_opening_time: data.monday_opening_time ? data.monday_opening_time : null,
+          monday_closing_time: data.monday_closing_time ? data.monday_closing_time : null,
+          tuesday_opening_time: data.tuesday_opening_time ? data.tuesday_opening_time : null,
+          tuesday_closing_time: data.tuesday_closing_time ? data.tuesday_closing_time : null,
+          wednesday_opening_time: data.wednesday_opening_time ? data.wednesday_opening_time : null,
+          wednesday_closing_time: data.wednesday_closing_time ? data.wednesday_closing_time : null,
+          thursday_opening_time: data.thursday_opening_time ? data.thursday_opening_time : null,
+          thursday_closing_time: data.thursday_closing_time ? data.thursday_closing_time : null,
+          friday_opening_time: data.friday_opening_time ? data.friday_opening_time : null,
+          friday_closing_time: data.friday_closing_time ? data.friday_closing_time : null,
+          saturday_opening_time: data.saturday_opening_time ? data.saturday_opening_time : null,
+          saturday_closing_time: data.saturday_closing_time ? data.saturday_closing_time : null,
+          sunday_opening_time: data.sunday_opening_time ? data.sunday_opening_time : null,
+          sunday_closing_time: data.sunday_closing_time ? data.sunday_closing_time : null,
           status: data.status,
+          id_company: Number(data.id_company)
         }),
         cache: "no-store",
       }
     );
+
 
     if (res.ok) {
       const shiftData = await res.json();

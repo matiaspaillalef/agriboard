@@ -457,7 +457,7 @@ export const updateAttributesSector = async (data) => {
           clasification: data.clasification,
           rotation: data.rotation,
           kg_sector: data.kg_sector,
-          kh_hectares: data.kh_hectares,
+          kg_hectares: data.kg_hectares,
           kg_plants: data.kg_plants,
           porc_regular: data.porc_regular,
           porc_replant: data.porc_replant,
