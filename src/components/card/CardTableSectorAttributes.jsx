@@ -36,6 +36,7 @@ import {
   updateAttributesSector,
   createAttributesSector,
   deleteAttributesSector,
+  cloneAttributesSector,
 } from "@/app/api/ProductionApi";
 
 const CardTableSectorAttributes = ({
@@ -128,20 +129,37 @@ const CardTableSectorAttributes = ({
   const [itemToDelete, setItemToDelete] = useState({
     index: null,
     id: null,
-    name_item: "",
+    sector: "",
   });
 
   const [itemToClone, setItemToClone] = useState({
     index: null,
     id: null,
-    name: "",
-    scale: "",
-    date: "",
-    boxes: "",
-    kg_boxes: "",
+    season: "",
+    sector: "",
     specie: "",
     variety: "",
-    season: "",
+    year_harvest: "",
+    ha_productivas: "",
+    hileras: "",
+    plants: "",
+    min_daily_frecuency: "",
+    max_daily_frecuency: "",
+    stimation_good: "",
+    stimation_regular: "",
+    stimation_bad: "",
+    stimation_replant_kg: "",
+    surface: "",
+    interrow_density: "",
+    row_density: "",
+    quantity_plants_ha: "",
+    clasification: "",
+    rotation: "",
+    kg_sector: "",
+    kg_hectares: "",
+    kg_plants: "",
+    porc_regular: "",
+    porc_replant: "",
     company_id: "",
   });
 
@@ -212,7 +230,7 @@ const CardTableSectorAttributes = ({
       }
 
       const updatedData = { ...data, varieties: selectedVarieties };
-
+//console.log("updatedata" , updatedData);
       const updateItemApi = await updateAttributesSector(updatedData);
       const dataNew = await getDataAttributesSector(companyID);
 
@@ -234,36 +252,69 @@ const CardTableSectorAttributes = ({
     }
   };
 
-  const handleOpenAlert = (index, id, name_item) => {
-    setItemToDelete({ index, id, name_item });
+  const handleOpenAlert = (index, id, sector) => {
+    setItemToDelete({ index, id, sector });
     setOpenAlert(true);
     setOpenAlertClone(false);
   };
 
   const handleCloneAlert = (
-    index,
-    name,
-    scale,
-    quality,
-    date,
-    boxes,
-    kg_boxes,
+    id,
+    season,
+    sector,
     specie,
     variety,
-    season,
+    year_harvest,
+    ha_productivas,
+    hileras,
+    plants,
+    min_daily_frecuency,
+    max_daily_frecuency,
+    stimation_good,
+    stimation_regular,
+    stimation_bad,
+    stimation_replant_kg,
+    surface,
+    interrow_density,
+    row_density,
+    quantity_plants_ha,
+    clasification,
+    rotation,
+    kg_sector,
+    kg_hectares,
+    kg_plants,
+    porc_regular,
+    porc_replant,
     company_id
   ) => {
     setItemToClone({
-      name,
-      scale,
-      quality,
-      date,
-      boxes,
-      kg_boxes,
+      id,
+      season,
+      sector,
       specie,
       variety,
-      season,
-      company_id,
+      year_harvest,
+      ha_productivas,
+      hileras,
+      plants,
+      min_daily_frecuency,
+      max_daily_frecuency,
+      stimation_good,
+      stimation_regular,
+      stimation_bad,
+      stimation_replant_kg,
+      surface,
+      interrow_density,
+      row_density,
+      quantity_plants_ha,
+      clasification,
+      rotation,
+      kg_sector,
+      kg_hectares,
+      kg_plants,
+      porc_regular,
+      porc_replant,
+      company_id
     });
     setOpenAlertClone(true);
     setOpenAlert(false);
@@ -308,23 +359,11 @@ const CardTableSectorAttributes = ({
 
   const handlerClone = async () => {
     const {
-      scale,
-      date,
-      boxes,
-      quality,
-      kg_boxes,
-      specie,
-      variety,
-      season,
-      company_id,
+      id,
     } = itemToClone;
 
-    delete itemToClone.name;
-
-    console.log(itemToClone);
-
     try {
-      const cloneItem = await createAttributesSector(itemToClone);
+      const cloneItem = await cloneAttributesSector(itemToClone);
       const dataNew = await getDataAttributesSector(companyID);
 
       if (cloneItem === "OK") {
@@ -358,7 +397,6 @@ const CardTableSectorAttributes = ({
         plants: data.plants,
         min_daily_frecuency: data.min_daily_frecuency,
         max_daily_frecuency: data.max_daily_frecuency,
-        harvest_end: Number(data.harvest_end),
         stimation_good: data.stimation_good,
         stimation_regular: data.stimation_regular,
         stimation_bad: data.stimation_bad,
@@ -437,7 +475,7 @@ const CardTableSectorAttributes = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = (initialData && Array.isArray(initialData)) ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -656,19 +694,33 @@ const CardTableSectorAttributes = ({
                             onClick={() => {
                               //console.log('clone',row);
                               handleCloneAlert(
-                                index,
-                                //row.id,
-                                row.name
-                                  ? row.name
-                                  : getNameByKey("scale", row.scale),
-                                row.scale ? row.scale : "",
-                                row.quality ? row.quality : "",
-                                row.date ? row.date : "",
-                                row.boxes ? row.boxes : "",
-                                row.kg_boxes ? row.kg_boxes : "",
-                                row.specie ? row.specie : "",
-                                row.variety ? row.variety : "",
-                                row.season ? row.season : "",
+                                //index,
+                                row.id,
+                                row.season,
+                                row.sector,
+                                row.specie,
+                                row.variety,
+                                row.year_harvest,
+                                row.ha_productivas,
+                                row.hileras,
+                                row.plants,
+                                row.min_daily_frecuency,
+                                row.max_daily_frecuency,
+                                row.stimation_good,
+                                row.stimation_regular,
+                                row.stimation_bad,
+                                row.stimation_replant_kg,
+                                row.surface,
+                                row.interrow_density,
+                                row.row_density,
+                                row.quantity_plants_ha,
+                                row.clasification,
+                                row.rotation,
+                                row.kg_sector,
+                                row.kg_hectares,
+                                row.kg_plants,
+                                row.porc_regular,
+                                row.porc_replant,
                                 Number(companyID)
                               );
                             }}
@@ -683,8 +735,8 @@ const CardTableSectorAttributes = ({
                               handleOpenAlert(
                                 index,
                                 row.id,
-                                row.scale
-                                  ? getNameByKey("scale", row.scale)
+                                row.sector
+                                  ? getNameByKey("sector", row.sector)
                                   : ""
                               );
                             }}
@@ -925,19 +977,19 @@ const CardTableSectorAttributes = ({
                         htmlFor="year_harvest"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Año de cosecha
+                        Año de plantación
                       </label>
                       <input
-                        type="date"
+                        type="number"
                         name="year_harvest"
                         id="year_harvest"
+                        placeholder="YYYY"
                         required={true}
+                        min="2018" // Cambia esto según tu rango de años permitido
+                        max="2030" // Cambia esto según tu rango de años permitido
+                        pattern="\d{4}" // Acepta solo 4 dígitos
                         {...register("year_harvest")}
-                        defaultValue={
-                          selectedItem
-                            ? formatDateForInput(selectedItem.year_harvest)
-                            : ""
-                        }
+                        defaultValue={selectedItem ? selectedItem.year_harvest : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
@@ -953,7 +1005,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="ha_productivas"
                         id="ha_productivas"
-                        required={true}
                         step={0.01}
                         {...register("ha_productivas")}
                         defaultValue={
@@ -974,7 +1025,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="hileras"
                         id="hileras"
-                        required={true}
                         {...register("hileras")}
                         defaultValue={selectedItem ? selectedItem.hileras : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -992,7 +1042,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="plants"
                         id="plants"
-                        required={true}
                         {...register("plants")}
                         defaultValue={selectedItem ? selectedItem.plants : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -1010,7 +1059,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="min_daily_frecuency"
                         id="min_daily_frecuency"
-                        required={true}
                         {...register("min_daily_frecuency")}
                         defaultValue={
                           selectedItem ? selectedItem.min_daily_frecuency : ""
@@ -1030,7 +1078,6 @@ const CardTableSectorAttributes = ({
                         type="number"
                         name="max_daily_frecuency"
                         id="max_daily_frecuency"
-                        required={true}
                         {...register("max_daily_frecuency")}
                         defaultValue={
                           selectedItem ? selectedItem.max_daily_frecuency : ""
@@ -1038,28 +1085,6 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="harvest_end"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Fin de cosecha
-                      </label>
-                      <select
-                        name="harvest_end"
-                        id="harvest_end"
-                        {...register("harvest_end")}
-                        defaultValue={
-                          selectedItem ? selectedItem.harvest_end : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="0">No</option>
-                        <option value="1">Si</option>
-                      </select>
-                    </div>
-
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="stimation_good"
@@ -1405,11 +1430,6 @@ const CardTableSectorAttributes = ({
                     <strong>Frecuencia diaria máxima:</strong>{" "}
                     {selectedItem.max_daily_frecuency}
                   </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Cosecha finalizada:</strong>{" "}
-                    {selectedItem.harvest_end == 1 ? "Sí" : "No"}
-                  </p>
-
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                     Densidad de pantación
                   </h3>
@@ -1482,10 +1502,10 @@ const CardTableSectorAttributes = ({
           >
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
-                ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} la
-                recolección{" "}
+                ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} los
+                atributos del sector{" "}
                 <strong className="font-bold">
-                  {openAlert ? itemToDelete.name_item : itemToClone.name}
+                  {openAlert ? itemToDelete.sector : getNameByKey("sector", itemToClone.sector, dataMap)}
                 </strong>
                 ?
               </h2>

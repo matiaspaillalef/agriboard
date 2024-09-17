@@ -1,4 +1,5 @@
 import { data } from "autoprefixer";
+
 import jwt from "jsonwebtoken";
 import { date } from "zod";
 
@@ -205,43 +206,40 @@ export const getDataPositions = async (id_company) => {
 };
 
 export const createPosition = async (data) => {
+  console.log(data);
   try {
-
-    const userDataString = sessionStorage.getItem("userData");
-    const userData = JSON.parse(userDataString);
-
     const res = await fetch(
-      URLAPI + "/api/v1/management-people/positions/createPosition",
+      `${URLAPI}/api/v1/management-people/positions/createPosition`,
       {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "x-api-key": token,
+          'Content-Type': 'application/json',
+          'x-api-key': token,
         },
         body: JSON.stringify({
           name: data.name,
           status: data.status,
-          idCompany: userData.idCompany,
+          company_id: data.company_id,
         }),
-        cache: "no-store",
+        cache: 'no-store',
       }
     );
 
+    console.log(res);
+
     if (res.ok) {
-
       const positionData = await res.json();
+      console.log(positionData);
 
-      if (positionData.code === "OK") {
-        return positionData.code;
-      }
-      else if (positionData.code === "ERROR") {
-        return positionData.mensaje;
-      }
-
+      return positionData;
+    } else {
+      const errorData = await res.json();
+      return errorData;
     }
 
   } catch (err) {
     console.error(err);
+    return { code: 'ERROR', mensaje: 'Error al realizar la solicitud.' };
   }
 };
 
@@ -259,6 +257,7 @@ export const updatePosition = async (data) => {
           id: data.id,
           name: data.name,
           status: data.status,
+          company_id: data.company_id,
         }),
         cache: "no-store",
       }
@@ -672,6 +671,7 @@ export const createShift = async (data) => {
           sunday_opening_time: data.sunday_opening_time,
           sunday_closing_time: data.sunday_closing_time,
           status: data.status,
+          id_company: data.id_company
         }),
         cache: "no-store",
       }
@@ -687,6 +687,7 @@ export const createShift = async (data) => {
 }
 
 export const updateShift = async (data) => {
+
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/shifts/updateShift",
@@ -699,25 +700,27 @@ export const updateShift = async (data) => {
         body: JSON.stringify({
           id: data.id,
           name: data.name,
-          monday_opening_time: data.monday_opening_time,
-          monday_closing_time: data.monday_closing_time,
-          tuesday_opening_time: data.tuesday_opening_time,
-          tuesday_closing_time: data.tuesday_closing_time,
-          wednesday_opening_time: data.wednesday_opening_time,
-          wednesday_closing_time: data.wednesday_closing_time,
-          thursday_opening_time: data.thursday_opening_time,
-          thursday_closing_time: data.thursday_closing_time,
-          friday_opening_time: data.friday_opening_time,
-          friday_closing_time: data.friday_closing_time,
-          saturday_opening_time: data.saturday_opening_time,
-          saturday_closing_time: data.saturday_closing_time,
-          sunday_opening_time: data.sunday_opening_time,
-          sunday_closing_time: data.sunday_closing_time,
+          monday_opening_time: data.monday_opening_time ? data.monday_opening_time : null,
+          monday_closing_time: data.monday_closing_time ? data.monday_closing_time : null,
+          tuesday_opening_time: data.tuesday_opening_time ? data.tuesday_opening_time : null,
+          tuesday_closing_time: data.tuesday_closing_time ? data.tuesday_closing_time : null,
+          wednesday_opening_time: data.wednesday_opening_time ? data.wednesday_opening_time : null,
+          wednesday_closing_time: data.wednesday_closing_time ? data.wednesday_closing_time : null,
+          thursday_opening_time: data.thursday_opening_time ? data.thursday_opening_time : null,
+          thursday_closing_time: data.thursday_closing_time ? data.thursday_closing_time : null,
+          friday_opening_time: data.friday_opening_time ? data.friday_opening_time : null,
+          friday_closing_time: data.friday_closing_time ? data.friday_closing_time : null,
+          saturday_opening_time: data.saturday_opening_time ? data.saturday_opening_time : null,
+          saturday_closing_time: data.saturday_closing_time ? data.saturday_closing_time : null,
+          sunday_opening_time: data.sunday_opening_time ? data.sunday_opening_time : null,
+          sunday_closing_time: data.sunday_closing_time ? data.sunday_closing_time : null,
           status: data.status,
+          id_company: Number(data.id_company)
         }),
         cache: "no-store",
       }
     );
+
 
     if (res.ok) {
       const shiftData = await res.json();
@@ -757,8 +760,8 @@ export const deleteShift = async (id) => {
 //Management People - Workers
 export const getDataWorkers = async (id_company) => {
   try {
-    const res = await fetch(
-      URLAPI + `/api/v1/management-people/workers/getWorkers/${id_company}`,
+    const response = await fetch(
+      `${URLAPI}/api/v1/management-people/workers/getWorkers/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -769,17 +772,25 @@ export const getDataWorkers = async (id_company) => {
       }
     );
 
-    if (res.ok) {
-      const workersData = await res.json();
+    if (response.ok) {
+      const workersData = await response.json();
 
       if (workersData.code === "OK") {
         return workersData.workers;
+      } else {
+        console.error('Error code from API:', workersData.code);
+        throw new Error(workersData.mensaje || 'Error desconocido');
       }
+    } else {
+      console.error('HTTP error:', response.status);
+      throw new Error('Error HTTP: ' + response.status);
     }
   } catch (err) {
-    console.error(err);
+    console.error('Fetch error:', err);
+    throw err; // Re-throw error to handle it further up the call stack
   }
 }
+
 
 export const createWorker = async (data) => {
 
@@ -804,10 +815,23 @@ export const createWorker = async (data) => {
           city: data.city,
           address: data.address,
           phone: data.phone,
-          phone_company: data.phone_company,
+          email: data.email,
+          //phone_company: data.phone_company,
           date_admission: data.date_admission,
           status: data.status,
-          id_company: data.id_company,
+          position: data.position,
+          contractor: data.contractor,
+          squad: data.squad,
+          leader_squad: data.leader_squad,
+          shift: data.shift,
+          wristband: data.wristband,
+          observation: data.observation,
+          bank: data.bank,
+          account_type: data.account_type,
+          account_number: data.account_number,
+          afp: data.afp,
+          health: data.health,
+          company_id: Number(data.company_id),
         }),
         cache: "no-store",
       }
@@ -815,7 +839,7 @@ export const createWorker = async (data) => {
 
     if (res.ok) {
       const workerData = await res.json();
-      return workerData.code;
+      return workerData;
     }
   }
   catch (err) {
@@ -824,6 +848,8 @@ export const createWorker = async (data) => {
 }
 
 export const updateWorker = async (data) => {
+  console.log('Datos enviados al backend:', data);
+
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/workers/updateWorker",
@@ -833,36 +859,27 @@ export const updateWorker = async (data) => {
           "Content-Type": "application/json",
           "x-api-key": token,
         },
-        body: JSON.stringify({
-          id: data.id,
-          rut: data.rut,
-          name: data.name,
-          lastname: data.lastname,
-          lastname2: data.lastname2,
-          born_date: data.born_date,
-          gender: data.gender,
-          state_civil: data.state_civil,
-          state: data.state,
-          city: data.city,
-          address: data.address,
-          phone: data.phone,
-          phone_company: data.phone_company,
-          date_admission: data.date_admission,
-          status: data.status,
-        }),
+        body: JSON.stringify(data),
         cache: "no-store",
       }
     );
 
+    console.log('Respuesta del backend:', res);
+
     if (res.ok) {
       const workerData = await res.json();
-      return workerData.code;
+      console.log('Datos del trabajador actualizado:', workerData);
+      return workerData;
+    } else {
+      const errorData = await res.json();
+      console.error('Error en la respuesta del backend:', errorData);
+      return errorData;
     }
+  } catch (err) {
+    console.error('Error en la solicitud:', err);
   }
-  catch (err) {
-    console.error(err);
-  }
-}
+};
+
 
 export const deleteWorker = async (id) => {
   try {

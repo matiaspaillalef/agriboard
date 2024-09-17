@@ -128,7 +128,7 @@ const PeopleManagementGroups = () => {
     };
   }, [fetchData, selectedCompanyId]);
 
-
+console.log(dataGroups);
 
   return (
     <>

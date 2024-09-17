@@ -82,7 +82,7 @@ const ProductionSectorAttributes = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableSectorAttributes
                 data={dataSectorAttributes}
-                thead="Temporada, Sector, Especie, Variedad, Año Plantación, Ha. Productivas, Cosecha Finalizada, Kg Sector, Kg Hectareas, Kg Plantas"
+                thead="Temporada, Sector, Especie, Variedad, Año Plantación, Ha. Productivas, Kg Sector, Kg Hectareas, Kg Plantas"
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}

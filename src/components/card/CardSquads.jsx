@@ -174,7 +174,7 @@ const CardTableSquads = ({
   };
 
   const handleAddWorkers = (squad) => {
-    console.log("Squad:", squad);
+
     setSelectSquad(squad);
     setOpenAddWorkers(!openAddWorkers);
 
@@ -191,11 +191,6 @@ const CardTableSquads = ({
 
     setWorkers(updatedWorkers);
 };
-
-
-  console.log("Select squad:", selectSquad);
-  console.log("Workers:", workers);
-  
 
   const handleOpenEditUser = (user) => {
     const workersJson = JSON.parse(user.workers);
@@ -232,14 +227,15 @@ const CardTableSquads = ({
 
     try {
       const updateSquadApi = await updateSquad(updatedData);
+      const squadData = await getDataSquads(companyID);
 
-      // Elimina la fila del front-end si la actualización es exitosa
       if (updateSquadApi === "OK") {
         const newData = initialData.map((item) =>
           item.id === updatedData.id ? updatedData : item
         );
 
         setInitialData(newData);
+        setInitialData(squadData);
         setUpdateMessage("Cuadrilla actualizada correctamente");
         setOpen(false);
       } else {
@@ -302,7 +298,7 @@ const CardTableSquads = ({
         setInitialData(updatedData);
 
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataSquads();
+        const newDataFetch = await getDataSquads(companyID );
 
         setInitialData(newDataFetch);
         setOpen(false);
@@ -518,11 +514,12 @@ const CardTableSquads = ({
                           return null; // Omitir la columna si está en omitirColumns
                         }
 
+
                         //Acá mapeamos los id del grupo para trernos el nombre de la DB groups
                         if (key === "group") {
-                          const group = groups.find(
+                          const group = Array.isArray(groups) ? groups.find(
                             (group) => group.id == row[key]
-                          );
+                          ) : null ;
                           return (
                             <td
                               key={rowIndex}
@@ -534,7 +531,7 @@ const CardTableSquads = ({
                               } ${columnsClasses[rowIndex] || "text-left"}`}
                             >
                               <div className="text-base font-medium text-navy-700 dark:text-white">
-                                {group ? group.name : ""}
+                                {group ? group.name : "-"}
                               </div>
                             </td>
                           );
@@ -579,8 +576,6 @@ const CardTableSquads = ({
                               : ""
                           }`}
                         >
-
-                          {console.log("Row:", row)}
                           <Tooltip
                             placement="bottom"
                             className="border border-blue-gray-50 bg-white px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white dark:bg-navy-900 dark:border-navy-900"
@@ -750,7 +745,7 @@ const CardTableSquads = ({
                     <select
                       name="group"
                       id="group"
-                      required={true}
+                      //required={true}
                       {...register("group")}
                       defaultValue={selectedItem ? selectedItem.group : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 text-navy-900 dark:text-white"

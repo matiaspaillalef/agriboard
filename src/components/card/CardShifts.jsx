@@ -39,6 +39,7 @@ const CardTableShifts = ({
   omitirColumns = [],
   title,
   actions,
+  companyID,
   tableId,
   downloadBtn,
   SearchInput,
@@ -126,7 +127,10 @@ const CardTableShifts = ({
             : item
         );
 
+        const NewData = await getDataShifts(companyID);
+
         setInitialData(updatedData);
+        setInitialData(NewData);
         setUpdateMessage("Turno actualizado correctamente");
         setOpen(false);
       } else {
@@ -160,16 +164,18 @@ const CardTableShifts = ({
 
   const handlerRemove = async () => {
     const { index, id } = itemToDelete;
-    d;
+
     try {
       //if (userConfirmed) {
       const deleteShift = await deleteShiftApi(id);
+      const newData = await getDataShifts(companyID);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteShift === "OK") {
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
+        setInitialData(newData);
         setOpenAlert(false);
         setUpdateMessage("Turno eliminado correctamente");
       } else {
@@ -184,6 +190,9 @@ const CardTableShifts = ({
 
   // Creación de empresa
   const onSubmitForm = async (data) => {
+
+    console.log(data);
+
     try {
       const createShiftapi = await createShift(data);
 
@@ -193,12 +202,8 @@ const CardTableShifts = ({
 
         setInitialData(updatedData);
 
-        const userDataString = sessionStorage.getItem("userData");
-        const userData = JSON.parse(userDataString);
-        const idCompany = userData.idCompany;
-
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataShifts(idCompany);
+        const newDataFetch = await getDataShifts(companyID);
 
         setInitialData(newDataFetch);
         setOpen(false);
@@ -606,7 +611,7 @@ const CardTableShifts = ({
                               name="monday_opening_time"
                               id="monday_opening_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.monday_opening_time
@@ -628,7 +633,7 @@ const CardTableShifts = ({
                               name="monday_closing_time"
                               id="monday_closing_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.monday_closing_time
@@ -665,7 +670,7 @@ const CardTableShifts = ({
                               name="tuesday_opening_time"
                               id="tuesday_opening_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.tuesday_opening_time
@@ -687,7 +692,7 @@ const CardTableShifts = ({
                               name="tuesday_closing_time"
                               id="tuesday_closing_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.tuesday_closing_time
@@ -724,7 +729,7 @@ const CardTableShifts = ({
                               name="wednesday_opening_time"
                               id="wednesday_opening_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.wednesday_opening_time
@@ -746,7 +751,7 @@ const CardTableShifts = ({
                               name="wednesday_closing_time"
                               id="wednesday_closing_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.wednesday_closing_time
@@ -784,7 +789,7 @@ const CardTableShifts = ({
                               name="thursday_opening_time"
                               id="thursday_opening_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.thursday_opening_time
@@ -806,7 +811,7 @@ const CardTableShifts = ({
                               name="thursday_closing_time"
                               id="thursday_closing_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.thursday_closing_time
@@ -844,7 +849,7 @@ const CardTableShifts = ({
                               name="friday_opening_time"
                               id="friday_opening_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.friday_opening_time
@@ -866,7 +871,7 @@ const CardTableShifts = ({
                               name="friday_closing_time"
                               id="friday_closing_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.friday_closing_time
@@ -904,7 +909,7 @@ const CardTableShifts = ({
                               name="saturday_opening_time"
                               id="saturday_opening_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.saturday_opening_time
@@ -926,7 +931,7 @@ const CardTableShifts = ({
                               name="saturday_closing_time"
                               id="saturday_closing_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.saturday_closing_time
@@ -964,7 +969,7 @@ const CardTableShifts = ({
                               name="sunday_opening_time"
                               readOnly={isShowSchedule}
                               id="sunday_opening_time"
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.sunday_opening_time
@@ -986,7 +991,7 @@ const CardTableShifts = ({
                               name="sunday_closing_time"
                               id="sunday_closing_time"
                               readOnly={isShowSchedule}
-                              required={true}
+                              //required={true}
                               defaultValue={
                                 selectedItem
                                   ? selectedItem.sunday_closing_time
@@ -1023,6 +1028,15 @@ const CardTableShifts = ({
                         <option value="1">Activo</option>
                       </select>
                     </div>
+
+                    <input
+                      type="hidden"
+                      name="id_company"
+                      id="id_company"
+                      required={true}
+                      {...register("id_company")}
+                      defaultValue={companyID}
+                    />
 
                     <div className="flex flex-col gap-3">
                       <button

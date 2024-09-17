@@ -350,7 +350,6 @@ export const createAttributesSector = async (data) => {
           plants: data.plants,
           min_daily_frecuency: data.min_daily_frecuency,
           max_daily_frecuency: data.max_daily_frecuency,
-          harvest_end: data.harvest_end,
           stimation_good: data.stimation_good,
           stimation_regular: data.stimation_regular,
           stimation_bad: data.stimation_bad,
@@ -389,6 +388,42 @@ export const createAttributesSector = async (data) => {
   }
 };
 
+export const cloneAttributesSector = async (data) => {
+  console.log(data);
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/configuracion/production/cloneAttributesSector",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          id: data.id,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const attributeSectorData = await res.json();
+
+      if (attributeSectorData.code === "OK") {
+        return "OK"; // Indicar que la creación fue exitosa
+      } else if (attributeSectorData.code === "ERROR") {
+        return attributeSectorData.mensaje; // Manejar el mensaje de error desde la API
+      }
+    } else {
+      throw new Error("Error en la solicitud HTTP");
+    }
+  } catch (err) {
+    console.error("Error al crear el registro:", err);
+    throw new Error("Error al intentar crear el registro");
+  }
+};
+
+
 export const updateAttributesSector = async (data) => {
   try {
     const res = await fetch(
@@ -411,7 +446,6 @@ export const updateAttributesSector = async (data) => {
           plants: data.plants,
           min_daily_frecuency: data.min_daily_frecuency,
           max_daily_frecuency: data.max_daily_frecuency,
-          harvest_end: data.harvest_end,
           stimation_good: data.stimation_good,
           stimation_regular: data.stimation_regular,
           stimation_bad: data.stimation_bad,
@@ -423,7 +457,7 @@ export const updateAttributesSector = async (data) => {
           clasification: data.clasification,
           rotation: data.rotation,
           kg_sector: data.kg_sector,
-          kh_hectares: data.kh_hectares,
+          kg_hectares: data.kg_hectares,
           kg_plants: data.kg_plants,
           porc_regular: data.porc_regular,
           porc_replant: data.porc_replant,

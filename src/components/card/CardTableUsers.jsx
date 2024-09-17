@@ -86,7 +86,7 @@ const CardTableUsers = ({
   };
 
   const handleOpenEditUser = (user) => {
-    console.log("Datos del usuario al editar:", user);
+    //console.log("Datos del usuario al editar:", user);
     //console.log("Contraseña cifrada:", user.password);
     setIsEdit(true);
     setFormData(user);
@@ -116,9 +116,6 @@ const CardTableUsers = ({
         //console.log(userDataWithoutPassword);
         let id_rol = data.id_rol;
         let id_company = data.id_company;
-        console.log(id_company);
-
-        console.log(datoscombos);
 
         datoscombos.forEach((value) => {
           if (value.id_rol == id_rol) {
@@ -226,7 +223,7 @@ const CardTableUsers = ({
 
   // Creación de usuario
   const onSubmitForm = async (data) => {
-    console.log(data);
+
     try {
       const createUserapi = await createUser(data);
       // Agrega la fila del front-end
@@ -235,9 +232,8 @@ const CardTableUsers = ({
         //let { userPassword, ...newUser } = data; // agregamos al fornt el nuevo usuario sin la password
 
         let id_rol = data.id_rol;
-        console.log(id_company);
 
-        datoscombos.forEach((value) => {
+        datoscombos && datoscombos.forEach((value) => {
           if (value.id_rol == id_rol) {
             data = {
               ...data,
@@ -260,7 +256,6 @@ const CardTableUsers = ({
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
-        console.log(updatedData);
 
         //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
@@ -727,7 +722,7 @@ const CardTableUsers = ({
                       defaultValue={selectedUser ? selectedUser.id_company : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {datosCompanies.map((empresas, index) => {
+                      {Array.isArray(datosCompanies) && datosCompanies.map((empresas, index) => {
                         return (
                           <option key={index} value={empresas.id}>
                             {empresas.name_company}
