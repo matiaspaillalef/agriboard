@@ -1,4 +1,5 @@
 import { data } from "autoprefixer";
+
 import jwt from "jsonwebtoken";
 import { date } from "zod";
 
@@ -759,8 +760,8 @@ export const deleteShift = async (id) => {
 //Management People - Workers
 export const getDataWorkers = async (id_company) => {
   try {
-    const res = await fetch(
-      URLAPI + `/api/v1/management-people/workers/getWorkers/${id_company}`,
+    const response = await fetch(
+      `${URLAPI}/api/v1/management-people/workers/getWorkers/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -771,17 +772,25 @@ export const getDataWorkers = async (id_company) => {
       }
     );
 
-    if (res.ok) {
-      const workersData = await res.json();
+    if (response.ok) {
+      const workersData = await response.json();
 
       if (workersData.code === "OK") {
         return workersData.workers;
+      } else {
+        console.error('Error code from API:', workersData.code);
+        throw new Error(workersData.mensaje || 'Error desconocido');
       }
+    } else {
+      console.error('HTTP error:', response.status);
+      throw new Error('Error HTTP: ' + response.status);
     }
   } catch (err) {
-    console.error(err);
+    console.error('Fetch error:', err);
+    throw err; // Re-throw error to handle it further up the call stack
   }
 }
+
 
 export const createWorker = async (data) => {
 
@@ -806,10 +815,23 @@ export const createWorker = async (data) => {
           city: data.city,
           address: data.address,
           phone: data.phone,
-          phone_company: data.phone_company,
+          email: data.email,
+          //phone_company: data.phone_company,
           date_admission: data.date_admission,
           status: data.status,
-          id_company: data.id_company,
+          position: data.position,
+          contractor: data.contractor,
+          squad: data.squad,
+          leader_squad: data.leader_squad,
+          shift: data.shift,
+          wristband: data.wristband,
+          observation: data.observation,
+          bank: data.bank,
+          account_type: data.account_type,
+          account_number: data.account_number,
+          afp: data.afp,
+          health: data.health,
+          company_id: Number(data.company_id),
         }),
         cache: "no-store",
       }
@@ -817,7 +839,7 @@ export const createWorker = async (data) => {
 
     if (res.ok) {
       const workerData = await res.json();
-      return workerData.code;
+      return workerData;
     }
   }
   catch (err) {
@@ -826,6 +848,8 @@ export const createWorker = async (data) => {
 }
 
 export const updateWorker = async (data) => {
+  console.log('Datos enviados al backend:', data);
+
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/workers/updateWorker",
@@ -835,36 +859,27 @@ export const updateWorker = async (data) => {
           "Content-Type": "application/json",
           "x-api-key": token,
         },
-        body: JSON.stringify({
-          id: data.id,
-          rut: data.rut,
-          name: data.name,
-          lastname: data.lastname,
-          lastname2: data.lastname2,
-          born_date: data.born_date,
-          gender: data.gender,
-          state_civil: data.state_civil,
-          state: data.state,
-          city: data.city,
-          address: data.address,
-          phone: data.phone,
-          phone_company: data.phone_company,
-          date_admission: data.date_admission,
-          status: data.status,
-        }),
+        body: JSON.stringify(data),
         cache: "no-store",
       }
     );
 
+    console.log('Respuesta del backend:', res);
+
     if (res.ok) {
       const workerData = await res.json();
-      return workerData.code;
+      console.log('Datos del trabajador actualizado:', workerData);
+      return workerData;
+    } else {
+      const errorData = await res.json();
+      console.error('Error en la respuesta del backend:', errorData);
+      return errorData;
     }
+  } catch (err) {
+    console.error('Error en la solicitud:', err);
   }
-  catch (err) {
-    console.error(err);
-  }
-}
+};
+
 
 export const deleteWorker = async (id) => {
   try {

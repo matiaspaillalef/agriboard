@@ -192,7 +192,7 @@ const CardTableWorkers = ({
             .split("T")[0],
           gender: item.Género,
           phone: item["Teléfono"],
-          phone_company: item["Teléfono empresa"],
+          //phone_company: item["Teléfono empresa"],
           state: item.Estado,
           state_civil: item["Estado civil"],
           status: item.status,
@@ -240,7 +240,6 @@ const CardTableWorkers = ({
   };
 
   const handleOpenEditUser = (user) => {
-    console.log(user);
     setRutValido(true); //Se pasa en true ya que si leventa la ventada de editar es por que los datos ya fueron validados
     setOpenShowUser(false);
     setSelectedRegion(user.state);
@@ -259,7 +258,7 @@ const CardTableWorkers = ({
   const onUpdateItem = async (data) => {
     try {
       const transformedData = {
-        id: data.id,
+        id: Number(data.id),
         rut: data.rut,
         name: data.name,
         lastname: data.lastname,
@@ -271,7 +270,8 @@ const CardTableWorkers = ({
         city: data.city,
         address: data.address,
         phone: data.phone,
-        phone_company: data.phone_company,
+        email: data.email,
+        //phone_company: data.phone_company,
         date_admission: data.date_admission,
         status: data.status,
         position: data.position,
@@ -286,22 +286,25 @@ const CardTableWorkers = ({
         account_number: data.account_number,
         afp: data.afp,
         health: data.health,
+        company_id: Number(data.company_id),
       };
       const updateWorkerApi = await updateWorker(transformedData);
 
       // Elimina la fila del front-end
-      if (updateWorkerApi === "OK") {
+      if (updateWorkerApi.code === "OK") {
+
+        const newFetchData = await getDataWorkers(companyID);
+
         const updatedData = initialData.map((item) =>
           item.id == transformedData.id ? { ...transformedData } : item
         );
 
-        //const updatedData = [...initialData, transformedData];
-
         setInitialData(updatedData);
+        setInitialData(newFetchData);
         setUpdateMessage("Trabajadoractualizado correctamente");
         setOpen(false);
       } else {
-        setUpdateMessage("No se pudo actualizar al trabajador");
+        setUpdateMessage(updateWorkerApi.mensaje ? updateWorkerApi.mensaje : "No se pudo actualizar al trabajador");
       }
     } catch (error) {
       console.error(error);
@@ -348,20 +351,17 @@ const CardTableWorkers = ({
 
   // Creación
   const onSubmitForm = async (data) => {
-    console.log(data);
-
+    //Remove ID
+    delete data.id;
     try {
       const createWorkerapi = await createWorker(data);
-
-      console.log(createWorkerapi);
       // Agrega la fila del front-end
-      if (createWorkerapi == "OK") {
+      if (createWorkerapi.code == "OK") {
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
 
-        //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataWorkers(); // Actualizar la lista de usuarios
+        const newDataFetch = await getDataWorkers(companyID);
         //console.log(newDataFetch);
         setInitialData(newDataFetch);
 
@@ -369,7 +369,7 @@ const CardTableWorkers = ({
 
         setUpdateMessage("Trabajador creado correctamente");
       } else {
-        setUpdateMessage("Error al crear al trabajador");
+        setUpdateMessage(createWorkerapi.mensaje ? createWorkerapi.mensaje : "Error al crear al trabajador");
       }
     } catch (error) {
       console.error(error);
@@ -388,10 +388,9 @@ const CardTableWorkers = ({
     }
   }, [updateMessage]);
 
-  console.log(data);
 
   useEffect(() => {
-    if (data == undefined) {
+    if (data && Object.keys(data).length > 0) {
       setLoading(false);
     }
   }, [data]);
@@ -419,9 +418,9 @@ const CardTableWorkers = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData
-    ? initialData.slice(indexOfFirstItem, indexOfLastItem)
-    : [];
+  const currentItems = (
+    Array.isArray(initialData) && initialData.length > 0 ? initialData : []
+  ).slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -466,7 +465,7 @@ const CardTableWorkers = ({
   }
 
   // Función para manejar la validación de la fecha de nacimiento
-  const handleDateChange = (e) => {
+  /*const handleDateChange = (e) => {
     const selectedDate = new Date(e.target.value);
     const today = new Date();
     const minDate = new Date(
@@ -483,7 +482,7 @@ const CardTableWorkers = ({
       );
       e.target.value = "";
     }
-  };
+  };*/
 
   const getCurrentDate = () => {
     const today = new Date();
@@ -521,6 +520,7 @@ const CardTableWorkers = ({
     };
     handleNameItems();
   }, []);
+
 
   return (
     <>
@@ -957,7 +957,7 @@ const CardTableWorkers = ({
                               : ""
                           }
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                          onChange={handleDateChange}
+                          //onChange={handleDateChange}
                         />
                       </div>
                     </div>
@@ -1118,24 +1118,24 @@ const CardTableWorkers = ({
                     </div>
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="phone_company"
+                        htmlFor="email"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Teléfono de la empresa
+                        Email
                       </label>
                       <input
-                        type="text"
-                        name="phone_company"
-                        id="phone_company"
+                        type="email"
+                        name="email"
+                        id="email"
                         readOnly={openShowUser}
-                        required={true}
+                        //required={true}
                         defaultValue={
-                          selectedItem ? selectedItem.phone_company : ""
+                          selectedItem ? selectedItem.email : ""
                         }
-                        {...register("phone_company")}
+                        {...register("email")}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
-                    </div>
+                      </div>
                   </div>
 
                   <h3 className="font-bold my-4">Información laboral</h3>
@@ -1503,6 +1503,14 @@ const CardTableWorkers = ({
                         <option value="1">Activo</option>
                       </select>
                     </div>
+
+                    <input
+                    type="hidden"
+                    name="company_id"
+                    {...register("company_id")}
+                    defaultValue={Number(companyID)}
+                  />
+
                   </div>
 
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
@@ -1564,7 +1572,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Teléfono:</strong>
+                    <strong>Teléfono:</strong>{" "}
                     {selectedItem.phone ? (
                       <a
                         href={`tel:${selectedItem.phone}`}
@@ -1579,14 +1587,14 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Teléfono de la empresa:</strong>
-                    {selectedItem.phone_company ? (
+                    <strong>Email:</strong>{" "}
+                    {selectedItem.email ? (
                       <a
-                        href={`tel:${selectedItem.phone_company}`}
+                        href={`mailto:${selectedItem.email}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {selectedItem.phone_company}
+                        {selectedItem.email}
                       </a>
                     ) : (
                       "No registrado"
@@ -1596,15 +1604,15 @@ const CardTableWorkers = ({
                   <h3 className="font-bold mt-4 bb-2">Información laboral</h3>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha de ingreso:</strong>
+                    <strong>Fecha de ingreso:</strong>{" "}
                     {formatDateView(
                       formatDateToInput(selectedItem.date_admission)
                     ) || "-"}
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Cargo:</strong>
-                    {dataPosition
+                    <strong>Cargo:</strong>{" "}
+                    {Array.isArray(dataPosition) && dataPosition
                       ? dataPosition.find(
                           (position) => position.id == selectedItem.position
                         )?.name || "-"
@@ -1612,8 +1620,8 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Contratista:</strong>
-                    {dataContractor
+                    <strong>Contratista:</strong>{" "}
+                    {Array.isArray(dataContractor) && dataContractor
                       ? dataContractor.find(
                           (contractor) =>
                             contractor.id == selectedItem.contractor
@@ -1622,8 +1630,8 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Cuadrilla:</strong>
-                    {dataSquad
+                    <strong>Cuadrilla:</strong>{" "}
+                    {Array.isArray(dataSquad) && dataSquad
                       ? dataSquad.find(
                           (squad) => squad.id == selectedItem.squad
                         )?.name || "-"
@@ -1631,13 +1639,13 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Líder de cuadrilla:</strong>
+                    <strong>Líder de cuadrilla:</strong>{" "}
                     {selectedItem.leader_squad == 1 ? "Sí" : "No"}
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Turno:</strong>
-                    {dataShift
+                    <strong>Turno:</strong>{" "}
+                    {Array.isArray(dataShift) && dataShift
                       ? dataShift.find(
                           (shift) => shift.id == selectedItem.shift
                         )?.name || "-"
@@ -1664,7 +1672,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Tipo de cuenta:</strong>
+                    <strong>Tipo de cuenta:</strong>{" "}
                     {dataAccountType
                       ? dataAccountType.find(
                           (accountType) =>
@@ -1687,7 +1695,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Previsión:</strong>
+                    <strong>Previsión:</strong>{" "}
                     {dataSalud
                       ? dataSalud.find(
                           (health) => health.salud == selectedItem.health
@@ -1696,7 +1704,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Estado:</strong>
+                    <strong>Estado:</strong>{" "}
                     {selectedItem.status == 1 ? "Activo" : "Inactivo"}
                   </p>
                 </div>

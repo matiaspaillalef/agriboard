@@ -26,15 +26,19 @@ const PeopleManagementWorkers = () => {
   const fetchData = useCallback(async (companyId) => {
     setIsLoading(true);
     try {
-      const data = await getDataWorkers(companyId);
+      const data = await getDataWorkers(Number(companyId));
       setDataWorkers(data);
-
+      console.log(data);
     } catch (error) {
       console.error("Error al obtener datos:", error);
     } finally {
       setIsLoading(false);
+      console.log('kakaka');
+      console.log(isLoading);
     }
   }, []);
+
+  console.log(isLoading);
 
 
   useEffect(() => {
@@ -42,6 +46,7 @@ const PeopleManagementWorkers = () => {
     setSelectedCompanyId(companyId);
     if (companyId) {
       fetchData(companyId);
+       console.log(isLoading);
     }
   }, [getCompanyIdFromSessionStorage, fetchData]);
 
@@ -67,8 +72,8 @@ const PeopleManagementWorkers = () => {
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
-
-
+console.log(dataWorkers);
+console.log(isLoading);
   return (
     <>
       {isLoading ? (
@@ -81,7 +86,7 @@ const PeopleManagementWorkers = () => {
                 data={dataWorkers}
                 companyID={selectedCompanyId}
                 thead="RUT, Nombre, Apellido, Región, Ciudad, Teléfono, Estado"
-                omitirColumns={["id", "lastname2", "born_date", "gender", "state_civil", "address", "phone_company", "date_admission", "position", "squad", "leader_squad", "shift", "wristband", "observation", "bank", "account_type", "account_number", "afp", "health", "contractor"]}
+                omitirColumns={["id", "lastname2", "born_date", "gender", "state_civil", "address", "phone_company", "date_admission", "position", "squad", "leader_squad", "shift", "wristband", "observation", "bank", "account_type", "account_number", "afp", "health", "contractor", "email", "company_id"]}
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
