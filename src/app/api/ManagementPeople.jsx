@@ -778,7 +778,7 @@ export const getDataWorkers = async (id_company) => {
       if (workersData.code === "OK") {
         return workersData.workers;
       } else {
-        console.error('Error code from API:', workersData.code);
+        //console.error('Error code from API:', workersData.code);
         throw new Error(workersData.mensaje || 'Error desconocido');
       }
     } else {
@@ -786,7 +786,7 @@ export const getDataWorkers = async (id_company) => {
       throw new Error('Error HTTP: ' + response.status);
     }
   } catch (err) {
-    console.error('Fetch error:', err);
+    //console.error('Fetch error:', err);
     throw err; // Re-throw error to handle it further up the call stack
   }
 }
