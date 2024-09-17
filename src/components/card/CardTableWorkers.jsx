@@ -1158,7 +1158,7 @@ const CardTableWorkers = ({
                           name="date_admission"
                           required={true}
                           id="date_admission"
-                          max={getCurrentDate()}
+                          //max={getCurrentDate()}
                           readOnly={openShowUser}
                           {...register("date_admission")}
                           defaultValue={
