@@ -388,12 +388,17 @@ const CardTableWorkers = ({
     }
   }, [updateMessage]);
 
-
   useEffect(() => {
-    if (data && Object.keys(data).length > 0) {
-      setLoading(false);
+    // Verificar si `data` está definido y no es un array vacío ni un objeto vacío
+    if (data && 
+        (Array.isArray(data) && data.length > 0) || 
+        (typeof data === 'object' && Object.keys(data).length > 0)) {
+        setLoading(false);
+    } else {
+        // Si `data` es un array vacío o un objeto vacío, manejarlo como no cargado
+        setLoading(false);
     }
-  }, [data]);
+}, [data]);
 
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -1759,7 +1764,7 @@ const CardTableWorkers = ({
                 nuevamente. Descarga el excel de ejemplo para subir los
                 trabajadores{" "}
                 <Link
-                  href="../../../public/template-trabajadores-agrisoft.xlsx"
+                  href="/template-trabajadores-agrisoft.xlsx"
                   download
                   className="underline font-semibold"
                 >
