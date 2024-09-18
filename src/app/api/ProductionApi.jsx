@@ -1088,38 +1088,46 @@ export const getDataQuality = async (id_company) => {
 
 export const createQuality = async (data) => {
   try {
-    const res = await fetch(
-      URLAPI + "/api/v1/configuracion/production/createQuality",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": token,
-        },
-        body: JSON.stringify({
-          name: data.name,
-          abbreviation: data.abbreviation,
-          company_id: data.company_id,
-          status: data.status,
-        }),
-        cache: "no-store",
-      }
-    );
+    // Validación de datos
+    if (!data.name) {
+      throw new Error("Faltan dato obligatorio: 'nombre'.");
+    }
 
-    if (res.ok) {
-      const qualityData = await res.json();
+    // Realizar solicitud a la API
+    const res = await fetch(URLAPI + "/api/v1/configuracion/production/createQuality", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify({
+        name: data.name,
+        abbreviation: data.abbreviation || null, // Manejar valores opcionales
+        company_id: Number(data.company_id),
+        status: data.status || null, // Manejar valores opcionales
+      }),
+      cache: "no-store",
+    });
 
-      if (qualityData.code === "OK") {
-        return "OK"; // Indicar que la creación fue exitosa
-      } else if (qualityData.code === "ERROR") {
-        return qualityData.mensaje; // Manejar el mensaje de error desde la API
-      }
+    // Verificar si la respuesta es exitosa
+    //if (!res.ok) {
+      //throw new Error(`HTTP error! Status: ${res.status}`);
+    //}
+
+    // Parsear la respuesta JSON
+    const qualityData = await res.json();
+
+    // Verificar el código de respuesta de la API
+    if (qualityData.code === "OK") {
+      return "OK"; // Indicar que la creación fue exitosa
+    } else if (qualityData.code === "ERROR") {
+      return qualityData.mensaje; // Manejar el mensaje de error desde la API
     } else {
-      throw new Error("Error en la solicitud HTTP");
+      throw new Error("Respuesta de API inesperada.");
     }
   } catch (err) {
-    console.error("Error al crear el registro:", err);
-    throw new Error("Error al intentar crear el registro");
+    console.error("Error al crear el registro:", err.message);
+    return err.message; // Devolver el mensaje de error para manejo en el frontend
   }
 };
 
@@ -1146,9 +1154,11 @@ export const updateQuality = async (data) => {
     if (res.ok) {
       const qualityData = await res.json();
 
+      console.log("qualityData", qualityData);
+
       if (qualityData.code === "OK") {
         return "OK"; // Indicar que la actualización fue exitosa
-      } else if (qualityData.code === "ERROR") {
+      } else {
         return qualityData.mensaje; // Manejar el error desde la API
       }
     } else {
@@ -1236,7 +1246,7 @@ export const createHarvestFormat = async (data) => {
           specie: data.specie,
           min_weight: data.min_weight,
           max_weight: data.max_weight,
-          average_weight: data.average_weight,
+          //average_weight: data.average_weight,
           quantity_trays: data.quantity_trays,
           collection: data.collection,
           status: data.status,
@@ -1279,7 +1289,7 @@ export const updateHarvestFormat = async (data) => {
           specie: data.specie,
           min_weight: data.min_weight,
           max_weight: data.max_weight,
-          average_weight: data.average_weight,
+          //average_weight: data.average_weight,
           quantity_trays: data.quantity_trays,
           collection: data.collection,
           status: data.status,
