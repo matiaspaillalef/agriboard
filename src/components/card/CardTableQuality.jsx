@@ -153,7 +153,7 @@ const CardTableQuality = ({
         setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
-        setUpdateMessage("No se pudo actualizar el registro.");
+        setUpdateMessage(updateItemApi ? updateItemApi : "No se pudo actualizar el registro.");
       }
     } catch (error) {
       console.error(error);
@@ -489,7 +489,7 @@ const CardTableQuality = ({
                           >
                             <PencilSquareIcon className="w-6 h-6" />
                           </button>
-
+                            {/*Se elimina el botón clonar
                           <button
                             type="button"
                             className="text-sm font-semibold text-gray-800 dark:text-white"
@@ -508,6 +508,7 @@ const CardTableQuality = ({
                           >
                             <DocumentDuplicateIcon className="w-6 h-6" />
                           </button>
+                          */}
 
                           <button
                             id="remove"

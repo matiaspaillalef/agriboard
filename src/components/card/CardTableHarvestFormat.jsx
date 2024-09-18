@@ -112,7 +112,7 @@ const CardTableHarvestFormat = ({
     specie: "",
     min_weight: "",
     max_weight: "",
-    average_weight: "",
+    //average_weight: "",
     quantity_trays: "",
     collection: "",
     status: "",
@@ -220,7 +220,7 @@ const CardTableHarvestFormat = ({
     specie,
     min_weight,
     max_weight,
-    average_weight,
+    //average_weight,
     quantity_trays,
     collection,
     status,
@@ -233,7 +233,7 @@ const CardTableHarvestFormat = ({
       specie,
       min_weight,
       max_weight,
-      average_weight,
+      //average_weight,
       quantity_trays,
       collection,
       status,
@@ -261,7 +261,7 @@ const CardTableHarvestFormat = ({
       specie: "",
       min_weight: "",
       max_weight: "",
-      average_weight: "",
+      //average_weight: "",
       quantity_trays: "",
       collection: "",
       status: "",
@@ -301,14 +301,12 @@ const CardTableHarvestFormat = ({
       specie,
       min_weight,
       max_weight,
-      average_weight,
+      //average_weight,
       quantity_trays,
       collection,
       status,
       company_id,
     } = itemToClone;
-
-    console.log(itemToClone);
 
     try {
       const cloneItem = await createHarvestFormat(itemToClone);
@@ -340,7 +338,7 @@ const CardTableHarvestFormat = ({
         tara_base: data.tara_base,
         min_weight: data.min_weight,
         max_weight: data.max_weight,
-        average_weight: data.average_weight,
+        //average_weight: data.average_weight,
         quantity_trays: data.quantity_trays,
         collection: data.collection,
         status: data.status,
@@ -615,7 +613,7 @@ const CardTableHarvestFormat = ({
                           >
                             <PencilSquareIcon className="w-6 h-6" />
                           </button>
-
+                          {/* Se remueve el botón clonar
                           <button
                             type="button"
                             className="text-sm font-semibold text-gray-800 dark:text-white"
@@ -629,7 +627,7 @@ const CardTableHarvestFormat = ({
                                 row.specie ? row.specie : "",
                                 row.min_weight ? row.min_weight : "",
                                 row.max_weight ? row.max_weight : "",
-                                row.average_weight ? row.average_weight : "",
+                                //row.average_weight ? row.average_weight : "",
                                 row.quantity_trays ? row.quantity_trays : "",
                                 row.collection ? row.collection : "",
                                 //row.status ? Number(row.status) : "",
@@ -640,18 +638,12 @@ const CardTableHarvestFormat = ({
                           >
                             <DocumentDuplicateIcon className="w-6 h-6" />
                           </button>
-
+*/}
                           <button
                             id="remove"
                             type="button"
                             onClick={() => {
-                              handleOpenAlert(
-                                index,
-                                row.id,
-                                row.scale
-                                  ? getNameByKey("scale", row.scale)
-                                  : ""
-                              );
+                              handleOpenAlert(index, row.id, row.name);
                             }}
                           >
                             <TrashIcon className="w-6 h-6" />
@@ -846,26 +838,6 @@ const CardTableHarvestFormat = ({
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="average_weight"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Peso promedio
-                      </label>
-                      <input
-                        type="number"
-                        name="average_weight"
-                        id="average_weight"
-                        required={true}
-                        step="0.01"
-                        {...register("average_weight")}
-                        defaultValue={
-                          selectedItem ? selectedItem.average_weight : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      <label
                         htmlFor="quantity_trays"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
@@ -883,9 +855,7 @@ const CardTableHarvestFormat = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
-                  </div>
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="collection"
@@ -952,9 +922,7 @@ const CardTableHarvestFormat = ({
                         )}
                       </select>
                     </div>
-                  </div>
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="status"
@@ -1012,10 +980,6 @@ const CardTableHarvestFormat = ({
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Peso máximo:</strong> {selectedItem.max_weight}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Peso promedio:</strong>{" "}
-                    {selectedItem.average_weight}
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Cantidad de bandejas:</strong>{" "}
