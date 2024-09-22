@@ -92,16 +92,16 @@ export const updateGround = async (data) => {
           "x-api-key": token,
         },
         body: JSON.stringify({
-          id: data.id,
+          id: Number(data.id),
           name: data.name,
           state: data.state,
           city: data.city,
           address: data.address,
-          latitude: data.latitude !== "" ? data.latitude : null,
-          longitude: data.longitude !== "" ? data.longitude : null,
+          latitude: data.latitude,
+          longitude: data.longitude,
           zone: data.zone,
-          company_id: data.company_id,
-          status: data.status,
+          company_id: Number(data.company_id),
+          status: Number(data.status),
         }),
       }
     );
@@ -110,6 +110,7 @@ export const updateGround = async (data) => {
       const groundData = await res.json();
       //console.log("groundData", groundData);
 
+      console.log("groundData", groundData);
       if (groundData.code === "OK") {
         return "OK"; // Indicar que la actualización fue exitosa
       } else if (groundData.code === "ERROR") {

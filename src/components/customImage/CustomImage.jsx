@@ -14,7 +14,7 @@ function CustomImage({ companyID }) {
     const fetchCompany = async () => {
       try {
         const dataCompanies = await getDataCompanies();
-        console.log("Datos de empresas:", dataCompanies);
+        //console.log("Datos de empresas:", dataCompanies);
 
         if (dataCompanies.code == "OK") {
           const data = dataCompanies.companies.find(

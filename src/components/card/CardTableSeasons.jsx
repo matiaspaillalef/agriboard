@@ -112,7 +112,9 @@ const CardTableSeasons = ({
   const [isStatusReadonly, setIsStatusReadonly] = useState(false);
   useEffect(() => {
     if (Array.isArray(initialData)) {
-      const hasActiveSeason = initialData.filter((season) => season.status === 1);
+      const hasActiveSeason = initialData.filter(
+        (season) => season.status === 1
+      );
       setIsStatusReadonly(hasActiveSeason.length > 0);
     }
   }, [companyID, initialData]);
@@ -196,6 +198,7 @@ const CardTableSeasons = ({
 
   const onUpdateItem = async (data) => {
     console.log(data);
+
     try {
       if (!data || !data.id) {
         throw new Error(
@@ -242,15 +245,12 @@ const CardTableSeasons = ({
     }
   }, [data]);
 
+  const [newSeasonId, setNewSeasonId] = useState(null); // Estado para almacenar el ID de la nueva temporada
+
   useEffect(() => {
     const timeZone = "America/Santiago";
     const now = moment().tz(timeZone);
     const localDateString = now.format("YYYY-MM-DD");
-
-    const nowTime = now.hours() * 3600 + now.minutes() * 60 + now.seconds();
-    const hours = Math.floor(nowTime / 3600);
-    const minutes = Math.floor((nowTime % 3600) / 60);
-    const seconds = nowTime % 60;
 
     if (Array.isArray(initialData)) {
       initialData.forEach((season) => {
@@ -258,25 +258,29 @@ const CardTableSeasons = ({
           .tz(timeZone)
           .format("YYYY-MM-DD");
 
+        // Solo actualiza si la fecha ha pasado y el estado es 1
         if (endDate < localDateString && season.status === 1) {
           const seasonToUpdate = {
-            id: season.id?.toString() || "", // Usar encadenamiento opcional
+            id: season.id?.toString() || "",
             name: season.name,
             period: season.period,
             date_from: moment(season.date_from).format("YYYY-MM-DD"),
             date_until: moment(season.date_until).format("YYYY-MM-DD"),
-            status: "2",
-            company_id: season.company_id?.toString() || "", // Usar encadenamiento opcional
+            status: "2", // Cambiar el estado a 2 solo si es necesario
+            company_id: season.company_id?.toString() || "",
             shifts: season.shifts,
           };
 
-          onUpdateItem(seasonToUpdate);
+          // Asegúrate de que no estás actualizando la temporada recién creada
+          if (seasonToUpdate.id !== newSeasonId) {
+            onUpdateItem(seasonToUpdate);
+          }
         }
       });
     } else {
       console.log("No hay datos");
     }
-  }, [initialData, onUpdateItem]);
+  }, [initialData, onUpdateItem, newSeasonId]);
 
   const handleOpenAlert = (index, id, name_item) => {
     setItemToDelete({ index, id, name_item });
@@ -390,6 +394,8 @@ const CardTableSeasons = ({
 
   const submitForm = async () => {
     setIsSubmitting(true);
+
+    console.log(formData);
     try {
       const transformedData = {
         id: Number(formData.id) || null,
@@ -405,10 +411,12 @@ const CardTableSeasons = ({
       const createItem = await createSeason(transformedData);
       const dataNew = await getDataSeasons(companyID);
 
+      console.log(createItem);
       if (createItem === "OK") {
         const updatedData = [...initialData, transformedData];
         setInitialData(updatedData);
         setInitialData(dataNew);
+        setNewSeasonId(transformedData.id);
         setUpdateMessage("Registro creado correctamente");
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
@@ -426,7 +434,7 @@ const CardTableSeasons = ({
     setFormData(data);
 
     // Verificar si el estado es 1 y mostrar el modal si es necesario
-    if (data.status == 1) {
+    if (data.status == 1 && initialData.find((season) => season.status === 1)) {
       setIsModalOpen(true);
     } else {
       await submitForm();
@@ -800,6 +808,10 @@ const CardTableSeasons = ({
             handler={handleOpen}
             size="xs"
             className="p-5 lg:max-w-[25%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
+            dismiss={{
+              outsidePress: false,
+              escapeKey: false,
+            }}
           >
             <button
               type="button"
@@ -1122,7 +1134,7 @@ const CardTableSeasons = ({
                 activa actual se cerrará automáticamente. ¿Desea continuar?
               </p>
             </DialogBody>
-            <DialogFooter>
+            <DialogFooter className="flex gap-3">
               <Button color="red" onClick={handleModalClose}>
                 No
               </Button>

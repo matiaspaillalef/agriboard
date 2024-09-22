@@ -89,13 +89,13 @@ const PeopleManagementGround = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableGround
                 data={dataGrounds}
-                thead="Nombre, Región, Ciudad, Dirección, Zona, Estado"
+                thead="ID, Nombre, Región, Ciudad, Dirección, Zona, Estado"
                 downloadBtn={true}
                 SearchInput={true}
                 actions={idRole == 1 || idRole == 2 ? true: false}
                 companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
                 datosCompanies={dataCompanies}
-                omitirColumns={["id", "latitude", "longitude", "company_id"]}
+                omitirColumns={["latitude", "longitude", "company_id"]}
               />
             </div>
           </div>
