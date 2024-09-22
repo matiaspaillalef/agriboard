@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
@@ -13,6 +13,7 @@ import {
   TrashIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import LogoNormal from "@/assets/img/layout/agrisoft_logo.png";
@@ -35,6 +36,43 @@ import { ProvitionalCL } from "@/app/data/dataProvisionals";
 import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
 import { getDataCompanies } from "@/app/api/ConfiguracionApi";
+
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import customMarker from "@/../public/pin.png";
+import { custom } from "zod";
+
+const LocationSelector = ({ position, setPosition, setLatLng }) => {
+  const [customIcon, setCustomIcon] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Solo se ejecuta en el cliente
+      const icon = new L.Icon({
+        iconUrl: customMarker.src,
+        iconSize: [30, 35],
+        iconAnchor: [17.5, 35],
+        popupAnchor: [0, -30],
+      });
+      setCustomIcon(icon);
+      setLatLng(position[0], position[1]);
+    }
+  }, [position, setLatLng]);
+
+  useMapEvents({
+    dblclick(e) {
+      const { lat, lng } = e.latlng;
+      setPosition([lat, lng]);
+    },
+  });
+
+  if (!customIcon) {
+    return null; // Espera a que se cargue el icono
+  }
+
+  return <Marker position={position} icon={customIcon} />;
+};
 
 const CardTableGround = ({
   data,
@@ -60,6 +98,36 @@ const CardTableGround = ({
     formState: { errors },
   } = useForm();
 
+  const [currentLat, setCurrentLat] = useState("");
+  const [currentLng, setCurrentLng] = useState("");
+
+  useEffect(() => {
+    const fetchLocationByIP = async () => {
+      try {
+        const response = await fetch("https://ipapi.co/json/");
+        const data = await response.json();
+
+        if (data && data.latitude && data.longitude) {
+          const { latitude: lat, longitude: lng } = data;
+          setPosition([lat, lng]);
+          setCurrentLat(lat);
+          setCurrentLng(lng);
+        } else {
+          console.warn("No latitude/longitude found in the response:", data);
+          setPosition(initialPosition); // Establecer posición por defecto
+        }
+      } catch (error) {
+        console.error("Error fetching location:", error);
+        setPosition(initialPosition); // Establecer posición por defecto
+      }
+    };
+
+    fetchLocationByIP();
+  }, []);
+
+  const initialPosition = [currentLat, currentLng]; // Mostramos como posición inicial la ubicación actual
+  const [position, setPosition] = useState(initialPosition);
+
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -81,6 +149,9 @@ const CardTableGround = ({
   const [rutValido, setRutValido] = useState(false);
 
   const [rol, setRol] = useState(""); // control de item por rol
+
+  const [latitude, setLatitude] = useState(""); // Inicializa el estado de latitud
+  const [longitude, setLongitude] = useState("");
 
   useEffect(() => {
     // Cuando cambia la región, reiniciamos la ciudad seleccionada
@@ -118,6 +189,8 @@ const CardTableGround = ({
     setSelectedRegion(user.state);
     setIsEdit(true);
     setFormData(user);
+    setPosition([user.latitude, user.longitude]);
+
     setSelectedItem(user);
     handleOpen(user);
 
@@ -135,7 +208,13 @@ const CardTableGround = ({
     setOpen(!open);
   };
 
-  const onUpdateItem = async (data) => {
+  const onUpdateItem = async (formData) => {
+    const data = {
+      ...formData,
+      latitude, // Asegúrate de que `latitude` tenga un valor
+      longitude, // Asegúrate de que `longitude` tenga un valor
+    };
+
     try {
       if (!data || !data.id) {
         throw new Error(
@@ -144,16 +223,15 @@ const CardTableGround = ({
       }
 
       // Convertir cadenas vacías en null para latitude y longitude
-      const updatedData = {
+      /*const updatedData = {
         ...data,
         latitude: data.latitude !== "" ? data.latitude : null,
         longitude: data.longitude !== "" ? data.longitude : null,
-      };
+      };*/
 
-      const updateItemApi = await updateGround(updatedData);
+      const updateItemApi = await updateGround(data);
       const dataNew = await getDataGround(companyID);
 
-      //console.log(updateItemApi);
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
           item.id === data.id ? { ...item, ...updatedData } : item
@@ -164,7 +242,9 @@ const CardTableGround = ({
         setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
-        setUpdateMessage("No se pudo actualizar el registro.");
+        setUpdateMessage(
+          updateItemApi ? updateItemApi : "No se pudo actualizar el registro."
+        );
       }
     } catch (error) {
       console.error(error);
@@ -180,6 +260,16 @@ const CardTableGround = ({
   const handleCloseAlert = () => {
     setOpenAlert(false);
     setItemToDelete({ index: null, id: null, name_item: "" });
+  };
+
+  const [openMap, setOpenMap] = useState(false);
+
+  const handleOpenMap = () => {
+    setOpenMap(true);
+  };
+
+  const handleCloseMap = () => {
+    setOpenMap(false);
   };
 
   const handlerRemove = async () => {
@@ -209,7 +299,13 @@ const CardTableGround = ({
   };
 
   // Creación de campo
-  const onSubmitForm = async (data) => {
+  const onSubmitForm = async (formData) => {
+    const data = {
+      ...formData,
+      latitude, // Asegúrate de que `latitude` tenga un valor
+      longitude, // Asegúrate de que `longitude` tenga un valor
+    };
+
     try {
       if (
         !data ||
@@ -234,6 +330,9 @@ const CardTableGround = ({
         setInitialData(dataNew);
         setOpen(false);
         setUpdateMessage("Registro creado correctamente");
+
+        setLatitude("");
+        setLongitude("");
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
       }
@@ -404,7 +503,6 @@ const CardTableGround = ({
               )}
 
               <tbody role="rowgroup">
-                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no */}
                 {Array.isArray(initialData) && initialData.length > 0 ? (
                   currentItems.map((row, index) => (
                     <tr key={index} role="row">
@@ -417,7 +515,7 @@ const CardTableGround = ({
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
+                            className={`pt-[14px] pb-3 text-[14px] px-5  ${
                               index % 2 !== 0
                                 ? "bg-lightPrimary dark:bg-navy-900"
                                 : ""
@@ -436,10 +534,17 @@ const CardTableGround = ({
                                 )
                               ) : key !== "password" ? (
                                 key === "state" ? (
-                                  // Transformar el número de región a su nombre correspondiente
                                   StateCL.find(
                                     (state) => state.region_number == row[key]
                                   )?.region || "-"
+                                ) : key === "latitude" ||
+                                  key === "longitude" ? (
+                                  <div className="flex justify-center">
+                                    <p className="mr-2">
+                                      Latitud: {row.latitude}
+                                    </p>
+                                    <p>Longitud: {row.longitude}</p>
+                                  </div>
                                 ) : (
                                   formatNumber(row[key])
                                 )
@@ -462,7 +567,6 @@ const CardTableGround = ({
                           <button
                             type="button"
                             className="text-sm font-semibold text-gray-800 dark:text-white"
-                            //onClick={() => handleOpen(row)}
                             onClick={() => handleOpenEditUser(row)}
                           >
                             <PencilSquareIcon className="w-6 h-6" />
@@ -471,7 +575,6 @@ const CardTableGround = ({
                             id="remove"
                             type="button"
                             onClick={() => {
-                              //console.log(row);
                               handleOpenAlert(
                                 index,
                                 row.id,
@@ -488,7 +591,9 @@ const CardTableGround = ({
                   ))
                 ) : (
                   <tr>
-                    <td className="py-4">No se encontraron registros.</td>
+                    <td className="py-4" colSpan={columnLabels.length}>
+                      No se encontraron registros.
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -550,6 +655,11 @@ const CardTableGround = ({
             handler={handleOpen}
             size="xs"
             className="p-5 lg:max-w-[25%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
+            //Evitamos el cierre automatico con click en el backdrop
+            dismiss={{
+              outsidePress: false,
+              escapeKey: false,
+            }}
           >
             <button
               type="button"
@@ -695,7 +805,25 @@ const CardTableGround = ({
                   </div>
                 </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-1">
+                  <label className="text-sm font-semibold text-gray-800 dark:text-white">
+                    Seleccionar ubicación
+                  </label>
+                  <button
+                    type="button"
+                    //htmlFor="link"
+                    //href="https://www.gps-coordinates.net/my-location"
+                    onClick={handleOpenMap}
+                    className="linear flex w-full max-w-[220px] rounded-md bg-blueQuinary py-[12px] text-sm font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-2000 px-5 gap-2 justify-center"
+                    target="_blank"
+                  >
+                    <MapPinIcon className="w-5 h-5" />
+
+                    {isEdit ? "Editar ubicación" : "Selecciona la ubicación"}
+                  </button>
+                </div>
+
+                <div className="mb-3 grid-cols-1 gap-3 lg:grid-cols-2 hidden">
                   <div className="flex flex-col gap-3">
                     <label
                       htmlFor="latitude"
@@ -709,21 +837,15 @@ const CardTableGround = ({
                         name="latitude"
                         id="latitude"
                         {...register("latitude")}
+                        readOnly={true}
+                        //value={latitude}
+                        //defaultValue={handleOpenMap ? latitude : selectedItem ? (selectedItem.latitude == null ? latitude : selectedItem.latitude) : latitude}
                         defaultValue={selectedItem ? selectedItem.latitude : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
                       />
                     </div>
-                    <a
-                      htmlFor="link"
-                      href="https://www.gps-coordinates.net/my-location"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                      target="_blank"
-                    >
-                      <span class="text-red-500 text-xs">
-                        Conoce tu Ubicación
-                      </span>
-                    </a>
                   </div>
+
                   <div className="flex flex-col gap-3">
                     <label
                       htmlFor="longitude"
@@ -737,6 +859,9 @@ const CardTableGround = ({
                         name="logitude"
                         id="longitude"
                         {...register("longitude")}
+                        readOnly={true}
+                        //value={selectedItem ? selectedItem.longitude : ''}
+                        //defaultValue={handleOpenMap ? longitude : selectedItem ? (selectedItem.longitude == null ? longitude : selectedItem.longitude) : longitude}
                         defaultValue={
                           selectedItem ? selectedItem.longitude : ""
                         }
@@ -789,42 +914,6 @@ const CardTableGround = ({
                   </div>
                 </div>
 
-                {/*rol == 1 ? (
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1 ">
-                <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="company_id"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Campo
-                    </label>
-                    <select
-                      name="company_id"
-                      id="company_id"
-                      {...register("company_id")}
-                      defaultValue={selectedItem ? selectedItem.company_id : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {datosCompanies.map((campos, index) => {
-                        return (
-                          <option key={index} value={campos.id}>
-                            {campos.name_company}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                  </div>
-                ) : (
-                  <input
-                  type="hidden"
-                  name="company_id"
-                  {...register("company_id")}
-                  
-                  defaultValue={selectedItem ? selectedItem.company_id : companyID}
-                />
-                ) */}
-
                 <input
                   type="hidden"
                   name="company_id"
@@ -875,6 +964,59 @@ const CardTableGround = ({
               >
                 <XMarkIcon className="text-white w-5 h-5" /> Eliminar
               </button>
+            </>
+          </Dialog>
+          <Dialog
+            open={openMap}
+            handler={handleCloseMap}
+            size="xs"
+            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+            data-modal-backdrop="static"
+          >
+            <>
+              <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
+                Selecciona tu ubicación
+              </h2>
+              <button
+                type="button"
+                onClick={handleCloseMap}
+                className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
+              >
+                <XMarkIcon className="text-white w-5 h-5" />
+              </button>
+
+              <div className="mb-4 dark:text-white">
+                <p className="text-sm">
+                  Haz doble clic en el mapa para seleccionar la ubicación
+                </p>
+                <div className="flex gap-2">
+                  <span className="font-semibold">Latitud:</span>
+                  <span>{latitude}</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-semibold">Longitud:</span>
+                  <span>{longitude}</span>
+                </div>
+              </div>
+
+              <MapContainer
+                center={position}
+                zoom={13}
+                style={{ height: "300px", width: "100%" }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                />
+                <LocationSelector
+                  position={position}
+                  setPosition={setPosition}
+                  setLatLng={(lat, lng) => {
+                    setLatitude(lat); // Actualiza el estado de latitud
+                    setLongitude(lng); // Actualiza el estado de longitud
+                  }}
+                />
+              </MapContainer>
             </>
           </Dialog>
         </>
