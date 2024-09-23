@@ -238,6 +238,9 @@ const CardTableSquads = ({
         setInitialData(squadData);
         setUpdateMessage("Cuadrilla actualizada correctamente");
         setOpen(false);
+      }else if (updateSquadApi.code === "ERROR") {
+        setUpdateMessage(updateSquadApi ? updateSquadApi.mensaje : "Error al intentar actualizar la cuadrilla");
+
       } else {
         setUpdateMessage("No se pudo actualizar la cuadrilla");
       }
@@ -292,6 +295,8 @@ const CardTableSquads = ({
       const createSquadapi = await createSquad(data);
 
       // Agrega la fila del front-end
+
+      console.log(createSquadapi);
       if (createSquadapi == "OK") {
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
