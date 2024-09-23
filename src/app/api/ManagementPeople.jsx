@@ -501,13 +501,10 @@ export const getDataSquads = async (id_company) => {
 }
 
 export const createSquad = async (data) => {
+  
   try {
-
-    const userDataString = sessionStorage.getItem("userData");
-    const userData = JSON.parse(userDataString);
-
     const res = await fetch(
-      URLAPI + "/api/v1/management-people/Squads/createSquad",
+      `${URLAPI}/api/v1/management-people/squads/createSquad`, // Asegúrate de que el endpoint esté correctamente escrito
       {
         method: "POST",
         headers: {
@@ -516,36 +513,39 @@ export const createSquad = async (data) => {
         },
         body: JSON.stringify({
           name: data.name,
-          group: data.group,
-          status: data.status,
-          workers: data.workers,
-          idCompany: userData.idCompany,
+          group: Number(data.group),
+          status: Number(data.status),
+          workers: data.workers, // Asegúrate de que 'workers' sea necesario en la petición
+          idCompany: Number(data.company_id),
         }),
         cache: "no-store",
       }
     );
 
     if (res.ok) {
+      const squadData = await res.json();
+      console.log(squadData);
 
-      const SquadData = await res.json();
-
-      if (SquadData.code === "OK") {
-        return SquadData.code;
+      if (squadData.code === "OK") {
+        return squadData.code; 
+      } else if (squadData.code === "ERROR") {
+        throw new Error(squadData.mensaje);
       }
-      else if (SquadData.code === "ERROR") {
-        return SquadData.mensaje;
-      }
+    } else {
+      // Manejo de errores para respuestas no OK
+      const errorData = await res.json();
+      throw new Error(errorData.mensaje || 'Error desconocido');
     }
 
   } catch (err) {
-    console.error(err);
+    console.error('Error al crear squad:', err.message);
+    return err.message; 
   }
 }
 
 export const updateSquad = async (data) => {
-  console.log(data);
+  //console.log(data);
   try {
-    console.log(data);
     const res = await fetch(
       URLAPI + "/api/v1/management-people/Squads/updateSquad",
       {
@@ -555,30 +555,35 @@ export const updateSquad = async (data) => {
           "x-api-key": token,
         },
         body: JSON.stringify({
-          id: data.id,
+          id: Number(data.id),
           name: data.name,
           group: data.group,
-          status: data.status,
-          workers: data.workers, 
+          status: Number(data.status),
+          workers: data.workers,
+          company_id: Number(data.company_id),
         }),
         cache: "no-store",
       }
     );
 
     if (res.ok) {
-
       const SquadData = await res.json();
-
       if (SquadData.code === "OK") {
         return SquadData.code;
+      } else if (SquadData.code === "ERROR") {
+        // Lanza un error si la respuesta es un error
+        return SquadData;
       }
-      else if (SquadData.code === "ERROR") {
-        return SquadData.mensaje;
-      }
+    } else {
+      // Manejo de errores para respuestas no OK
+      const errorData = await res.json();
+      throw new Error(errorData.mensaje || 'Error desconocido');
     }
 
   } catch (err) {
     console.error(err);
+    // Aquí puedes lanzar el error o manejarlo de alguna otra manera según tus necesidades
+    throw err;
   }
 };
 

@@ -75,8 +75,8 @@ const PeopleManagementSquads = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableSquads
                 data={dataSquads}
-                thead="Nombre, Grupo, Estado"
-                omitirColumns={["id", "workers", "company_id"]}
+                thead="ID, Nombre, Grupo, Estado"
+                omitirColumns={["workers", "company_id"]}
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
