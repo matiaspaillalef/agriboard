@@ -28,25 +28,18 @@ const PeopleManagementWorkers = () => {
     try {
       const data = await getDataWorkers(Number(companyId));
       setDataWorkers(data);
-      console.log(data);
     } catch (error) {
       console.error("Error al obtener datos:", error);
     } finally {
       setIsLoading(false);
-      console.log('kakaka');
-      console.log(isLoading);
     }
   }, []);
-
-  console.log(isLoading);
-
 
   useEffect(() => {
     const companyId = getCompanyIdFromSessionStorage();
     setSelectedCompanyId(companyId);
     if (companyId) {
       fetchData(companyId);
-       console.log(isLoading);
     }
   }, [getCompanyIdFromSessionStorage, fetchData]);
 
@@ -72,8 +65,6 @@ const PeopleManagementWorkers = () => {
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
-console.log(dataWorkers);
-console.log(isLoading);
   return (
     <>
       {isLoading ? (

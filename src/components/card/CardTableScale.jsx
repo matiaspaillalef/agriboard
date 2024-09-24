@@ -64,6 +64,8 @@ const CardTableScale = ({
     formState: { errors },
   } = useForm();
 
+  const {register: registerMsg, handleSubmit: handleSubmitMsg, reset: reserMsg} = useForm();
+
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -149,6 +151,7 @@ const CardTableScale = ({
   };
 
   const onUpdateItem = async (data) => {
+
     try {
       if (!data || !data.id) {
         throw new Error(
@@ -169,7 +172,7 @@ const CardTableScale = ({
         setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
-        setUpdateMessage("No se pudo actualizar el registro.");
+        setUpdateMessage(updateItemApi ? updateItemApi : "No se pudo actualizar el registro.");
       }
     } catch (error) {
       console.error(error);
@@ -261,6 +264,7 @@ const CardTableScale = ({
 
   // Creación
   const onSubmitForm = async (data) => {
+    console.log(data);
     try {
       const transformedData = {
         id: Number(data.id) || null,
@@ -865,6 +869,7 @@ const CardTableScale = ({
               </button>
             </>
           </Dialog>
+
           <Dialog
             open={activeMssg}
             handler={handleCloseMssg}
@@ -892,7 +897,7 @@ const CardTableScale = ({
                 <XMarkIcon className="text-white w-5 h-5" />
               </button>
               <form
-                onSubmit={handleSubmit(handleSendMessage)}
+                onSubmit={handleSubmitMsg(handleSendMessage)}
                 className="w-full"
               >
                 <textarea
@@ -900,18 +905,18 @@ const CardTableScale = ({
                   placeholder="Escribe tu mensaje"
                   //value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
-                  {...register("messageContent", { required: true })}
+                  {...registerMsg("messageContent", { required: true })}
                 ></textarea>
                 <input
                   type="hidden"
                   name="company_id"
-                  {...register("company_id")}
+                  {...registerMsg("company_id")}
                   defaultValue={companyName}
                 />
                 <input
                   type="hidden"
                   name="name"
-                  {...register("name")}
+                  {...registerMsg("name")}
                   defaultValue={activeMssg ? itemToDelete.name_item : ""}
                 />
                 <button

@@ -70,7 +70,6 @@ const ProductionScale = () => {
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
-
   return (
     <>
       {isLoading ? (

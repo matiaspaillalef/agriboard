@@ -16,6 +16,8 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
   ArrowUpOnSquareIcon,
+  PhoneIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -43,6 +45,7 @@ import { dataAFP } from "@/app/data/dataAFP";
 import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
 import { set } from "date-fns";
+import { values } from "xlsx-populate/lib/colorIndexes";
 
 const CardTableWorkers = ({
   data,
@@ -64,6 +67,7 @@ const CardTableWorkers = ({
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm();
 
@@ -292,7 +296,6 @@ const CardTableWorkers = ({
 
       // Elimina la fila del front-end
       if (updateWorkerApi.code === "OK") {
-
         const newFetchData = await getDataWorkers(companyID);
 
         const updatedData = initialData.map((item) =>
@@ -304,7 +307,11 @@ const CardTableWorkers = ({
         setUpdateMessage("Trabajadoractualizado correctamente");
         setOpen(false);
       } else {
-        setUpdateMessage(updateWorkerApi.mensaje ? updateWorkerApi.mensaje : "No se pudo actualizar al trabajador");
+        setUpdateMessage(
+          updateWorkerApi.mensaje
+            ? updateWorkerApi.mensaje
+            : "No se pudo actualizar al trabajador"
+        );
       }
     } catch (error) {
       console.error(error);
@@ -353,11 +360,19 @@ const CardTableWorkers = ({
   const onSubmitForm = async (data) => {
     //Remove ID
     delete data.id;
+
+    const newData = {
+      ...data,
+      phone: data.phone ? "+56" + data.phone : "",
+      phone_company: data.phone_company ? "+56" + data.phone_company : "",
+      //company_id: companyID,
+    };
+
     try {
-      const createWorkerapi = await createWorker(data);
+      const createWorkerapi = await createWorker(newData);
       // Agrega la fila del front-end
       if (createWorkerapi.code == "OK") {
-        const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
+        const updatedData = [...initialData, newData]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
 
@@ -369,7 +384,11 @@ const CardTableWorkers = ({
 
         setUpdateMessage("Trabajador creado correctamente");
       } else {
-        setUpdateMessage(createWorkerapi.mensaje ? createWorkerapi.mensaje : "Error al crear al trabajador");
+        setUpdateMessage(
+          createWorkerapi.mensaje
+            ? createWorkerapi.mensaje
+            : "Error al crear al trabajador"
+        );
       }
     } catch (error) {
       console.error(error);
@@ -390,15 +409,16 @@ const CardTableWorkers = ({
 
   useEffect(() => {
     // Verificar si `data` está definido y no es un array vacío ni un objeto vacío
-    if (data && 
-        (Array.isArray(data) && data.length > 0) || 
-        (typeof data === 'object' && Object.keys(data).length > 0)) {
-        setLoading(false);
+    if (
+      (data && Array.isArray(data) && data.length > 0) ||
+      (typeof data === "object" && Object.keys(data).length > 0)
+    ) {
+      setLoading(false);
     } else {
-        // Si `data` es un array vacío o un objeto vacío, manejarlo como no cargado
-        setLoading(false);
+      // Si `data` es un array vacío o un objeto vacío, manejarlo como no cargado
+      setLoading(false);
     }
-}, [data]);
+  }, [data]);
 
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -525,7 +545,6 @@ const CardTableWorkers = ({
     };
     handleNameItems();
   }, []);
-
 
   return (
     <>
@@ -778,40 +797,42 @@ const CardTableWorkers = ({
                   de {initialData.length} registros
                 </p>
               </div>
-              <div className="flex items-center gap-5">
-                <button
-                  type="button"
-                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                    currentPage === 1 && "hidden"
-                  }`}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeftIcon className="w-5 h-5" />
-                </button>
-                {pagination.map((page) => (
+              {pagination.length > 1 && (
+                <div className="flex items-center gap-5">
                   <button
-                    key={page}
                     type="button"
-                    className={`${
-                      currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                      currentPage === 1 && "hidden"
                     }`}
-                    onClick={() => handlePageChange(page)}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                   >
-                    {page}
+                    <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                ))}
-                <button
-                  type="button"
-                  className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRightIcon className="w-5 h-5" />
-                </button>
-              </div>
+                  {pagination.map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`${
+                        currentPage === page
+                          ? "font-semibold text-navy-500 dark:text-navy-300"
+                          : ""
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRightIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -1110,16 +1131,37 @@ const CardTableWorkers = ({
                       >
                         Teléfono
                       </label>
-                      <input
-                        type="text"
-                        name="phone"
-                        id="phone"
-                        readOnly={openShowUser}
-                        required={true}
-                        defaultValue={selectedItem ? selectedItem.phone : ""}
-                        {...register("phone")}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
+                      <div className="flex items-center">
+                        <span className="mr-2 dark:text-white">+56</span>
+                        <input
+                          type="text"
+                          name="phone"
+                          id="phone"
+                          readOnly={openShowUser}
+                          required
+                          defaultValue={selectedItem ? selectedItem.phone : ""}
+                          {...register("phone", {
+                            required: true,
+                            maxLength: 9,
+                            pattern: {
+                              value: /^[0-9]{9}$/,
+                              message: "El número debe tener 9 dígitos.",
+                            },
+                          })}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, ""); // Solo números
+                            if (value.length <= 9) {
+                              setValue("phone", value); // Establece el valor sin prefijo
+                            }
+                          }}
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                        />
+                      </div>
+                      {errors.phone && (
+                        <span className="text-red-500 text-[12px]">
+                          {errors.phone.message}
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-col gap-3">
                       <label
@@ -1134,13 +1176,11 @@ const CardTableWorkers = ({
                         id="email"
                         readOnly={openShowUser}
                         //required={true}
-                        defaultValue={
-                          selectedItem ? selectedItem.email : ""
-                        }
+                        defaultValue={selectedItem ? selectedItem.email : ""}
                         {...register("email")}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
-                      </div>
+                    </div>
                   </div>
 
                   <h3 className="font-bold my-4">Información laboral</h3>
@@ -1510,12 +1550,11 @@ const CardTableWorkers = ({
                     </div>
 
                     <input
-                    type="hidden"
-                    name="company_id"
-                    {...register("company_id")}
-                    defaultValue={Number(companyID)}
-                  />
-
+                      type="hidden"
+                      name="company_id"
+                      {...register("company_id")}
+                      defaultValue={Number(companyID)}
+                    />
                   </div>
 
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
@@ -1576,19 +1615,37 @@ const CardTableWorkers = ({
                     <strong>Dirección:</strong> {selectedItem.address || "-"}
                   </p>
 
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Teléfono:</strong>{" "}
-                    {selectedItem.phone ? (
-                      <a
-                        href={`tel:${selectedItem.phone}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {selectedItem.phone}
-                      </a>
-                    ) : (
-                      "No registrado"
-                    )}
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white flex gap-2 align-middle">
+                    <span>
+                      <strong>Teléfono:</strong>{" "}
+                      {selectedItem.phone ? (
+                        <a
+                          href={`tel:${selectedItem.phone}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {selectedItem.phone}
+                        </a>
+                      ) : (
+                        "No registrado"
+                      )}
+                    </span>
+                    <a
+                      href={`tel:${selectedItem.phone}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-blueQuinary inline-flex align-middle justify-center p-1 text-white"
+                    >
+                      <PhoneIcon className="w-4 h-4" />
+                    </a>
+                    <a
+                      href={`https://api.whatsapp.com/send?phone=${selectedItem.phone}&text=Buen%20d%C3%ADa!%20${selectedItem.name} ${selectedItem.lastname}`}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      className="bg-[#25d366] inline-flex align-middle justify-center p-1 text-white"
+                    >
+                      <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                    </a>
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
