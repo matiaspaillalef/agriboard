@@ -173,12 +173,8 @@ export const getDataSectorBarracks = async (id_company) => {
       }
     );
 
-    console.log("res", res);
-
     if (res.ok) {
       const sectorBarracksData = await res.json();
-
-      console.log("res", sectorBarracksData);
 
       if (sectorBarracksData.code === "OK") {
         return sectorBarracksData.sectors;
@@ -1424,11 +1420,11 @@ export const updateScale = async (data) => {
           "x-api-key": token,
         },
         body: JSON.stringify({
-          id: data.id,
+          id: Number(data.id),
           name: data.name,
           location: data.location,
-          company_id: data.company_id,
-          status: data.status,
+          company_id: Number(data.company_id),
+          status: Number(data.status),
         }),
       }
     );
@@ -1442,11 +1438,12 @@ export const updateScale = async (data) => {
         return scaleData.mensaje; // Manejar el error desde la API
       }
     } else {
-      throw new Error("Error en la solicitud HTTP");
+      const errorResponse = await res.json();
+      throw new Error(errorResponse.mensaje || "Error en la solicitud HTTP");
     }
   } catch (err) {
     console.error(err);
-    throw new Error("Error al actualizar los registros");
+    return err.message || "Error al actualizar los registros"; // Retornar el mensaje de error
   }
 };
 

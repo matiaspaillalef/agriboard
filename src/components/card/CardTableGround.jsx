@@ -39,7 +39,7 @@ import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+//import L from "leaflet";
 import customMarker from "@/../public/pin.png";
 import { custom } from "zod";
 

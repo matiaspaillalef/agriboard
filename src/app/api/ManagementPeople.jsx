@@ -358,10 +358,6 @@ export const getDataGroups = async (id_company) => {
 
 export const createGroup = async (data) => {
   try {
-
-    const userDataString = sessionStorage.getItem("userData");
-    const userData = JSON.parse(userDataString);
-
     const res = await fetch(
       URLAPI + "/api/v1/management-people/groups/createGroup",
       {
@@ -373,31 +369,32 @@ export const createGroup = async (data) => {
         body: JSON.stringify({
           name: data.name,
           status: data.status,
-          id_company: data.company_id,
+          id_company: Number(data.company_id),
         }),
         cache: "no-store",
       }
     );
 
     if (res.ok) {
-
       const groupData = await res.json();
 
       if (groupData.code === "OK") {
-        return groupData.code;
+        return "Grupo creado correctamente"; // Mensaje de éxito
+      } else if (groupData.code === "ERROR") {
+        return groupData.mensaje; // Mensaje de error desde la API
       }
-      else if (groupData.code === "ERROR") {
-        return groupData.mensaje;
-      }
+    } else {
+      // Manejo de errores HTTP
+      const errorData = await res.json();
+      return errorData.mensaje || "Error desconocido al crear el grupo";
     }
-
   } catch (err) {
-    console.error(err);
+    console.error("Error en la creación del grupo:", err);
+    throw new Error("Error al crear el grupo");
   }
-}
+};
 
 export const updateGroup = async (data) => {
-
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/groups/updateGroup",
@@ -411,28 +408,31 @@ export const updateGroup = async (data) => {
           id: data.id,
           name: data.name,
           status: data.status,
-          id_company: data.company_id,
+          id_company: Number(data.company_id), // Asegúrate de que sea un número
         }),
         cache: "no-store",
       }
     );
 
     if (res.ok) {
-
       const groupData = await res.json();
 
       if (groupData.code === "OK") {
-        return groupData.code;
+        return "Grupo actualizado correctamente"; // Mensaje de éxito
+      } else if (groupData.code === "ERROR") {
+        return groupData.mensaje; // Mensaje de error desde la API
       }
-      else if (groupData.code === "ERROR") {
-        return groupData.mensaje;
-      }
+    } else {
+      // Manejo de errores HTTP
+      const errorData = await res.json();
+      return errorData.mensaje || "Error desconocido al actualizar el grupo";
     }
-
   } catch (err) {
-    console.error(err);
+    //console.error("Error en la actualización del grupo:", err);
+    throw new Error("Error al actualizar el grupo");
   }
-}
+};
+
 
 export const deleteGroup = async (id) => {
   try {
