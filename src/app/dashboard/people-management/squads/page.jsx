@@ -26,8 +26,14 @@ const PeopleManagementSquads = () => {
   const fetchData = useCallback(async (companyId) => {
     setIsLoading(true);
     try {
-      const data = await getDataSquads(companyId);
-      setDataSquads(data);
+  
+      const DataSquadsfetch = await getDataSquads(companyId);
+    
+      if(DataSquadsfetch.code === 'OK'){
+    
+        setDataSquads(DataSquadsfetch.squads);
+    
+      }
 
     } catch (error) {
       console.error("Error al obtener datos:", error);

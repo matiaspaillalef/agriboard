@@ -280,16 +280,22 @@ const CardTableGround = ({
       const deleteItem = await deleteGroundApi(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteItem === "OK") {
+      if (deleteItem.code === "OK") {
+
         const updatedData = [...initialData];
+
         updatedData.splice(index, 1);
+
         setInitialData(updatedData);
+
         setOpenAlert(false);
-        setUpdateMessage("Registro eliminado correctamente");
-      } else {
-        setUpdateMessage(
-          "Error al eliminar el registro. Inténtalo nuevamente."
-        );
+
+        setUpdateMessage(deleteItem.mensaje);
+
+      }else if (deleteItem.code === "ERROR") {
+
+        setUpdateMessage(deleteItem.mensaje);
+
       }
     } catch (error) {
       console.error(error);
@@ -321,24 +327,34 @@ const CardTableGround = ({
       }
 
       const createItem = await createGround(data);
+      if (createItem.code === "OK") {
 
-      if (createItem === "OK") {
         const updatedData = [...initialData, data];
+
         const dataNew = await getDataGround(companyID);
 
-        setInitialData(updatedData);
-        setInitialData(dataNew);
-        setOpen(false);
-        setUpdateMessage("Registro creado correctamente");
+        if(dataNew.code  === "OK"){
 
-        setLatitude("");
-        setLongitude("");
-      } else {
-        setUpdateMessage(createItem || "No se pudo crear el registro");
-      }
+          setInitialData(updatedData);
+          setInitialData(dataNew.grounds);
+          setOpen(false);
+          setUpdateMessage(createItem.mensaje);
+          setLatitude("");
+          setLongitude("");
+
+        }else if (dataNew.code === "ERROR") {
+
+          setUpdateMessage(dataNew.mensaje);
+
+        }
+
+      } else if (createItem.code === "ERROR") {
+       
+        setUpdateMessage(createItem.mensaje);
+      
+    }
     } catch (error) {
-      console.error("Error al crear el registro:", error);
-      setUpdateMessage("Error al intentar crear el registro");
+      console.error(error);
     }
   };
 

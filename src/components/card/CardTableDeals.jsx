@@ -764,7 +764,7 @@ const CardTableDeals = ({
                         htmlFor="price"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Precio
+                        Precio X Kg.
                       </label>
                       <input
                         type="number"

@@ -81,7 +81,7 @@ const ProductionHarvestFormat = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableHarvestFormat
                 data={dataHarvestFormat}
-                thead="Nombre, Tara base, Especie, Cantidad, Recolección, Estado"
+                thead="Nombre, Tara base (Kg), Especie, Cantidad, Recolección, Estado"
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}

@@ -334,20 +334,11 @@ export const getDataGroups = async (id_company) => {
         cache: "no-store",
       }
     );
-
+    
     if (res.ok) {
-
-      const groupsData = await res.json();
-
-      //console.log('groupsData:', groupsData)
-      if (groupsData.code === "OK") {
-        return groupsData.groups;
-      }
-      else if (groupsData.code === "ERROR") {
-        return groupsData.mensaje;
-      }
-
       
+      const groupsData = await res.json();
+      return groupsData;
 
     }
 
@@ -376,21 +367,12 @@ export const createGroup = async (data) => {
     );
 
     if (res.ok) {
-      const groupData = await res.json();
-
-      if (groupData.code === "OK") {
-        return "Grupo creado correctamente"; // Mensaje de éxito
-      } else if (groupData.code === "ERROR") {
-        return groupData.mensaje; // Mensaje de error desde la API
-      }
-    } else {
-      // Manejo de errores HTTP
-      const errorData = await res.json();
-      return errorData.mensaje || "Error desconocido al crear el grupo";
+      const groupsData = await res.json();
+      return groupsData;
     }
+
   } catch (err) {
-    console.error("Error en la creación del grupo:", err);
-    throw new Error("Error al crear el grupo");
+    console.error(err);
   }
 };
 
@@ -415,18 +397,12 @@ export const updateGroup = async (data) => {
     );
 
     if (res.ok) {
-      const groupData = await res.json();
 
-      if (groupData.code === "OK") {
-        return "Grupo actualizado correctamente"; // Mensaje de éxito
-      } else if (groupData.code === "ERROR") {
-        return groupData.mensaje; // Mensaje de error desde la API
-      }
-    } else {
-      // Manejo de errores HTTP
-      const errorData = await res.json();
-      return errorData.mensaje || "Error desconocido al actualizar el grupo";
+      const groupData = await res.json();
+      return groupData
+
     }
+
   } catch (err) {
     //console.error("Error en la actualización del grupo:", err);
     throw new Error("Error al actualizar el grupo");
@@ -450,18 +426,10 @@ export const deleteGroup = async (id) => {
         cache: "no-store",
       }
     );
-
+    
     if (res.ok) {
-
       const groupsData = await res.json();
-
-      if (groupsData.code === "OK") {
-        return groupsData.code;
-      }
-      else if (groupsData.code === "ERROR") {
-        return groupsData.mensaje;
-      }
-
+      return groupsData;
     }
 
   } catch (err) {
@@ -487,14 +455,12 @@ export const getDataSquads = async (id_company) => {
     );
 
     if (res.ok) {
+
       const SquadsData = await res.json();
-      if (SquadsData.code === "OK") {
-        return SquadsData.squads;
-      }
-      else if (SquadsData.code === "ERROR") {
-        return SquadsData.mensaje;
-      }
+      return SquadsData
+
     }
+
   } catch (err) {
     console.error(err);
   }
@@ -524,17 +490,7 @@ export const createSquad = async (data) => {
 
     if (res.ok) {
       const squadData = await res.json();
-      console.log(squadData);
-
-      if (squadData.code === "OK") {
-        return squadData.code; 
-      } else if (squadData.code === "ERROR") {
-        throw new Error(squadData.mensaje);
-      }
-    } else {
-      // Manejo de errores para respuestas no OK
-      const errorData = await res.json();
-      throw new Error(errorData.mensaje || 'Error desconocido');
+      return squadData;
     }
 
   } catch (err) {
@@ -567,17 +523,10 @@ export const updateSquad = async (data) => {
     );
 
     if (res.ok) {
+
       const SquadData = await res.json();
-      if (SquadData.code === "OK") {
-        return SquadData.code;
-      } else if (SquadData.code === "ERROR") {
-        // Lanza un error si la respuesta es un error
-        return SquadData;
-      }
-    } else {
-      // Manejo de errores para respuestas no OK
-      const errorData = await res.json();
-      throw new Error(errorData.mensaje || 'Error desconocido');
+      return SquadData
+
     }
 
   } catch (err) {
@@ -605,9 +554,12 @@ export const deleteSquad = async (id) => {
     );
 
     if (res.ok) {
+      
       const SquadData = await res.json();
-      return SquadData.code;
+      return SquadData;
+
     }
+
   } catch (err) {
     console.error(err);
   }
@@ -631,17 +583,9 @@ export const getDataShifts = async (id_company) => {
 
     if (res.ok) {
 
-      const shiftsData = await res.json();
+      const shiftData = await res.json();
+      return shiftData;
 
-      if (shiftsData.code === "OK") {
-        return shiftsData.shifts;
-      }
-
-      else if (shiftsData.code === "ERROR") {
-        
-        return shiftsData.code;
-
-      }
     }
 
   } catch (err) {
@@ -683,9 +627,12 @@ export const createShift = async (data) => {
     );
 
     if (res.ok) {
+
       const shiftData = await res.json();
-      return shiftData.code;
+      return shiftData;
+
     }
+
   } catch (err) {
     console.error(err);
   }
@@ -728,9 +675,12 @@ export const updateShift = async (data) => {
 
 
     if (res.ok) {
+
       const shiftData = await res.json();
-      return shiftData.code;
+      return shiftData;
+
     }
+    
   } catch (err) {
     console.error(err);
   }
@@ -754,9 +704,12 @@ export const deleteShift = async (id) => {
     );
 
     if (res.ok) {
+
       const shiftData = await res.json();
-      return shiftData.code;
+      return shiftData;
+
     }
+
   } catch (err) {
     console.error(err);
   }

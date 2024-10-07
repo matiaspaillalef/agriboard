@@ -535,13 +535,14 @@ const CardTableWorkers = ({
     const handleNameItems = async () => {
       const position = await getDataPositions(companyID);
       const contractor = await getDataContractors(companyID);
+
       const squad = await getDataSquads(companyID);
       const shift = await getDataShifts(companyID);
 
       setDataPosition(position);
       setDataContractor(contractor);
-      setDataSquad(squad);
-      setDataShift(shift);
+      setDataSquad(squad.squads);
+      setDataShift(shift.shifts);
     };
     handleNameItems();
   }, []);
@@ -1288,6 +1289,7 @@ const CardTableWorkers = ({
                         name="squad"
                         id="squad"
                         disabled={openShowUser}
+                        required={true}
                         {...register("squad")}
                         defaultValue={selectedItem ? selectedItem.squad : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -1318,17 +1320,16 @@ const CardTableWorkers = ({
                         name="leader_squad"
                         id="leader_squad"
                         disabled={openShowUser}
+                        required={true}
                         {...register("leader_squad")}
                         defaultValue={
                           selectedItem ? selectedItem.leader_squad : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">
-                          Selecciona un líder de cuadrilla
-                        </option>
-                        <option value="1">Sí</option>
                         <option value="0">No</option>
+                        <option value="1">Sí</option>
+                        
                       </select>
                     </div>
 
@@ -1343,6 +1344,7 @@ const CardTableWorkers = ({
                         name="shift"
                         id="shift"
                         disabled={openShowUser}
+                        required={true}
                         {...register("shift")}
                         defaultValue={selectedItem ? selectedItem.shift : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -1489,6 +1491,7 @@ const CardTableWorkers = ({
                         name="afp"
                         id="afp"
                         disabled={openShowUser}
+                        required={true}
                         {...register("afp")}
                         defaultValue={selectedItem ? selectedItem.afp : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -1514,6 +1517,7 @@ const CardTableWorkers = ({
                         name="health"
                         id="health"
                         disabled={openShowUser}
+                        required={true}
                         {...register("health")}
                         defaultValue={selectedItem ? selectedItem.health : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"

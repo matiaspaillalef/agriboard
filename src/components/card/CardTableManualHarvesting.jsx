@@ -129,10 +129,10 @@ const CardTableManualHarvesting = ({
       const contractors = await getDataContractors(companyID);
       const shifts = await getDataShifts(companyID);
 
-      setDataGround(ground);
+      setDataGround(ground.grounds);
       setDataSector(sector);
       setDataWorkers(workers);
-      setDataSquads(squad);
+      setDataSquads(squad.squads);
       setDataVarieties(varieties);
       setDataSpecies(species);
       setDataQuality(quality);
@@ -604,7 +604,7 @@ const CardTableManualHarvesting = ({
     contractor: dataContractors,
     turns: dataShifts,
   };
-
+  
   const getNameByKey = (key, value) => {
     const data = dataMap[key];
     if (key === "worker" || key === "squad_leader") {
@@ -667,13 +667,13 @@ const CardTableManualHarvesting = ({
 
         // Aquí puedes guardar los datos en el estado si es necesario
         setDataSector(fetchedDataSector);
-        setDataSquads(fetchedDataSquads);
+        setDataSquads(fetchedDataSquads.squads);
         setDataWorkers(fetchedDataWorkers);
         setDataVarieties(fetchedDataVarieties);
         setDataSpecies(fetchedDataSpecies);
         setDataQuality(fetchedDataQuality);
         setDataHarvestFormat(fetchedDataHarvestFormat);
-        setDataGround(fetchedDataGround);
+        setDataGround(fetchedDataGround.grounds);
         setDataSeasons(fetchedDataSeasons);
         setDataContractors(fetchedDataContractors);
 
@@ -682,13 +682,13 @@ const CardTableManualHarvesting = ({
             initialData.map(async (item) => {
               return {
                 Zona: item.zone,
-                Campo: fetchedDataGround.find(
+                Campo: fetchedDataGround.grounds.find(
                   (ground) => ground.id === item.ground
                 )?.name,
                 Sector: fetchedDataSector.find(
                   (sector) => sector.id === item.sector
                 )?.name,
-                Cuadrilla: fetchedDataSquads.find(
+                Cuadrilla: fetchedDataSquads.squads.find(
                   (squad) => squad.id === item.squad
                 )?.name,
                 "Jefe cuadrilla": fetchedDataWorkers.find(

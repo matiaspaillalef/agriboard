@@ -1068,6 +1068,116 @@ const CardTableCompany = ({
                   </div>
                 </div>
 
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="system_representative_name"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Nombre R. Sistema
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="system_representative_name"
+                        id="system_representative_name"
+                        required={true}
+                        {...register("system_representative_name")}
+                        defaultValue={
+                          selectedItem
+                            ? selectedItem.system_representative_name
+                            : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="system_representative_rut"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      RUT R. Sistema
+                    </label>
+                    <div className="relative">
+                      <Rut
+                        //value={rut}
+                        onChange={(e) => setRut(e.target.value)}
+                        onValid={setRutValido}
+                      >
+                        <input
+                          type="text"
+                          name="system_representative_rut"
+                          id="system_representative_rut"
+                          required={true}
+                          {...register("system_representative_rut")}
+                          defaultValue={
+                            selectedItem
+                              ? selectedItem.system_representative_rut
+                              : ""
+                          }
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                        />
+                      </Rut>
+
+                      {rut && !rutValido && (
+                        <span className="text-red-500 text-xs">
+                          El rut es inválido
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="system_representative_phone"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Teléfono R. Sistema
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        name="system_representative_phone"
+                        id="system_representative_phone"
+                        required={true}
+                        {...register("system_representative_phone")}
+                        defaultValue={
+                          selectedItem
+                            ? selectedItem.system_representative_phone
+                            : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="system_representative_email"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Email R. Sistema
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="system_representative_email"
+                        id="system_representative_email"
+                        required={true}
+                        {...register("system_representative_email")}
+                        defaultValue={
+                          selectedItem
+                            ? selectedItem.system_representative_email
+                            : ""
+                        }
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                   <div className="flex flex-col gap-3">
                     <label

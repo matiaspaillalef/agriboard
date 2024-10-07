@@ -38,8 +38,15 @@ const PeopleManagementGroups = () => {
 
     try {
 
-      const data = await getDataGroups(companyId);
-      setDataGroups(data);
+      const DataGroupsfetch = await getDataGroups(companyId);
+    
+      if(DataGroupsfetch.code === 'OK'){
+    
+        
+        setDataGroups(DataGroupsfetch.groups);
+    
+      }
+
 
     } catch (error) {
 

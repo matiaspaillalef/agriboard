@@ -30,7 +30,15 @@ const PeopleManagementGround = () => {
   const fetchData = useCallback(async (companyId) => {
     setIsLoading(true);
     try {
-      const data = await getDataGround(companyId);
+      const dataGroundsfetch = await getDataGround(companyId);
+      var data;
+
+      if(dataGroundsfetch.code === 'OK'){
+
+        data =  dataGroundsfetch.grounds;
+    
+      }
+
       const companies = await getDataCompanies();
       setDataGrounds(data);
       setDataCompanies(companies);

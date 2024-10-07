@@ -100,6 +100,7 @@ const CardTableSectorAttributes = ({
       const seasons = await getDataSeasons(companyID);
       const sector = await getDataSectorBarracks(companyID);
 
+
       setDataVarieties(varieties);
       setDataSpecies(species);
       setDataQuality(quality);
@@ -133,34 +134,7 @@ const CardTableSectorAttributes = ({
   });
 
   const [itemToClone, setItemToClone] = useState({
-    index: null,
     id: null,
-    season: "",
-    sector: "",
-    specie: "",
-    variety: "",
-    year_harvest: "",
-    ha_productivas: "",
-    hileras: "",
-    plants: "",
-    min_daily_frecuency: "",
-    max_daily_frecuency: "",
-    stimation_good: "",
-    stimation_regular: "",
-    stimation_bad: "",
-    stimation_replant_kg: "",
-    surface: "",
-    interrow_density: "",
-    row_density: "",
-    quantity_plants_ha: "",
-    clasification: "",
-    rotation: "",
-    kg_sector: "",
-    kg_hectares: "",
-    kg_plants: "",
-    porc_regular: "",
-    porc_replant: "",
-    company_id: "",
   });
 
   const handleNameVarieties = (ids) => {
@@ -230,7 +204,7 @@ const CardTableSectorAttributes = ({
       }
 
       const updatedData = { ...data, varieties: selectedVarieties };
-//console.log("updatedata" , updatedData);
+      //console.log("updatedata" , updatedData);
       const updateItemApi = await updateAttributesSector(updatedData);
       const dataNew = await getDataAttributesSector(companyID);
 
@@ -258,66 +232,10 @@ const CardTableSectorAttributes = ({
     setOpenAlertClone(false);
   };
 
-  const handleCloneAlert = (
-    id,
-    season,
-    sector,
-    specie,
-    variety,
-    year_harvest,
-    ha_productivas,
-    hileras,
-    plants,
-    min_daily_frecuency,
-    max_daily_frecuency,
-    stimation_good,
-    stimation_regular,
-    stimation_bad,
-    stimation_replant_kg,
-    surface,
-    interrow_density,
-    row_density,
-    quantity_plants_ha,
-    clasification,
-    rotation,
-    kg_sector,
-    kg_hectares,
-    kg_plants,
-    porc_regular,
-    porc_replant,
-    company_id
-  ) => {
-    setItemToClone({
-      id,
-      season,
-      sector,
-      specie,
-      variety,
-      year_harvest,
-      ha_productivas,
-      hileras,
-      plants,
-      min_daily_frecuency,
-      max_daily_frecuency,
-      stimation_good,
-      stimation_regular,
-      stimation_bad,
-      stimation_replant_kg,
-      surface,
-      interrow_density,
-      row_density,
-      quantity_plants_ha,
-      clasification,
-      rotation,
-      kg_sector,
-      kg_hectares,
-      kg_plants,
-      porc_regular,
-      porc_replant,
-      company_id
-    });
-    setOpenAlertClone(true);
+  const handleCloneAlert = (id) => {
     setOpenAlert(false);
+    setOpenAlertClone(true);
+    setItemToClone({id: id});
   };
 
   const handleCloseAlert = () => {
@@ -358,12 +276,10 @@ const CardTableSectorAttributes = ({
   };
 
   const handlerClone = async () => {
-    const {
-      id,
-    } = itemToClone;
+    const { id,} = itemToClone;
 
     try {
-      const cloneItem = await cloneAttributesSector(itemToClone);
+      const cloneItem = await cloneAttributesSector(id);
       const dataNew = await getDataAttributesSector(companyID);
 
       if (cloneItem === "OK") {
@@ -387,32 +303,15 @@ const CardTableSectorAttributes = ({
     try {
       const transformedData = {
         id: Number(data.id) || null,
-        season: Number(data.season),
         sector: Number(data.sector),
         specie: Number(data.specie),
         variety: Number(data.variety),
-        year_harvest: data.year_harvest,
         ha_productivas: data.ha_productivas,
-        hileras: data.hileras,
-        plants: data.plants,
-        min_daily_frecuency: data.min_daily_frecuency,
-        max_daily_frecuency: data.max_daily_frecuency,
-        stimation_good: data.stimation_good,
-        stimation_regular: data.stimation_regular,
-        stimation_bad: data.stimation_bad,
-        stimation_replant_kg: data.stimation_replant_kg,
-        surface: data.surface,
-        interrow_density: data.interrow_density,
-        row_density: data.row_density,
-        quantity_plants_ha: data.quantity_plants_ha,
-        clasification: data.clasification,
-        rotation: data.rotation,
-        kg_sector: data.kg_sector,
-        kg_hectares: data.kg_hectares,
-        kg_plants: data.kg_plants,
-        porc_regular: data.porc_regular,
-        porc_replant: data.porc_replant,
+        season: Number(data.season),
         company_id: Number(companyID),
+        year_harvest: data.year_harvest,
+        on_ha: Number(data.on_ha),
+        between_ha: Number(data.between_ha),       
       };
 
       const createItem = await createAttributesSector(transformedData);
@@ -511,9 +410,8 @@ const CardTableSectorAttributes = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -539,9 +437,8 @@ const CardTableSectorAttributes = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -597,9 +494,8 @@ const CardTableSectorAttributes = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -636,11 +532,10 @@ const CardTableSectorAttributes = ({
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                              index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
@@ -666,19 +561,12 @@ const CardTableSectorAttributes = ({
                       {actions && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
-                            index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
-                          }`}
+                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
+                            }`}
                         >
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                            onClick={() => handleOpenShowUser(row)}
-                          >
-                            <EyeIcon className="w-6 h-6" />
-                          </button>
+
                           <button
                             type="button"
                             className="text-sm font-semibold text-gray-800 dark:text-white"
@@ -694,34 +582,7 @@ const CardTableSectorAttributes = ({
                             onClick={() => {
                               //console.log('clone',row);
                               handleCloneAlert(
-                                //index,
                                 row.id,
-                                row.season,
-                                row.sector,
-                                row.specie,
-                                row.variety,
-                                row.year_harvest,
-                                row.ha_productivas,
-                                row.hileras,
-                                row.plants,
-                                row.min_daily_frecuency,
-                                row.max_daily_frecuency,
-                                row.stimation_good,
-                                row.stimation_regular,
-                                row.stimation_bad,
-                                row.stimation_replant_kg,
-                                row.surface,
-                                row.interrow_density,
-                                row.row_density,
-                                row.quantity_plants_ha,
-                                row.clasification,
-                                row.rotation,
-                                row.kg_sector,
-                                row.kg_hectares,
-                                row.kg_plants,
-                                row.porc_regular,
-                                row.porc_replant,
-                                Number(companyID)
                               );
                             }}
                           >
@@ -774,9 +635,8 @@ const CardTableSectorAttributes = ({
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -786,11 +646,10 @@ const CardTableSectorAttributes = ({
                     <button
                       key={page}
                       type="button"
-                      className={`${
-                        currentPage === page
-                          ? "font-semibold text-navy-500 dark:text-navy-300"
-                          : ""
-                      }`}
+                      className={`${currentPage === page
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
+                        }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -825,8 +684,8 @@ const CardTableSectorAttributes = ({
               {openShowUser
                 ? "Datos del registro"
                 : isEdit
-                ? "Editar registro"
-                : "Nuevo registro"}
+                  ? "Editar registro"
+                  : "Nuevo registro"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -841,11 +700,10 @@ const CardTableSectorAttributes = ({
                     defaultValue={selectedItem ? selectedItem.id : ""}
                   />
                   <div
-                    className={`mb-3 grid gap-3 ${
-                      isEdit
-                        ? "grid-cols-2 lg:grid-cols-2"
-                        : "grid-cols-12 lg:grid-cols-2"
-                    } `}
+                    className={`mb-3 grid gap-3 ${isEdit
+                      ? "grid-cols-2 lg:grid-cols-2"
+                      : "grid-cols-12 lg:grid-cols-2"
+                      } `}
                   ></div>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
@@ -864,7 +722,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSeasons) &&
-                        dataSeasons.length > 0 ? (
+                          dataSeasons.length > 0 ? (
                           dataSeasons.map(
                             (season) =>
                               season.status == 1 && (
@@ -895,7 +753,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSectorBarracks) &&
-                        dataSectorBarracks.length > 0 ? (
+                          dataSectorBarracks.length > 0 ? (
                           dataSectorBarracks.map(
                             (sector) =>
                               sector.status != 0 && (
@@ -926,7 +784,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
+                          dataSpecies.length > 0 ? (
                           dataSpecies.map(
                             (specie) =>
                               specie.status != 0 && (
@@ -957,7 +815,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
+                          dataSpecies.length > 0 ? (
                           dataVarieties.map(
                             (variety) =>
                               variety.status != 0 && (
@@ -1016,147 +874,19 @@ const CardTableSectorAttributes = ({
 
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="hileras"
+                        htmlFor="on_ha"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Hileras
+                        Sobre Ha
                       </label>
                       <input
                         type="number"
-                        name="hileras"
-                        id="hileras"
-                        {...register("hileras")}
-                        defaultValue={selectedItem ? selectedItem.hileras : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="plants"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Plantas
-                      </label>
-                      <input
-                        type="number"
-                        name="plants"
-                        id="plants"
-                        {...register("plants")}
-                        defaultValue={selectedItem ? selectedItem.plants : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="min_daily_frecuency"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Frecuencia mínima diaria
-                      </label>
-                      <input
-                        type="number"
-                        name="min_daily_frecuency"
-                        id="min_daily_frecuency"
-                        {...register("min_daily_frecuency")}
-                        defaultValue={
-                          selectedItem ? selectedItem.min_daily_frecuency : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="max_daily_frecuency"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Frecuencia máxima diaria
-                      </label>
-                      <input
-                        type="number"
-                        name="max_daily_frecuency"
-                        id="max_daily_frecuency"
-                        {...register("max_daily_frecuency")}
-                        defaultValue={
-                          selectedItem ? selectedItem.max_daily_frecuency : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="stimation_good"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Estimación de buena
-                      </label>
-                      <input
-                        type="number"
-                        name="stimation_good"
-                        id="stimation_good"
-                        {...register("stimation_good")}
-                        defaultValue={
-                          selectedItem ? selectedItem.stimation_good : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="stimation_regular"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Estimación de regular
-                      </label>
-                      <input
-                        type="number"
-                        name="stimation_regular"
-                        id="stimation_regular"
-                        {...register("stimation_regular")}
-                        defaultValue={
-                          selectedItem ? selectedItem.stimation_regular : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="stimation_bad"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Estimación de mala
-                      </label>
-                      <input
-                        type="number"
-                        name="stimation_bad"
-                        id="stimation_bad"
-                        {...register("stimation_bad")}
-                        defaultValue={
-                          selectedItem ? selectedItem.stimation_bad : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="stimation_replant_kg"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Estimación de replante
-                      </label>
-                      <input
-                        type="number"
-                        name="stimation_replant_kg"
-                        id="stimation_replant_kg"
+                        name="on_ha"
+                        id="on_ha"
                         step={0.01}
-                        {...register("stimation_replant_kg")}
+                        {...register("on_ha")}
                         defaultValue={
-                          selectedItem ? selectedItem.stimation_replant_kg : ""
+                          selectedItem ? selectedItem.on_ha : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
@@ -1164,220 +894,25 @@ const CardTableSectorAttributes = ({
 
                     <div className="flex flex-col gap-3">
                       <label
-                        htmlFor="surface"
+                        htmlFor="between_ha"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Superficie
+                        Entre Ha
                       </label>
                       <input
                         type="number"
-                        name="surface"
-                        id="surface"
+                        name="between_ha"
+                        id="between_ha"
                         step={0.01}
-                        {...register("surface")}
-                        defaultValue={selectedItem ? selectedItem.surface : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="interrow_density"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Densidad entre hileras
-                      </label>
-                      <input
-                        type="number"
-                        name="interrow_density"
-                        id="interrow_density"
-                        step={0.01}
-                        {...register("interrow_density")}
+                        {...register("between_ha")}
                         defaultValue={
-                          selectedItem ? selectedItem.interrow_density : ""
+                          selectedItem ? selectedItem.between_ha : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="row_density"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Densidad de hileras
-                      </label>
-                      <input
-                        type="number"
-                        name="row_density"
-                        id="row_density"
-                        step={0.01}
-                        {...register("row_density")}
-                        defaultValue={
-                          selectedItem ? selectedItem.row_density : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="quantity_plants_ha"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Cantidad de plantas por Ha
-                      </label>
-                      <input
-                        type="number"
-                        name="quantity_plants_ha"
-                        id="quantity_plants_ha"
-                        step={0.01}
-                        {...register("quantity_plants_ha")}
-                        defaultValue={
-                          selectedItem ? selectedItem.quantity_plants_ha : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="clasification"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Clasificación
-                      </label>
-                      <input
-                        type="text"
-                        name="clasification"
-                        id="clasification"
-                        {...register("clasification")}
-                        defaultValue={
-                          selectedItem ? selectedItem.clasification : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="rotation"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Rotación
-                      </label>
-                      <input
-                        type="number"
-                        name="rotation"
-                        id="rotation"
-                        step={0.01}
-                        {...register("rotation")}
-                        defaultValue={selectedItem ? selectedItem.rotation : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="kg_sector"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Kg por sector
-                      </label>
-                      <input
-                        type="number"
-                        name="kg_sector"
-                        id="kg_sector"
-                        step={0.01}
-                        {...register("kg_sector")}
-                        defaultValue={
-                          selectedItem ? selectedItem.kg_sector : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="kg_hectares"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Kg por hectáreas
-                      </label>
-                      <input
-                        type="number"
-                        name="kg_hectares"
-                        id="kg_hectares"
-                        step={0.01}
-                        {...register("kg_hectares")}
-                        defaultValue={
-                          selectedItem ? selectedItem.kg_hectares : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="kg_plants"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Kg por plantas
-                      </label>
-                      <input
-                        type="number"
-                        name="kg_plants"
-                        id="kg_plants"
-                        step={0.01}
-                        {...register("kg_plants")}
-                        defaultValue={
-                          selectedItem ? selectedItem.kg_plants : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="porc_regular"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Porcentaje de regular
-                      </label>
-                      <input
-                        type="number"
-                        name="porc_regular"
-                        id="porc_regular"
-                        step={0.01}
-                        {...register("porc_regular")}
-                        defaultValue={
-                          selectedItem ? selectedItem.porc_regular : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="porc_replant"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Porcentaje de replante
-                      </label>
-                      <input
-                        type="number"
-                        name="porc_replant"
-                        id="porc_replant"
-                        step={0.01}
-                        {...register("porc_replant")}
-                        defaultValue={
-                          selectedItem ? selectedItem.porc_replant : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
                   </div>
-
                   <input
                     type="hidden"
                     name="company_id"
@@ -1519,9 +1054,8 @@ const CardTableSectorAttributes = ({
               <button
                 type="button"
                 onClick={openAlert ? handlerRemove : handlerClone}
-                className={`${
-                  openAlert ? "bg-red-500" : "bg-blueTertiary"
-                } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
+                className={`${openAlert ? "bg-red-500" : "bg-blueTertiary"
+                  } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
               >
                 {openAlert ? (
                   <>

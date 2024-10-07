@@ -44,7 +44,7 @@ const CardTableGroups = ({
     formState: { errors },
   } = useForm();
 
-  
+
   const [initialData, setInitialData] = useState();
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -67,12 +67,12 @@ const CardTableGroups = ({
     name: "",
   });
 
-    //Para cargar los datos de lado del cliente
-    useEffect(() => {
-      if (data && data.length > 0) {
-        setInitialData(data);
-      }
-    }, [data]);
+  //Para cargar los datos de lado del cliente
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setInitialData(data);
+    }
+  }, [data]);
 
   const handleOpenNewUser = () => {
     setIsEdit(false);
@@ -95,39 +95,43 @@ const CardTableGroups = ({
   const onUpdateItem = async (data) => {
 
     try {
-        const updateGroupApi = await updateGroup(data);
-        const dataNew = await getDataGroups(companyID);
+      const updateGroupApi = await updateGroup(data);
+      const dataNew = await getDataGroups(companyID);
 
-        // Verifica si la actualización fue exitosa
-        if (updateGroupApi === "OK") {
+      // Verifica si la actualización fue exitosa
+      if (updateGroupApi.code === "OK") {
 
-            // Actualiza la fila en el front-end
-            const updatedData = initialData.map((item) => {
-                console.log("item.id", item.id); // Imprime solo el id del item
+        // Actualiza la fila en el front-end
+        const updatedData = initialData.map((item) => {
+          console.log("item.id", item.id); // Imprime solo el id del item
 
-                return item.id === data.id
-                    ? {
-                        id: data.id,
-                        name: data.name,
-                        status: data.status,
-                        id_company: Number(data.company_id),
-                    }
-                    : item;
-            });
+          return item.id === data.id
+            ? {
+              id: data.id,
+              name: data.name,
+              status: data.status,
+              id_company: Number(data.company_id),
+            }
+            : item;
+        });
 
-            setInitialData(updatedData);
-            setInitialData(dataNew);
-            setUpdateMessage("Grupo actualizado correctamente");
-            setOpen(false);
-        } else {
-            setUpdateMessage(updateGroupApi ? updateGroupApi : "No se pudo actualizar el grupo");
-        }
+        setInitialData(updatedData);
+        setInitialData(dataNew.groups);
+        setUpdateMessage(updateGroupApi.mensaje);
+        setOpen(false);
+
+      } else if (updateGroupApi.code === "ERROR") {
+
+        setUpdateMessage(updateGroupApi.mensaje);
+
+      }
+
     } catch (error) {
-        //console.error(error);
-        // Manejo de errores
-        setUpdateMessage("Error al intentar actualizar el grupo. Inténtalo nuevamente.");
+      //console.error(error);
+      // Manejo de errores
+      setUpdateMessage("Error al intentar actualizar el grupo. Inténtalo nuevamente.");
     }
-};
+  };
 
 
   const handleOpenAlert = (index, id, name) => {
@@ -137,7 +141,7 @@ const CardTableGroups = ({
 
   const handleCloseAlert = () => {
     setOpenAlert(false);
-    setItemToDelete({ index: null, id: null, name : "" });
+    setItemToDelete({ index: null, id: null, name: "" });
   };
 
   const handlerRemove = async () => {
@@ -148,14 +152,18 @@ const CardTableGroups = ({
       const deleteGroup = await deleteGroupApi(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteGroup === "OK") {
+      if (deleteGroup.code === "OK") {
+
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
         setOpenAlert(false);
-        setUpdateMessage("Grupo eliminado correctamente");
-      } else {
-        setUpdateMessage("Error al eliminar el grupo. Inténtalo nuevamente.");
+        setUpdateMessage(deleteGroup.mensaje);
+
+      } else if (deleteGroup.code === "ERROR") {
+
+        setUpdateMessage(deleteGroup.mensaje);
+
       }
     } catch (error) {
       console.error(error);
@@ -170,30 +178,42 @@ const CardTableGroups = ({
     try {
       // Crear una copia de los datos y eliminar la propiedad 'id' si existe
       const { id, ...dataWithoutId } = data;
-  
+
       // Enviar datos sin el 'id' a la API
       const createGroupapi = await createGroup(dataWithoutId);
-  
+
       // Agregar la fila del front-end
-      if (createGroupapi === "OK") {
+      if (createGroupapi.code === "OK") {
+
         const updatedData = [...initialData, dataWithoutId]; // Agregar el nuevo grupo a la lista de datos existente
-  
+
         setInitialData(updatedData);
-  
+
         const userDataString = sessionStorage.getItem("userData");
         const userData = JSON.parse(userDataString);
         const idCompany = userData.idCompany;
-  
+        setUpdateMessage(createGroupapi.mensaje);
         // Hago este fetch para traer la data actualizada de la BD
-        const newDataFetch = await getDataGroups(idCompany); 
-  
-        // Actualizar el estado con la data obtenida de la BD
-        setInitialData(newDataFetch);
-        setOpen(false);
-        setUpdateMessage("Grupo creado correctamente");
-      } else {
-        setUpdateMessage(createGroupapi);
+        const newDataFetch = await getDataGroups(idCompany);
+
+        if (newDataFetch.code === "OK") {
+
+          setInitialData(newDataFetch.groups);
+
+        } else if (newDataFetch.code === "ERROR") {
+
+          setUpdateMessage(newDataFetch.mensaje);
+
+        }
+
+      } else if (createGroupapi.code === "ERROR") {
+
+        setUpdateMessage(createGroupapi.mensaje);
+
       }
+
+      setOpen(false);
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -247,7 +267,7 @@ const CardTableGroups = ({
     currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
   }
 
-  
+
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -264,9 +284,8 @@ const CardTableGroups = ({
 
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -294,9 +313,8 @@ const CardTableGroups = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -305,18 +323,18 @@ const CardTableGroups = ({
             )}
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-            {Array.isArray(initialData) &&
-                initialData.length > 0 && 
+              {Array.isArray(initialData) &&
+                initialData.length > 0 &&
                 downloadBtn && (
-          
+
                   <ExportarExcel
                     data={initialData}
                     filename="empresas"
                     sheetname="empresas"
                     titlebutton="Exportar a excel"
                   />
-               
-              )}
+
+                )}
 
               {SearchInput && (
                 <input
@@ -354,9 +372,8 @@ const CardTableGroups = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -382,76 +399,74 @@ const CardTableGroups = ({
               <tbody role="rowgroup">
                 {Array.isArray(initialData) && initialData.length > 0 ? (
                   currentItems.map((row, index) => (
-                  <tr key={index} role="row">
-                    {Object.keys(row).map((key, rowIndex) => {
-                      if (omitirColumns.includes(key)) {
-                        return null; // Omitir la columna si está en omitirColumns
-                      }
+                    <tr key={index} role="row">
+                      {Object.keys(row).map((key, rowIndex) => {
+                        if (omitirColumns.includes(key)) {
+                          return null; // Omitir la columna si está en omitirColumns
+                        }
 
-                      return (
+                        return (
+                          <td
+                            key={rowIndex}
+                            role="cell"
+                            className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
+                                ? "bg-lightPrimary dark:bg-navy-900"
+                                : ""
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
+                          >
+                            <div className="text-base font-medium text-navy-700 dark:text-white">
+                              {key === "status" ? (
+                                //console.log(key),
+                                row[key] == 1 ? (
+                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Activo
+                                  </p>
+                                ) : (
+                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    Inactivo
+                                  </p>
+                                )
+                              ) :
+                                formatNumber(row[key])
+                              }
+                            </div>
+                          </td>
+                        );
+                      })}
+                      {actions && (
                         <td
-                          key={rowIndex}
-                          role="cell"
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                            index % 2 !== 0
+                          colSpan={columnLabels.length}
+                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          } ${columnsClasses[rowIndex] || "text-left"}`}
+                            }`}
                         >
-                          <div className="text-base font-medium text-navy-700 dark:text-white">
-                            {key === "status" ? (
-                              //console.log(key),
-                              row[key] == 1 ? (
-                                <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                  Activo
-                                </p>
-                              ) : (
-                                <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                  Inactivo
-                                </p>
-                              )
-                            ) :
-                            formatNumber(row[key])
-                            }
-                          </div>
+                          <button
+                            type="button"
+                            className="text-sm font-semibold text-gray-800 dark:text-white"
+                            //onClick={() => handleOpen(row)}
+                            onClick={() => handleOpenEditUser(row)}
+                          >
+                            <PencilSquareIcon className="w-6 h-6" />
+                          </button>
+                          <button
+                            id="remove"
+                            type="button"
+                            onClick={() => {
+                              //console.log(row);
+                              handleOpenAlert(
+                                index,
+                                row.id,
+                                row.name ? row.name : ""
+                              );
+                            }}
+                          >
+                            <TrashIcon className="w-6 h-6" />
+                          </button>
                         </td>
-                      );
-                    })}
-                    {actions && (
-                      <td
-                        colSpan={columnLabels.length}
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          className="text-sm font-semibold text-gray-800 dark:text-white"
-                          //onClick={() => handleOpen(row)}
-                          onClick={() => handleOpenEditUser(row)}
-                        >
-                          <PencilSquareIcon className="w-6 h-6" />
-                        </button>
-                        <button
-                          id="remove"
-                          type="button"
-                          onClick={() => {
-                            //console.log(row);
-                            handleOpenAlert(
-                              index,
-                              row.id,
-                              row.name ? row.name : ""
-                            );
-                          }}
-                        >
-                          <TrashIcon className="w-6 h-6" />
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                 ))
+                      )}
+                    </tr>
+                  ))
                 ) : (
                   <tr>
                     <td className="py-4">No se encontraron registros.</td>
@@ -476,9 +491,8 @@ const CardTableGroups = ({
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -488,11 +502,10 @@ const CardTableGroups = ({
                     <button
                       key={page}
                       type="button"
-                      className={`${
-                        currentPage === page
+                      className={`${currentPage === page
                           ? "font-semibold text-navy-500 dark:text-navy-300"
                           : ""
-                      }`}
+                        }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -510,7 +523,7 @@ const CardTableGroups = ({
               </div>
             )}
 
-        <Dialog
+          <Dialog
             open={open}
             handler={handleOpen}
             size="xs"

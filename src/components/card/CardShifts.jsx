@@ -116,26 +116,42 @@ const CardTableShifts = ({
     try {
       const updateShiftApi = await updateShift(data);
       // Elimina la fila del front-end
-      if (updateShiftApi === "OK") {
+      if (updateShiftApi.code === "OK") {
+
         const updatedData = initialData.map((item) =>
           item.id == data.id
             ? {
-                id: data.id,
-                name: data.name,
-                status: data.status,
-              }
+              id: data.id,
+              name: data.name,
+              status: data.status,
+            }
             : item
         );
 
-        const NewData = await getDataShifts(companyID);
-
         setInitialData(updatedData);
-        setInitialData(NewData);
-        setUpdateMessage("Turno actualizado correctamente");
-        setOpen(false);
-      } else {
-        setUpdateMessage("No se pudo actualizar el turno");
+
+        const newDataFetch = await getDataShifts(companyID);
+
+        if(newDataFetch.code  === "OK"){
+
+          setInitialData(newDataFetch.shifts);
+
+        }else if (newDataFetch.code === "ERROR") {
+
+          setUpdateMessage(newDataFetch.mensaje);
+
+        }
+
+        setUpdateMessage(updateShiftApi.mensaje);
+
+      }else if (updateShiftApi.code === "ERROR") {
+
+        setUpdateMessage(updateShiftApi.mensaje);
+
       }
+
+      setOpen(false);
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -168,18 +184,33 @@ const CardTableShifts = ({
     try {
       //if (userConfirmed) {
       const deleteShift = await deleteShiftApi(id);
-      const newData = await getDataShifts(companyID);
+      
+      const newDataFetch = await getDataShifts(companyID);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteShift === "OK") {
+      if (deleteShift.code === "OK") {
+
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
-        setInitialData(newData);
+
+        if(newDataFetch.code  === "OK"){
+
+          setInitialData(newDataFetch.shifts);
+
+        }else if (newDataFetch.code === "ERROR") {
+
+          setUpdateMessage(deleteShift.mensaje);
+
+        }
+
         setOpenAlert(false);
-        setUpdateMessage("Turno eliminado correctamente");
-      } else {
-        setUpdateMessage("Error al eliminar el turno. Inténtalo nuevamente.");
+        setUpdateMessage(deleteShift.mensaje);
+
+      }else if (deleteShift.code === "ERROR") {
+
+        setUpdateMessage(deleteShift.mensaje);
+
       }
     } catch (error) {
       console.error(error);
@@ -197,7 +228,8 @@ const CardTableShifts = ({
       const createShiftapi = await createShift(data);
 
       // Agrega la fila del front-end
-      if (createShiftapi == "OK") {
+      if (createShiftapi.code == "OK") {
+
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
@@ -205,12 +237,28 @@ const CardTableShifts = ({
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataShifts(companyID);
 
-        setInitialData(newDataFetch);
-        setOpen(false);
-        setUpdateMessage("Turno creado correctamente");
-      } else {
-        setUpdateMessage(createShiftapi);
+
+        if (newDataFetch.code === "OK") {
+
+          setInitialData(newDataFetch.shifts);
+
+        } else if (newDataFetch.code === "ERROR") {
+
+          setUpdateMessage(newDataFetch.mensaje);
+
+        }
+
+        
+        setUpdateMessage(createShiftapi.mensaje);
+
+      } else if (createShiftapi.code === "ERROR") {
+
+        setUpdateMessage(createShiftapi.mensaje);
+
       }
+
+      setOpen(false);
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -274,9 +322,8 @@ const CardTableShifts = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -304,9 +351,8 @@ const CardTableShifts = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -362,9 +408,8 @@ const CardTableShifts = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -400,11 +445,10 @@ const CardTableShifts = ({
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                              index % 2 !== 0
+                            className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                                 ? "bg-lightPrimary dark:bg-navy-900"
                                 : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
@@ -427,11 +471,10 @@ const CardTableShifts = ({
                       })}
 
                       <td
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
+                        className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                             ? "bg-lightPrimary dark:bg-navy-900"
                             : ""
-                        }`}
+                          }`}
                       >
                         <button
                           type="button"
@@ -445,11 +488,10 @@ const CardTableShifts = ({
                       {actions && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                            index % 2 !== 0
+                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          }`}
+                            }`}
                         >
                           <button
                             type="button"
@@ -499,9 +541,8 @@ const CardTableShifts = ({
               <div className="flex items-center gap-5">
                 <button
                   type="button"
-                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                    currentPage === 1 && "hidden"
-                  }`}
+                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                    }`}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
@@ -511,11 +552,10 @@ const CardTableShifts = ({
                   <button
                     key={page}
                     type="button"
-                    className={`${
-                      currentPage === page
+                    className={`${currentPage === page
                         ? "font-semibold text-navy-500 dark:text-navy-300"
                         : ""
-                    }`}
+                      }`}
                     onClick={() => handlePageChange(page)}
                   >
                     {page}
@@ -550,8 +590,8 @@ const CardTableShifts = ({
               {isShowSchedule
                 ? "Horarios"
                 : isEdit
-                ? "Editar turno"
-                : "Crear turno"}
+                  ? "Editar turno"
+                  : "Crear turno"}
             </DialogHeader>
             <DialogBody>
               <form

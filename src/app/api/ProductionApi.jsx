@@ -26,13 +26,10 @@ export const getDataGround = async (id_company) => {
     );
 
     if (res.ok) {
+      
       const groundData = await res.json();
+      return  groundData;
 
-      if (groundData.code === "OK") {
-        return groundData.grounds;
-      } else if (groundData.code === "ERROR") {
-        return groundData.mensaje;
-      }
     }
   } catch (err) {
     console.error(err);
@@ -63,21 +60,14 @@ export const createGround = async (data) => {
         cache: "no-store",
       }
     );
-
+    
     if (res.ok) {
       const groundData = await res.json();
-
-      if (groundData.code === "OK") {
-        return "OK"; // Indicar que la creación fue exitosa
-      } else if (groundData.code === "ERROR") {
-        return groundData.mensaje; // Manejar el mensaje de error desde la API
-      }
-    } else {
-      throw new Error("Error en la solicitud HTTP");
+      return groundData;
     }
+    
   } catch (err) {
-    console.error("Error al crear el registro:", err);
-    throw new Error("Error al intentar crear el registro");
+    console.error(err);
   }
 };
 
@@ -143,13 +133,10 @@ export const deleteGround = async (id) => {
     );
 
     if (res.ok) {
+      
       const groundData = await res.json();
+      return groundData;
 
-      if (groundData.code === "OK") {
-        return groundData.code;
-      } else if (groundData.code === "ERROR") {
-        return groundData.mensaje;
-      }
     }
   } catch (err) {
     console.error(err);
@@ -326,7 +313,7 @@ export const getDataAttributesSector = async (id_company) => {
 };
 
 export const createAttributesSector = async (data) => {
-  console.log(data);
+  
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createAttributeSector",
@@ -337,32 +324,15 @@ export const createAttributesSector = async (data) => {
           "x-api-key": token,
         },
         body: JSON.stringify({
-          season: data.season,
-          sector: data.sector,
-          specie: data.specie,
-          variety: data.variety,
-          year_harvest: data.year_harvest,
+          sector:data.sector,
+          specie:data.specie,
+          variety:data.variety,
           ha_productivas: data.ha_productivas,
-          hileras: data.hileras,
-          plants: data.plants,
-          min_daily_frecuency: data.min_daily_frecuency,
-          max_daily_frecuency: data.max_daily_frecuency,
-          stimation_good: data.stimation_good,
-          stimation_regular: data.stimation_regular,
-          stimation_bad: data.stimation_bad,
-          stimation_replant_kg: data.stimation_replant_kg,
-          surface: data.surface,
-          interrow_density: data.interrow_density,
-          row_density: data.row_density,
-          quantity_plants_ha: data.quantity_plants_ha,
-          clasification: data.clasification,
-          rotation: data.rotation,
-          kg_sector: data.kg_sector,
-          kg_hectares: data.kg_hectares,
-          kg_plants: data.kg_plants,
-          porc_regular: data.porc_regular,
-          porc_replant: data.porc_replant,
-          company_id: data.company_id,
+          season:data.season,
+          company_id:data.company_id,
+          year_harvest: data.year_harvest,
+          on_ha: data.on_ha,
+          between_ha: data.between_ha,   
         }),
         cache: "no-store",
       }
@@ -386,7 +356,7 @@ export const createAttributesSector = async (data) => {
 };
 
 export const cloneAttributesSector = async (data) => {
-  console.log(data);
+  console.log("ID" ,data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/cloneAttributesSector",
@@ -397,7 +367,7 @@ export const cloneAttributesSector = async (data) => {
           "x-api-key": token,
         },
         body: JSON.stringify({
-          id: data.id,
+          id: data,
         }),
         cache: "no-store",
       }
@@ -433,32 +403,15 @@ export const updateAttributesSector = async (data) => {
         },
         body: JSON.stringify({
           id: data.id,
-          season: data.season,
-          sector: data.sector,
-          specie: data.specie,
-          variety: data.variety,
-          year_harvest: data.year_harvest,
+          sector:data.sector,
+          specie:data.specie,
+          variety:data.variety,
           ha_productivas: data.ha_productivas,
-          hileras: data.hileras,
-          plants: data.plants,
-          min_daily_frecuency: data.min_daily_frecuency,
-          max_daily_frecuency: data.max_daily_frecuency,
-          stimation_good: data.stimation_good,
-          stimation_regular: data.stimation_regular,
-          stimation_bad: data.stimation_bad,
-          stimation_replant_kg: data.stimation_replant_kg,
-          surface: data.surface,
-          interrow_density: data.interrow_density,
-          row_density: data.row_density,
-          quantity_plants_ha: data.quantity_plants_ha,
-          clasification: data.clasification,
-          rotation: data.rotation,
-          kg_sector: data.kg_sector,
-          kg_hectares: data.kg_hectares,
-          kg_plants: data.kg_plants,
-          porc_regular: data.porc_regular,
-          porc_replant: data.porc_replant,
-          company_id: data.company_id,
+          season:data.season,
+          company_id:data.company_id,
+          year_harvest: data.year_harvest,
+          on_ha: data.on_ha,
+          between_ha: data.between_ha,   
         }),
       }
     );

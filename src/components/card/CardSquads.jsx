@@ -226,25 +226,31 @@ const CardTableSquads = ({
     };
 
     try {
+
       const updateSquadApi = await updateSquad(updatedData);
       const squadData = await getDataSquads(companyID);
+      console.log(squadData);
 
-      if (updateSquadApi === "OK") {
+      if (updateSquadApi.code === "OK") {
+
         const newData = initialData.map((item) =>
           item.id === updatedData.id ? updatedData : item
+
         );
 
         setInitialData(newData);
-        setInitialData(squadData);
-        setUpdateMessage("Cuadrilla actualizada correctamente");
-        setOpen(false);
+        setInitialData(squadData.squads);
+        setUpdateMessage(updateSquadApi.mensaje);
+        
       }else if (updateSquadApi.code === "ERROR") {
-        setUpdateMessage(updateSquadApi ? updateSquadApi.mensaje : "Error al intentar actualizar la cuadrilla");
 
-      } else {
-        setUpdateMessage("No se pudo actualizar la cuadrilla");
-      }
+        setUpdateMessage(setUpdateMessage(updateUserApi.mensaje));
+
+      } 
+
+      setOpen(false);
     } catch (error) {
+
       console.error(error);
       // Manejo de errores
       setUpdateMessage(
@@ -271,17 +277,21 @@ const CardTableSquads = ({
       const deleteSquad = await deleteSquadApi(id);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteSquad === "OK") {
+      if (deleteSquad.code === "OK") {
+
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
         setOpenAlert(false);
-        setUpdateMessage("cuadrilla eliminado correctamente");
-      } else {
-        setUpdateMessage(
-          "Error al eliminar el cuadrilla. Inténtalo nuevamente."
-        );
+
+        setUpdateMessage(deleteSquad.mensaje);
+
+      }else if (deleteSquad.code === "ERROR") {
+
+        setUpdateMessage(deleteSquad.mensaje);
+
       }
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -292,12 +302,13 @@ const CardTableSquads = ({
   // Creación
   const onSubmitForm = async (data) => {
     try {
+
       const createSquadapi = await createSquad(data);
 
       // Agrega la fila del front-end
 
       console.log(createSquadapi);
-      if (createSquadapi == "OK") {
+      if (createSquadapi.code == "OK") {
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
@@ -305,12 +316,26 @@ const CardTableSquads = ({
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataSquads(companyID );
 
-        setInitialData(newDataFetch);
-        setOpen(false);
-        setUpdateMessage("cuadrilla creada correctamente");
-      } else {
-        setUpdateMessage(createSquadapi);
+        if(newDataFetch.code  === "OK"){
+
+          setInitialData(newDataFetch.squads);
+
+        }else if (newDataFetch.code === "ERROR") {
+
+          setUpdateMessage(newDataFetch.mensaje);
+
+        }
+
+        setUpdateMessage(createSquadapi.mensaje);
+
+      } else if (createSquadapi.code === "ERROR") {
+          ;
+          setUpdateMessage(createSquadapi.mensaje);
+        
       }
+
+      setOpen(false)
+
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -339,7 +364,8 @@ const CardTableSquads = ({
     const fetchGroups = async () => {
       try {
         const groupsData = await getDataGroups(companyID);
-        setGroups(groupsData);
+        console.log(groupsData);
+        setGroups(groupsData.groups);
       } catch (error) {
         console.error("Error al obtener los grupos", error);
       }
