@@ -774,8 +774,8 @@ const CardTableHarvestFormat = ({
                         htmlFor="tara_base"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Tara base
-                      </label>
+                        Tara base (Kg)
+                      </label> 
                       <input
                         type="number"
                         name="tara_base"
@@ -797,7 +797,7 @@ const CardTableHarvestFormat = ({
                         htmlFor="min_weight"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Peso mínimo
+                        Peso mínimo (Kg)
                       </label>
                       <input
                         type="number"
@@ -818,7 +818,7 @@ const CardTableHarvestFormat = ({
                         htmlFor="max_weight"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Peso máximo
+                        Peso máximo (Kg)
                       </label>
                       <input
                         type="number"

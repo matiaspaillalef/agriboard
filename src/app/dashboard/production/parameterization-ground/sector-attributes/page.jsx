@@ -82,13 +82,13 @@ const ProductionSectorAttributes = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableSectorAttributes
                 data={dataSectorAttributes}
-                thead="Temporada, Sector, Especie, Variedad, Año Plantación, Ha. Productivas, Kg Sector, Kg Hectareas, Kg Plantas"
+                thead="Temporada, Sector, Especie, Variedad, Año Plantación, Ha. Productivas, Entre Hileras ,Sobre hileras,Cantidad Plantas "
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
                 companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
                 datosCompanies={dataCompanies}
-                omitirColumns={["id", "company_id", "hileras", "plants", "min_daily_frecuency", "max_daily_frecuency", "stimation_good", "stimation_regular", "stimation_bad", "stimation_replant_kg", "surface", "interrow_density", "row_density", "quantity_plants_ha", "clasification", "rotation", "porc_regular", "porc_replant"]}
+                omitirColumns={["id", "company_id"]}
               />
             </div>
           </div>

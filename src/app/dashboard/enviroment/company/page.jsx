@@ -22,7 +22,7 @@ const EmpresaPage = async () => {
               thead="Empresa, RUT, Región, Ciudad, Teléfono, RRLL, Estado"
               downloadBtn={true}
               SearchInput={true}
-              omitirColumns={["id", "giro", "logo", "address", "web", "legal_representative_rut", "legal_representative_email", "compensation_box", "legal_representative_phone" ]}
+              omitirColumns={["id", "giro", "logo", "address", "web", "legal_representative_rut", "legal_representative_email", "compensation_box", "legal_representative_phone","system_representative_name","system_representative_rut","system_representative_phone","system_representative_email" ]}
               actions={true}
             />
           </div>

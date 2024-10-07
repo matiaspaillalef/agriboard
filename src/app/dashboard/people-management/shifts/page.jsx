@@ -25,9 +25,17 @@ const PeopleManagementShifts = () => {
 
   const fetchData = useCallback(async (companyId) => {
     setIsLoading(true);
+
     try {
+
       const data = await getDataShifts(companyId);
-      setdataShifts(data);
+
+      if(data.code === 'OK'){
+    
+        setdataShifts(data.shifts);
+        
+      }
+
 
     } catch (error) {
       console.error("Error al obtener datos:", error);

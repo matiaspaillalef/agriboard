@@ -135,11 +135,6 @@ export const primaryMenu = [
                         name: 'Trabajadores',
                         url: '/dashboard/people-management/workers'
                     },
-                    {
-                        id: 7,
-                        name: 'Mensajes',
-                        url: '/dashboard/people-management/messages'
-                    },
                 ]
             },
             {
