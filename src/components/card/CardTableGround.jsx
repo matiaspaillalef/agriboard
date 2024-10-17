@@ -37,7 +37,12 @@ import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
 import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import dynamic from 'next/dynamic';
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
+const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
+const useMapEvents = dynamic(() => import('react-leaflet').then(mod => mod.useMapEvents), { ssr: false });
+//import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 //import L from "leaflet";
 import customMarker from "@/../public/pin.png";
@@ -402,6 +407,13 @@ const CardTableGround = ({
     : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <>
@@ -1014,7 +1026,8 @@ const CardTableGround = ({
                   <span>{longitude}</span>
                 </div>
               </div>
-
+       
+              {isMounted && (
               <MapContainer
                 center={position}
                 zoom={13}
@@ -1033,6 +1046,8 @@ const CardTableGround = ({
                   }}
                 />
               </MapContainer>
+ )}
+
             </>
           </Dialog>
         </>
