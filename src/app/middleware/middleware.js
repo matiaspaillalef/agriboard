@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Logo from "../../../public/agrisoft_logo.webp";
+import Logo2 from "../../../public/agrisoft_logo_b.webp";
 
 export function withAuth(Component) {
     return function AuthenticatedComponent(props) {
@@ -51,7 +53,7 @@ export function withAuth(Component) {
         return loading ? (
             <div className={`loader-content ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
                 <div className='inner_loader'>
-                    <Image src={darkMode ? '/agrisoft_logo_b.webp' : '/agrisoft_logo.webp'} alt='loader' width={150} height={100} className='loader-logo animate-pulse'/>
+                    <img src={darkMode ? '/agrisoft_logo_b.webp' : '/agrisoft_logo.webp'} alt='loader' width={150} height={100} className='loader-logo animate-pulse'/>
                 </div>
             </div>
         ) : (
