@@ -141,9 +141,9 @@ const CardTableManualHarvesting = ({
         );
 
         setOptions({
-          ground: fetchedDataGround,
+          ground: fetchedDataGround.grounds,
           sector: fetchedDataSector,
-          squad: fetchedDataSquads,
+          squad: fetchedDataSquads.squads,
           worker: fetchedDataWorkers,
           worker_rut: fetchedDataWorkers,
           squad_leader: fetchedDataWorkers,
@@ -319,22 +319,65 @@ useEffect(() => {
 
       // Aquí puedes guardar los datos en el estado si es necesario
       setDataSector(fetchedDataSector);
-      setDataSquads(fetchedDataSquads);
       setDataWorkers(fetchedDataWorkers);
       setDataVarieties(fetchedDataVarieties);
       setDataSpecies(fetchedDataSpecies);
       setDataQuality(fetchedDataQuality);
       setDataHarvestFormat(fetchedDataHarvestFormat);
-      setDataGround(fetchedDataGround);
+
+      if (fetchedDataGround.code === "OK") {
+        const groundData = fetchedDataGround.grounds;
+        setDataGround(groundData);
+      }
+
+      if (fetchedDataSquads.code === "OK") {
+        const squadsData = fetchedDataSquads.squads;
+        setDataSquads(squadsData);
+      }
+
+      if (fetchedDataTurns.code === "OK") {
+        const turnsData = fetchedDataTurns.shifts;
+        setDataTurns(turnsData);
+      }
+
       setDataSeasons(fetchedDataSeasons);
       setDataTurns(fetchedDataTurns);
       setDataContractors(fetchedDataContractors);
 
       if (Array.isArray(initialData) && initialData.length > 0) {
         // Crear mapas para búsquedas rápidas
-        const groundMap = new Map(fetchedDataGround.map(g => [g.id, g.name]));
+        let groundMap = new Map();
+        let squadMap = new Map();
+        let shiftsMap = new Map();
+    
+        if (fetchedDataGround.code === "OK") {
+            const groundData = fetchedDataGround.grounds;
+            if (Array.isArray(groundData)) {
+                groundMap = new Map(groundData.map(g => [g.id, g.name]));
+            } else {
+                console.error('La propiedad grounds no es un array:', groundData);
+            }
+        }
+
+        if(fetchedDataSquads.code === "OK") {
+            const squadData = fetchedDataSquads.squads;
+            if (Array.isArray(squadData)) {
+                squadMap = new Map(squadData.map(s => [s.id, s.name]));
+            } else {
+                console.error('La propiedad squads no es un array:', squadData);
+            }
+        }
+
+        if(fetchedDataTurns.code === "OK") {
+            const shiftsData = fetchedDataTurns.shifts;
+            if (Array.isArray(shiftsData)) {
+                shiftsMap = new Map(shiftsData.map(s => [s.id, s.name]));
+            } else {
+                console.error('La propiedad shifts no es un array:', shiftsData);
+            }
+        }
+    
         const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
-        const squadMap = new Map(fetchedDataSquads.map(s => [s.id, s.name]));
         const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
         const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
         const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
@@ -342,63 +385,55 @@ useEffect(() => {
         const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
         const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
         const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
-        const turnMap = new Map(fetchedDataTurns.map(t => [t.id, t.name]));
-
+    
         // Función para filtrar valores undefined o null
         const filterUndefinedValues = (obj) => {
-          return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+            return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
         };
-
+    
         // Procesar datos y construir cabeceras dinámicamente
         const rawData = await Promise.all(
-          initialData.map(async (item) => {
-            return {
-              Zona: item.zone || '',
-              Campo: groundMap.get(item.ground) || '',
-              Sector: sectorMap.get(item.sector) || '',
-              Cuadrilla: squadMap.get(item.squad) || '',
-              "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
-              Lote: item.batch || '',
-              Cosechero: workerMap.get(item.worker) || '',
-              "RUT Cosechero": item.worker_rut || '',
-              "Fecha cosecha": item.harvest_date ? formatDate(item.harvest_date) : '',
-              Contratista: contractorMap.get(item.contractor) || '',
-              Especie: specieMap.get(item.specie) || '',
-              Variedad: varietyMap.get(item.variety) || '',
-              Cajas: item.boxes || '',
-              "Kilos Caja": item.kg_boxes || '',
-              Calidad: qualityMap.get(item.quality) || '',
-              Hilera: item.hilera || '',
-              "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
-              Pesador: workerMap.get(item.weigher_rut) || '',
-              Temporada: seasonMap.get(item.season) || '',
-              Turno: turnMap.get(item.turns) || '',
-            };
-          })
+            initialData.map(async (item) => {
+                return {
+                    Campo: groundMap.get(item.ground) || '',
+                    Sector: sectorMap.get(item.sector) || '',
+                    Cuadrilla: squadMap.get(item.squad) || '',
+                    "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
+                    Lote: item.batch || '',
+                    Cosechero: workerMap.get(item.worker) || '',
+                    "RUT Cosechero": item.worker_rut || '',
+                    "Fecha cosecha": item.harvest_date ? formatDate(item.harvest_date) : '',
+                    Contratista: contractorMap.get(item.contractor) || '',
+                    Especie: specieMap.get(item.specie) || '',
+                    Variedad: varietyMap.get(item.variety) || '',
+                    Cajas: item.boxes || '',
+                    "Kilos Caja": item.kg_boxes || '',
+                    Calidad: qualityMap.get(item.quality) || '',
+                    "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
+                    Pesador: workerMap.get(item.weigher_rut) || '',
+                    Temporada: seasonMap.get(item.season) || '',
+                    Turno: shiftsMap.get(item.turns) || '',
+                };
+            })
         );
-
+    
         // Determinar cabeceras basadas en datos reales
         const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
-
+    
         // Crear los datos finales con cabeceras dinámicas
         const formatData = rawData.map(item => {
-          const filteredItem = filterUndefinedValues(item);
-          // Solo mantener las cabeceras que están en `headers`
-          return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
+            const filteredItem = filterUndefinedValues(item);
+            return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
         });
-
-        //Remover las columnas que no se quieren mostrar, zone e hilera
-        const omitColumns = ["Zona", "Hilera", "Turno"]; // Columnas a omitir, se coloca en español ya que son las cabeceras traducidas
+    
+        // Remover las columnas que no se quieren mostrar
+        const omitColumns = ["Zona", "Hilera", "Turno"];
         const formData = formatData.map((item) => {
-          return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
+            return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
         });
-
+    
         setFormatInitialData(formData);
-
-        //console.log("Datos para exportar:", omitColumns);
-        //console.log("Datos para exportar:", formData);
-        //console.log("Cabeceras:", headers);
-      }
+    }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -420,7 +455,7 @@ useEffect(() => {
     ground: { checked: false, type: "select", label: "Campo" },
     sector: { checked: false, type: "select", label: "Sector" },
     squad: { checked: false, type: "select", label: "Cuadrilla" },
-    squad_leader: { checked: false, type: "select", label: "Jefe cuadrilla" },
+    //squad_leader: { checked: false, type: "select", label: "Jefe cuadrilla" },
     worker: { checked: false, type: "select", label: "Cosechero" },
     worker_rut: { checked: false, type: "select", label: "RUT Cosechero" },
     specie: { checked: false, type: "select", label: "Especie" },
@@ -562,7 +597,7 @@ useEffect(() => {
             <option key="empty" value="">
               Seleccione una opción
             </option>
-            {options[key]?.map((option) => (
+            {Array.isArray(options[key]) && options[key]?.map((option) => (
               <option
                 key={option.id || option}
                 value={key === "batch" ? option : option.id}
@@ -630,7 +665,7 @@ useEffect(() => {
     season: "Temporada",
     boxes: "Cajas",
     kg_boxes: "Kg Cajas",
-    zone: "Zona",
+    //zone: "Zona",
     hilera: "Hilera",
     turns: "Turnos",
     temp: "Temperatura",
@@ -989,10 +1024,12 @@ useEffect(() => {
             <DialogBody>
               {openShowUser && (
                 <div className="flex flex-col gap-3">
+                  {/*
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Zona:</strong>{" "}
                     {getNameByKey("zone", selectedItem.zone, dataMap)}
                   </p>
+                  */}
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Campo:</strong>{" "}
                     {getNameByKey("ground", selectedItem.ground, dataMap)}

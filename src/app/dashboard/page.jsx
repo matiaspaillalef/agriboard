@@ -186,9 +186,11 @@ const Dashboard = () => {
 
     if (companyClass) {
       const newCompanyId = companyClass.split("-")[1];
+      console.log(newCompanyId);
       if (newCompanyId !== companyId) {
         setCompanyId(newCompanyId);
         const grounds = await getDataGround(newCompanyId);
+        console.log(grounds);
         if (grounds.length > 0) {
           const firstGroundId = grounds[0].id;
           setSelectedGround(firstGroundId);

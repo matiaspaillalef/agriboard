@@ -12,7 +12,8 @@ const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
 
 export const getDataGround = async (id_company) => {
   try {
-    //console.log("id_company" , id_company);
+    console.log("id_company" , id_company);
+    console.log(URLAPI);
     const res = await fetch(
       URLAPI + `/api/v1/configuracion/production/getGround/${id_company}`,
       {
@@ -313,6 +314,8 @@ export const getDataAttributesSector = async (id_company) => {
 };
 
 export const createAttributesSector = async (data) => {
+
+  console.log("DATA", data);
   
   try {
     const res = await fetch(
@@ -341,6 +344,7 @@ export const createAttributesSector = async (data) => {
     if (res.ok) {
       const attributeSectorData = await res.json();
 
+      console.log("attributeSectorData", attributeSectorData);
       if (attributeSectorData.code === "OK") {
         return "OK"; // Indicar que la creación fue exitosa
       } else if (attributeSectorData.code === "ERROR") {
@@ -1326,6 +1330,7 @@ export const getDataScale = async (id_company) => {
 };
 
 export const createScale = async (data) => {
+  console.log("data", data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createScale",
@@ -1337,6 +1342,7 @@ export const createScale = async (data) => {
         },
         body: JSON.stringify({
           name: data.name,
+          ground: data.ground,
           location: data.location,
           company_id: data.company_id,
           status: data.status,
@@ -1375,6 +1381,7 @@ export const updateScale = async (data) => {
         body: JSON.stringify({
           id: Number(data.id),
           name: data.name,
+          ground: data.ground,
           location: data.location,
           company_id: Number(data.company_id),
           status: Number(data.status),

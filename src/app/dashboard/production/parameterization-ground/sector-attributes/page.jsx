@@ -12,7 +12,9 @@ const ProductionSectorAttributes = () => {
   const [dataSectorAttributes, setDataSectorAttributes] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [dataCompanies, setDataCompanies] = useState([]);
+  const [seasons, setSeasons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
 
   const getCompanyIdFromSessionStorage = useCallback(() => {
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
@@ -70,8 +72,7 @@ const ProductionSectorAttributes = () => {
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
-  console.log(dataSectorAttributes);
-
+//console.log(dataSectorAttributes);
   return (
     <>
       {isLoading ? (
@@ -82,7 +83,7 @@ const ProductionSectorAttributes = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableSectorAttributes
                 data={dataSectorAttributes}
-                thead="Temporada, Sector, Especie, Variedad, Año Plantación, Ha. Productivas, Entre Hileras ,Sobre hileras,Cantidad Plantas "
+                thead=", Temporada, Sector, Especie, Variedad, Año Plantación, Ha productivas, Sobre Ha, Entre Hileras, Cantidad x Ha"
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
