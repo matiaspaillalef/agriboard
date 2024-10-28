@@ -171,11 +171,11 @@ const CardTableManualHarvesting = ({
   const [itemToClone, setItemToClone] = useState({
     index: null,
     id: null,
-    zone: "",
+    //zone: "",
     ground: "",
     sector: "",
     squad: "",
-    squad_leader: "",
+    //squad_leader: "",
     batch: "",
     worker: "",
     worker_rut: "",
@@ -185,7 +185,7 @@ const CardTableManualHarvesting = ({
     boxes: "",
     kg_boxes: "",
     quality: "",
-    hilera: "",
+    //hilera: "",
     harvest_format: "",
     weigher_rut: "",
     sync: "",
@@ -193,8 +193,8 @@ const CardTableManualHarvesting = ({
     season: "",
     turns: "",
     date_register: "",
-    temp: "",
-    wet: "",
+    //temp: "",
+    //wet: "",
     contractor: "",
     company_id: "",
   });
@@ -234,7 +234,7 @@ const CardTableManualHarvesting = ({
     handleOpen(user);
 
     // Setear los valores de los campos en el formulario al momento de levntar el modal de editar y se setean los valores en los campos select
-    setDataChangeZone(user.zone);
+    //setDataChangeZone(user.zone);
     setDataChangeGround(user.ground);
     setDataChangeSector(user.sector);
     setDataChangeSquad(user.squad);
@@ -266,11 +266,11 @@ const CardTableManualHarvesting = ({
 
       const updateData = {
         id: Number(data.id) || null,
-        zone: data.zone,
+        //zone: data.zone,
         ground: data.ground,
         sector: data.sector,
         squad: data.squad ? data.squad : null,
-        squad_leader: data.squad_leader ? data.squad_leader : null,
+        //squad_leader: data.squad_leader ? data.squad_leader : null,
         batch: data.batch ? data.batch : null,
         worker: data.worker ? data.worker : null,
         worker_rut: data.worker_rut ? data.worker_rut : null,
@@ -280,7 +280,7 @@ const CardTableManualHarvesting = ({
         boxes: data.boxes ? Number(data.boxes) : null,
         kg_boxes: data.kg_boxes ? Number(data.kg_boxes) : null,
         quality: data.quality ? data.quality : null,
-        hilera: data.hilera ? Number(data.hilera) : null,
+        //hilera: data.hilera ? Number(data.hilera) : null,
         harvest_format: data.harvest_format,
         weigher_rut: data.weigher_rut ? data.weigher_rut : null,
         sync: data.sync ? data.sync : null,
@@ -288,8 +288,8 @@ const CardTableManualHarvesting = ({
         season: data.season ? data.season : null,
         turns: data.turns ? data.turns : null,
         date_register: data.date_register ? data.date_register : null,
-        temp: data.temp ? data.temp : null,
-        wet: data.wet ? data.wet : null,
+        //temp: data.temp ? data.temp : null,
+        //wet: data.wet ? data.wet : null,
         contractor: data.contractor ? data.contractor : null,
         source: 1,
         company_id: Number(companyID),
@@ -324,11 +324,11 @@ const CardTableManualHarvesting = ({
 
   const handleCloneAlert = (
     index,
-    zone,
+    //zone,
     ground,
     sector,
     squad,
-    squad_leader,
+    //squad_leader,
     batch,
     worker,
     worker_rut,
@@ -338,7 +338,7 @@ const CardTableManualHarvesting = ({
     boxes,
     kg_boxes,
     quality,
-    hilera,
+    //hilera,
     harvest_format,
     weigher_rut,
     sync,
@@ -346,18 +346,18 @@ const CardTableManualHarvesting = ({
     season,
     turns,
     date_register,
-    temp,
-    wet,
+    //temp,
+    //wet,
     contractor,
     source,
     company_id
   ) => {
     setItemToClone({
-      zone,
+      //zone,
       ground,
       sector,
       squad,
-      squad_leader,
+      //squad_leader,
       batch,
       worker,
       worker_rut,
@@ -367,7 +367,7 @@ const CardTableManualHarvesting = ({
       boxes,
       kg_boxes,
       quality,
-      hilera,
+      //hilera,
       harvest_format,
       weigher_rut,
       sync,
@@ -375,8 +375,8 @@ const CardTableManualHarvesting = ({
       season,
       turns,
       date_register,
-      temp,
-      wet,
+      //temp,
+      //wet,
       contractor,
       source,
       company_id,
@@ -424,11 +424,11 @@ const CardTableManualHarvesting = ({
 
   const handlerClone = async () => {
     const {
-      zone,
+      //zone,
       ground,
       sector,
       squad,
-      squad_leader,
+      //squad_leader,
       batch,
       worker,
       worker_rut,
@@ -438,7 +438,7 @@ const CardTableManualHarvesting = ({
       boxes,
       kg_boxes,
       quality,
-      hilera,
+      //hilera,
       harvest_format,
       weigher_rut,
       sync,
@@ -446,8 +446,8 @@ const CardTableManualHarvesting = ({
       season,
       turns,
       date_register,
-      temp,
-      wet,
+      //temp,
+      //wet,
       contractor,
       source,
       company_id,
@@ -479,11 +479,11 @@ const CardTableManualHarvesting = ({
     try {
       // Preparar los datos transformados
       const transformedData = {
-        zone: data.zone || null,
+        //zone: data.zone || null,
         ground: Number(data.ground) || null,
         sector: Number(data.sector) || null,
         squad: data.squad ? Number(data.squad) : null,
-        squad_leader: data.squad_leader || null,
+        //squad_leader: data.squad_leader || null,
         batch: data.batch ? Number(data.batch) : null,
         worker: data.worker ? Number(data.worker) : null,
         worker_rut: data.worker_rut || null,
@@ -493,7 +493,7 @@ const CardTableManualHarvesting = ({
         boxes: data.boxes ? Number(data.boxes) : null,
         kg_boxes: data.kg_boxes ? Number(data.kg_boxes) : null,
         quality: data.quality || null,
-        hilera: data.hilera ? Number(data.hilera) : null,
+        //hilera: data.hilera ? Number(data.hilera) : null,
         harvest_format: data.harvest_format || null,
         weigher_rut: data.weigher_rut || null,
         sync: data.sync || null,
@@ -501,21 +501,20 @@ const CardTableManualHarvesting = ({
         season: data.season ? Number(data.season) : null,
         turns: data.turns ? Number(data.turns) : null,
         date_register: data.date_register || null,
-        temp: data.temp || null,
-        wet: data.wet || null,
+        //temp: data.temp || null,
+        //wet: data.wet || null,
         contractor: data.contractor ? Number(data.contractor) : null,
         source: 1,
         company_id: Number(data.company_id) || null,
       };
-  
-  
+
       // Enviar datos al servidor
       const createItem = await createManualHarvesting(transformedData);
       const dataNew = await getDataManualHarvesting(companyID);
-  
+
       if (createItem === "OK") {
         const updatedData = [...initialData, transformedData];
-        
+
         setInitialData(updatedData);
         setInitialData(dataNew);
         setOpen(false);
@@ -529,7 +528,6 @@ const CardTableManualHarvesting = ({
       setUpdateMessage("Error al intentar crear el registro");
     }
   };
-  
 
   useEffect(() => {
     if (updateMessage) {
@@ -584,7 +582,9 @@ const CardTableManualHarvesting = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = Array.isArray(initialData) ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
+  const currentItems = Array.isArray(initialData)
+    ? initialData.slice(indexOfFirstItem, indexOfLastItem)
+    : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -593,7 +593,7 @@ const CardTableManualHarvesting = ({
     ground: dataGround,
     sector: dataSector,
     worker: dataWorkers,
-    squad_leader: dataWorkers,
+    //squad_leader: dataWorkers,
     squad: dataSqaads,
     variety: dataVarieties,
     specie: dataSpecies,
@@ -604,7 +604,7 @@ const CardTableManualHarvesting = ({
     contractor: dataContractors,
     turns: dataShifts,
   };
-  
+
   const getNameByKey = (key, value) => {
     const data = dataMap[key];
     if (key === "worker" || key === "squad_leader") {
@@ -615,7 +615,7 @@ const CardTableManualHarvesting = ({
     }
   };
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toISOString().split("T")[0];
 
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
@@ -681,7 +681,7 @@ const CardTableManualHarvesting = ({
           const formatData = await Promise.all(
             initialData.map(async (item) => {
               return {
-                Zona: item.zone,
+                //Zona: item.zone,
                 Campo: fetchedDataGround.grounds.find(
                   (ground) => ground.id === item.ground
                 )?.name,
@@ -691,9 +691,9 @@ const CardTableManualHarvesting = ({
                 Cuadrilla: fetchedDataSquads.squads.find(
                   (squad) => squad.id === item.squad
                 )?.name,
-                "Jefe cuadrilla": fetchedDataWorkers.find(
+                /*"Jefe cuadrilla": fetchedDataWorkers.find(
                   (worker) => worker.id === item.squad_leader
-                )?.name,
+                )?.name,*/
                 Lote: item.batch,
                 Cosechero:
                   fetchedDataWorkers.find((worker) => worker.id === item.worker)
@@ -714,10 +714,10 @@ const CardTableManualHarvesting = ({
                 Calidad: fetchedDataQuality.find(
                   (quality) => quality.id === item.quality
                 )?.name,
-                Hilera: item.hilera,
+                /*Hilera: item.hilera,
                 "Formato cosecha": fetchedDataHarvestFormat.find(
                   (format) => format.id === item.harvest_format
-                )?.name,
+                )?.name,*/
                 "RUT Pesador": item.weigher_rut,
                 Sincronizado: item.sync,
                 "Fecha sincronización": item.sync_date,
@@ -726,8 +726,8 @@ const CardTableManualHarvesting = ({
                 )?.name,
                 Turnos: item.turns,
                 "Fecha registro": item.date_register,
-                Temp: item.temp,
-                Humedad: item.wet,
+                //Temp: item.temp,
+                //Humedad: item.wet,
                 Contratista: fetchedDataContractors.find(
                   (contractor) => contractor.id === item.contractor
                 )?.name,
@@ -937,11 +937,11 @@ const CardTableManualHarvesting = ({
                               handleCloneAlert(
                                 index,
                                 //row.id,
-                                row.zone,
+                                //row.zone,
                                 row.ground,
                                 row.sector,
                                 row.squad,
-                                row.squad_leader,
+                                //row.squad_leader,
                                 row.batch,
                                 row.worker,
                                 row.worker_rut,
@@ -951,7 +951,7 @@ const CardTableManualHarvesting = ({
                                 Number(row.boxes),
                                 Number(row.kg_boxes),
                                 row.quality,
-                                row.hilera,
+                                //row.hilera,
                                 row.harvest_format,
                                 row.weigher_rut,
                                 row.sync,
@@ -959,8 +959,8 @@ const CardTableManualHarvesting = ({
                                 row.season,
                                 row.turns,
                                 row.date_register,
-                                row.temp,
-                                row.wet,
+                                //row.temp,
+                                //row.wet,
                                 row.contractor,
                                 row.source ? 1 : 1,
                                 Number(companyID)
@@ -1097,6 +1097,7 @@ const CardTableManualHarvesting = ({
                   </h3>
 
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    {/*
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="zone"
@@ -1131,6 +1132,7 @@ const CardTableManualHarvesting = ({
                         </option>
                       </select>
                     </div>
+                    */}
 
                     <div className="flex flex-col gap-3">
                       <label
@@ -1139,6 +1141,7 @@ const CardTableManualHarvesting = ({
                       >
                         Campo
                       </label>
+                      {/*
                       <select
                         name="ground"
                         id="ground"
@@ -1166,6 +1169,44 @@ const CardTableManualHarvesting = ({
                                   ground.status != 0 &&
                                   ground.zone == dataChangeZone
                               )
+                              .map((ground) => (
+                                <option key={ground.id} value={ground.id}>
+                                  {ground.name}
+                                </option>
+                              ))
+                          ) : (
+                            <option key="no-fields" value="">
+                              No hay campos
+                            </option>
+                          )
+                        ) : (
+                          <option key="no-fields" value="">
+                            No hay campos
+                          </option>
+                        )}
+                      </select>
+                      */}
+
+                      <select
+                        name="ground"
+                        id="ground"
+                        required={true}
+                        {...register("ground")}
+                        value={dataChangeGround} // Usar value en lugar de defaultValue
+                        onChange={(e) => {
+                          setDataChangeGround(e.target.value);
+                          setDataChangeSector(""); // Resetear sector cuando cambia el campo
+                        }}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option key="0" value="">
+                          Elige un campo
+                        </option>
+                        {Array.isArray(dataGround) && dataGround.length > 0 ? (
+                          dataGround.filter((ground) => ground.status !== 0)
+                            .length > 0 ? (
+                            dataGround
+                              .filter((ground) => ground.status !== 0)
                               .map((ground) => (
                                 <option key={ground.id} value={ground.id}>
                                   {ground.name}
@@ -1267,25 +1308,6 @@ const CardTableManualHarvesting = ({
                       </select>
                     </div>
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="squad_leader"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Jefe de cuadrilla
-                      </label>
-                      <input
-                        name="squad_leader"
-                        id="squad_leader"
-                        required={true}
-                        {...register("squad_leader")}
-                        readOnly={true}
-                        defaultValue={
-                          selectedItem ? selectedItem.squad_leader : ""
-                        }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
 
                     <div className="flex flex-col gap-3">
                       <label
@@ -1595,23 +1617,7 @@ const CardTableManualHarvesting = ({
                       </select>
                     </div>
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="hilera"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Hilera
-                      </label>
-                      <input
-                        type="number"
-                        name="hilera"
-                        id="hilera"
-                        step="0.01"
-                        {...register("hilera")}
-                        defaultValue={selectedItem ? selectedItem.hilera : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+            
 
                     <div className="flex flex-col gap-3">
                       <label
@@ -1726,11 +1732,14 @@ const CardTableManualHarvesting = ({
                         <option value="">Elige una temporada</option>
                         {Array.isArray(dataSeasons) &&
                         dataSeasons.length > 0 ? (
-                          dataSeasons.map((season) => (
-                            <option key={season.id} value={season.id}>
-                              {season.name}
-                            </option>
-                          ))
+                          dataSeasons.map(
+                            (season) =>
+                              season.status == 1 && (
+                                <option key={season.id} value={season.id}>
+                                  {season.name}
+                                </option>
+                              )
+                          )
                         ) : (
                           <option value="">No hay temporadas</option>
                         )}
@@ -1802,44 +1811,7 @@ const CardTableManualHarvesting = ({
                         )}
                       </select>
                     </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="temp"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Temperatura
-                      </label>
-                      <input
-                        type="number"
-                        name="temp"
-                        id="temp"
-                        step="0.01"
-                        {...register("temp")}
-                        defaultValue={selectedItem ? selectedItem.temp : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="wet"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Humedad
-                      </label>
-                      <input
-                        type="number"
-                        name="wet"
-                        id="wet"
-                        step="0.01"
-                        {...register("wet")}
-                        defaultValue={selectedItem ? selectedItem.wet : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
                   </div>
-                  
 
                   <input
                     type="hidden"
@@ -1877,10 +1849,12 @@ const CardTableManualHarvesting = ({
                 </form>
               ) : (
                 <div className="flex flex-col gap-3">
+                  {/*
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Zona:</strong>{" "}
                     {getNameByKey("zone", selectedItem.zone, dataMap)}
                   </p>
+                  */}
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Campo:</strong>{" "}
                     {getNameByKey("ground", selectedItem.ground, dataMap)}
@@ -1901,6 +1875,7 @@ const CardTableManualHarvesting = ({
                     <strong>Cuadrilla:</strong>{" "}
                     {getNameByKey("squad", selectedItem.squad, dataMap)}
                   </p>
+                  {/*
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Jefe cuadrilla:</strong>{" "}
                     {getNameByKey(
@@ -1909,6 +1884,7 @@ const CardTableManualHarvesting = ({
                       dataMap
                     )}
                   </p>
+                  */}
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Lote:</strong>{" "}
                     {getNameByKey("batch", selectedItem.batch, dataMap)}
@@ -1947,9 +1923,7 @@ const CardTableManualHarvesting = ({
                     <strong>Calidad:</strong>{" "}
                     {getNameByKey("quality", selectedItem.quality, dataMap)}
                   </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Hilera:</strong> {selectedItem.hilera || "-"}
-                  </p>
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Formato cosecha:</strong>{" "}
                     {getNameByKey(
@@ -1969,12 +1943,7 @@ const CardTableManualHarvesting = ({
                     <strong>Turno:</strong>{" "}
                     {getNameByKey("turns", selectedItem.turns, dataMap)}
                   </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Tempratura:</strong> {selectedItem.temp || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Humedad:</strong> {selectedItem.wet || "-"}
-                  </p>
+                 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Sincronización:</strong> {selectedItem.sync || "-"}
                   </p>

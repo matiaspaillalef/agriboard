@@ -45,7 +45,7 @@ import { dataAFP } from "@/app/data/dataAFP";
 import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
 import { set } from "date-fns";
-import { values } from "xlsx-populate/lib/colorIndexes";
+import { shift, values } from "xlsx-populate/lib/colorIndexes";
 
 const CardTableWorkers = ({
   data,
@@ -143,6 +143,36 @@ const CardTableWorkers = ({
     setFile(selectedFile);
   };
 
+
+  const [dataPosition, setDataPosition] = useState([]);
+  const [dataContractor, setDataContractor] = useState([]);
+  const [dataSquad, setDataSquad] = useState([]);
+  const [dataShift, setDataShift] = useState([]);
+
+  useEffect(() => {
+    const handleNameItems = async () => {
+      const position = await getDataPositions(companyID);
+      const contractor = await getDataContractors(companyID);
+
+      const squad = await getDataSquads(companyID);
+      const shift = await getDataShifts(companyID);
+
+      setDataPosition(position);
+      setDataContractor(contractor);
+      setDataSquad(squad.squads);
+      setDataShift(shift.shifts);
+    };
+    handleNameItems();
+  }, []);
+
+
+  //Mapeamos la data para no mostrar en el excel los ID, sino que mostrar el nombre
+  const cargoMap = new Map(dataPosition.map((item) => [item.id, item.name]));
+  const contractorMap = new Map(dataContractor.map((item) => [item.id, item.name]));
+  const squadMap = new Map(dataSquad.map((item) => [item.id, item.name]));
+  const workerMap = new Map(dataSquad.map((item) => [item.id, item.name]));
+  const shiftMap = new Map(dataShift.map((item) => [item.id, item.name]));
+
   const handleFileUpload = async () => {
     if (!file) {
       setUpdateMessage("Por favor, selecciona un archivo primero.");
@@ -181,50 +211,83 @@ const CardTableWorkers = ({
 
     const transformKeys = (data) => {
       return data.map((item) => {
+
+        const bornDate = excelDateToJSDate(item["Fecha de nacimiento"]);
+        const admissionDate = excelDateToJSDate(item["Fecha de ingreso"]);
+
         return {
+          rut: item.Rut,
           name: item.Nombre,
-          lastname: item["Apellido paterno"],
+          lastname: item["Apellido"],
           lastname2: item["Apellido materno"],
-          rut: item.rut,
           address: item["Dirección"],
-          born_date: excelDateToJSDate(item["Fecha de nacimiento"])
-            .toISOString()
-            .split("T")[0],
+          born_date: item["Fecha de nacimiento"],
           city: item.Ciudad,
-          date_admission: excelDateToJSDate(item["Fecha de ingreso"])
-            .toISOString()
-            .split("T")[0],
+          date_admission: item["Fecha de ingreso"],
           gender: item.Género,
           phone: item["Teléfono"],
-          //phone_company: item["Teléfono empresa"],
+          email: item.Correo,
+          phone_company: item["Teléfono empresa"],
           state: item.Estado,
           state_civil: item["Estado civil"],
-          status: item.status,
+          position: [...cargoMap.entries()].find(([_, name]) => name === item.Cargo)?.[0] || null,
+          contractor: [...contractorMap.entries()].find(([_, name]) => name === item.Contratista)?.[0] || null,
+          squad: [...squadMap.entries()].find(([_, name]) => name === item.Cuadrilla)?.[0] || null,
+          leader_squad: [...workerMap.entries()].find(([_, name]) => name === item["Líder de Cuadrilla"])?.[0] || null,
+          shift: [...shiftMap.entries()].find(([_, name]) => name === item["Turno"])?.[0] || null,
+          wristband: item["Pulsera"],
+          observation: item["Observación"],
+          bank: item.Banco,
+          account_type: item["Tipo de cuenta"],
+          account_number: item["Número de cuenta"],
+          afp: item["AFP"],
+          health: item.Salud,
+          status: item.status == "Activo" ? 1 : 0,
+          company_id: companyID,
         };
       });
     };
+    
 
     const transformedData = transformKeys(jsonData);
 
+    //console.log(transformedData);
     let success = true;
-    for (const worker of transformedData) {
-      const createWorkerResult = await createWorker(worker);
-      //console.log(createWorkerResult);
-
-      if (createWorkerResult !== "OK") {
+    const duplicatedRuts = [];
+    // Obtenemos el número de filas (sin contar la cabecera)
+    const numberOfWorkers = transformedData.length;
+    
+    for (let i = 0; i < numberOfWorkers; i++) {
+      const worker = transformedData[i];
+      try {
+        //console.log("Creando trabajador:", worker);
+        const createWorkerResult = await createWorker(worker);
+    
+        if (createWorkerResult.code !== "OK") {
+          //console.error(`Error al procesar trabajador ${worker.rut}:`, createWorkerResult);
+          duplicatedRuts.push(worker.rut);
+          success = false;
+        }
+  
+      } catch (error) {
+        console.error(`Error al procesar trabajador ${worker.rut}:`, error);
+        duplicatedRuts.push(worker.rut);
         success = false;
-        setUpdateMessage("Error al importar trabajadores");
-        break;
       }
     }
-
-    if (success) {
-      const newDataFetch = await getDataWorkers();
+    
+    if (!success) {
+      const uniqueDuplicatedRuts = [...new Set(duplicatedRuts)]; // Elimina duplicados en el array
+      const rutMessage = uniqueDuplicatedRuts.join(", ");
+      setUpdateMessage(`Error al importar algunos trabajadores rut: ${rutMessage}`);
+    } else {
+      const newDataFetch = await getDataWorkers(companyID);
       setUpdateMessage("Trabajadores importados correctamente");
-      setFile(null); // Limpiar el archivo seleccionado
+      setFile(null);
       setInitialData(newDataFetch);
       setOpenImport(false);
     }
+
   };
 
   const handleOpenShowUser = (user) => {
@@ -398,11 +461,12 @@ const CardTableWorkers = ({
 
   useEffect(() => {
     if (updateMessage) {
+      const duration = updateMessage.includes("algunos trabajadores") ? 10000 : 4000; // 10s si contiene para el mensaje de rut duplicados
       const timer = setTimeout(() => {
         setUpdateMessage(null);
         reset();
-      }, 4000);
-
+      }, duration);
+  
       return () => clearTimeout(timer);
     }
   }, [updateMessage]);
@@ -526,26 +590,38 @@ const CardTableWorkers = ({
     return `${year}-${month}-${day}`;
   };
 
-  const [dataPosition, setDataPosition] = useState([]);
-  const [dataContractor, setDataContractor] = useState([]);
-  const [dataSquad, setDataSquad] = useState([]);
-  const [dataShift, setDataShift] = useState([]);
-
-  useEffect(() => {
-    const handleNameItems = async () => {
-      const position = await getDataPositions(companyID);
-      const contractor = await getDataContractors(companyID);
-
-      const squad = await getDataSquads(companyID);
-      const shift = await getDataShifts(companyID);
-
-      setDataPosition(position);
-      setDataContractor(contractor);
-      setDataSquad(squad.squads);
-      setDataShift(shift.shifts);
+  //Mapeamos la data a exportar
+  const exportData = initialData.map((item) => {
+    return {
+      Rut: item.rut,
+      Nombre: item.name,
+      Apellido: item.lastname,
+      "Apellido materno": item.lastname2,
+      "Fecha de nacimiento": formatDateToInput(item.born_date),
+      Género: item.gender,
+      "Estado civil": item.state_civil,
+      Estado: item.state,
+      Ciudad: item.city,
+      Dirección: item.address,
+      Teléfono: item.phone,
+      Correo: item.email,
+      "Teléfono empresa": item.phone_company,
+      "Fecha de ingreso": formatDateToInput(item.date_admission),
+      Cargo: cargoMap.get(item.position) || item.position,
+      Contratista: contractorMap.get(item.contractor) || item.contractor,
+      Cuadrilla: squadMap.get(item.squad) || item.squad,
+      "Líder de Cuadrilla": workerMap.get(item.leader_squad) || item.leader_squad,
+      Turno: shiftMap.get(item.shift) || item.shift,
+      Pulsera: item.wristband,
+      Observación: item.observation,
+      Banco: item.bank,
+      "Tipo de cuenta": item.account_type,
+      "Número de cuenta": item.account_number,
+      AFP: item.afp,
+      Salud: item.health,
+      status: item.status == 1 ? "Activo" : "Inactivo",
     };
-    handleNameItems();
-  }, []);
+  });
 
   return (
     <>
@@ -599,13 +675,14 @@ const CardTableWorkers = ({
             )}
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {Array.isArray(initialData) &&
+              {console.log("initialData", exportData)}
+              {Array.isArray(initialData) &&  
                 initialData.length > 0 &&
                 downloadBtn && (
                   <ExportarExcel
-                    data={initialData}
-                    filename="empresas"
-                    sheetname="empresas"
+                    data={exportData}
+                    filename="trabajadores"
+                    sheetname="trabajadores"
                     titlebutton="Exportar a excel"
                   />
                 )}
@@ -1873,7 +1950,7 @@ const CardTableWorkers = ({
               >
                 <ArrowUpOnSquareIcon className="w-5 h-5" /> Subir archivo
               </button>
-              {updateMessage && (
+              {/*updateMessage && (
                 <p
                   className={`text-center mt-5 ${
                     updateMessage.includes("correctamente")
@@ -1883,7 +1960,7 @@ const CardTableWorkers = ({
                 >
                   {updateMessage}
                 </p>
-              )}
+              )*/}
             </>
           </Dialog>
         </>

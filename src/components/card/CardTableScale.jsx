@@ -32,6 +32,7 @@ import {
 } from "@material-tailwind/react";
 import {
   getDataVarieties,
+  getDataGround,
   getDataScale,
   updateScale,
   createScale,
@@ -104,6 +105,7 @@ const CardTableScale = ({
   });
 
   const [activeMssg, setActiveMssg] = useState(false);
+  const [dataGround, setDataGround] = useState([]);
 
   const handleOpenShowUser = (user) => {
     //console.log(user);
@@ -140,6 +142,16 @@ const CardTableScale = ({
     const userDataString = sessionStorage.getItem("userData");
     const userData = JSON.parse(userDataString);
     const userRol = userData.rol;
+
+    const fetchData = async () => {
+      const dataGround = await getDataGround(companyID);
+
+      if (dataGround.code === "OK") {
+        setDataGround(dataGround.grounds);
+      }
+    };
+
+    fetchData();
 
     setRol(userRol);
   }, []);
@@ -240,7 +252,7 @@ const CardTableScale = ({
   };
 
   const handlerClone = async () => {
-    const { name, location, status, company_id } = itemToClone;
+    const { name, ground, location, status, company_id } = itemToClone;
 
     try {
       const cloneItem = await createScale(itemToClone);
@@ -588,6 +600,7 @@ const CardTableScale = ({
                                     index,
                                     //row.id,
                                     row.name ? row.name : "",
+                                    row.ground ? row.ground : "",
                                     row.location ? row.location : "",
                                     row.status !== undefined &&
                                       row.status !== null
@@ -754,6 +767,28 @@ const CardTableScale = ({
                     </div>
                     <div className="flex flex-col gap-3">
                       <label
+                        htmlFor="ground"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Campo
+                      </label>
+                      <select name="ground" id="ground" required={true} {...register("ground")} defaultValue={selectedItem ? selectedItem.ground : ""} className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white">
+                        {Array.isArray(dataGround) && dataGround.length > 0 ? (() => {
+                          return dataGround.map((ground, index) => (
+                            <option key={index} value={ground.id}>
+                              {ground.name}
+                            </option>
+                          ));
+                        }
+                        )() : (
+                          <option value="">No hay campos</option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                  <div className="flex flex-col gap-3">
+                      <label
                         htmlFor="location"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
@@ -769,8 +804,6 @@ const CardTableScale = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
-                  </div>
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="status"

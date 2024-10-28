@@ -32,6 +32,8 @@ import {
   updateSeason,
   createSeason,
   deleteSeason,
+  getDataAttributesSector,
+  createAttributesSector
 } from "@/app/api/ProductionApi";
 
 import { getDataShifts } from "@/app/api/ManagementPeople";
@@ -197,7 +199,6 @@ const CardTableSeasons = ({
   };
 
   const onUpdateItem = async (data) => {
-    console.log(data);
 
     try {
       if (!data || !data.id) {
@@ -395,18 +396,20 @@ const CardTableSeasons = ({
   const submitForm = async () => {
     setIsSubmitting(true);
 
-    console.log(formData);
+    //console.log(formData);
     try {
       const transformedData = {
         id: Number(formData.id) || null,
-        name: formData.name.trim(),
-        period: formData.period.trim(),
-        date_from: formData.date_from.trim(),
-        date_until: formData.date_until.trim(),
+        name: formData.name ? formData.name.trim() : "", // Verifica que no sea undefined
+        period: formData.period ? formData.period.trim() : "", // Verifica que no sea undefined
+        date_from: formData.date_from ? formData.date_from.trim() : "", // Verifica que no sea undefined
+        date_until: formData.date_until ? formData.date_until.trim() : "", // Verifica que no sea undefined
         shifts: formData.shifts,
         company_id: Number(formData.company_id) || null,
-        status: Number(formData.status.trim()),
+        status: formData.status ? Number(formData.status.trim()) : 0,
       };
+
+      //console.log(transformedData);
 
       const createItem = await createSeason(transformedData);
       const dataNew = await getDataSeasons(companyID);
@@ -417,7 +420,30 @@ const CardTableSeasons = ({
         setInitialData(updatedData);
         setInitialData(dataNew);
         setNewSeasonId(transformedData.id);
+        setOpen(false);
         setUpdateMessage("Registro creado correctamente");
+
+        if (formData.clone == true) {
+          const allAttributes = await getDataAttributesSector(companyID); // Obtener todos los atributos
+          const allSeasons = await getDataSeasons(companyID); // Obtener todas las temporadas
+          const lastSeasonId = allSeasons.length > 0 ? Math.max(...allSeasons.map(season => season.id)) : 0; // Obtener el último ID de temporada y sumarle 1
+          const newSeasonId = lastSeasonId ; // Nuevo ID de la temporada
+  
+          const lastAttribute = allAttributes[allAttributes.length - 1]; // Obtener el último atributo
+  
+          if (lastAttribute) {
+            const clonedData = {
+              ...lastAttribute,
+              season: newSeasonId // Asignar el nuevo ID de la temporada
+            };
+
+            setTimeout(async () => {
+              await createAttributesSector(clonedData); // Crear el nuevo atributo clonado
+              console.log("Atributo clonado creado correctamente");
+            }, 30000); 
+          }
+        }
+
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
       }
@@ -431,6 +457,7 @@ const CardTableSeasons = ({
 
   const onSubmitForm = async (data) => {
     // Guardar los datos del formulario en el estado
+    //console.log(data);
     setFormData(data);
 
     // Verificar si el estado es 1 y mostrar el modal si es necesario
@@ -440,6 +467,7 @@ const CardTableSeasons = ({
       await submitForm();
     }
   };
+  
 
   useEffect(() => {
     if (updateMessage) {
@@ -639,10 +667,12 @@ const CardTableSeasons = ({
                       row.status === 2
                         ? ""
                         : isClosingSoon
-                        ? "bg-yellow-100"
+                        ? "bg-yellow-100 !text-yellow-800"
                         : index % 2 !== 0
                         ? "bg-lightPrimary dark:bg-navy-900"
                         : "";
+
+                      const textClosingColor = row.status === 2 ? "" : isClosingSoon ? "!text-yellow-800" : "";
 
                     return (
                       <tr key={index} role="row" className={rowClass}>
@@ -659,7 +689,7 @@ const CardTableSeasons = ({
                                 columnsClasses[rowIndex] || "text-left"
                               }`}
                             >
-                              <div className="text-base font-medium text-navy-700 dark:text-white">
+                              <div className={`text-base font-medium text-navy-700 dark:text-white ${textClosingColor}`}>
                                 {key === "status" ? (
                                   row[key] === 1 ? (
                                     <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
@@ -691,14 +721,14 @@ const CardTableSeasons = ({
                           >
                             <button
                               type="button"
-                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                              className={`text-sm font-semibold text-gray-800 dark:text-white mr-2 ${textClosingColor} `}
                               onClick={() => handleOpenShowUser(row)}
                             >
                               <EyeIcon className="w-6 h-6" />
                             </button>
                             <button
                               type="button"
-                              className="text-sm font-semibold text-gray-800 dark:text-white"
+                              className={`text-sm font-semibold text-gray-800 dark:text-white ${textClosingColor} `}
                               onClick={() => handleOpenEditUser(row)}
                             >
                               <PencilSquareIcon className="w-6 h-6" />
@@ -706,7 +736,7 @@ const CardTableSeasons = ({
 
                             <button
                               type="button"
-                              className="text-sm font-semibold text-gray-800 dark:text-white"
+                              className={`text-sm font-semibold text-gray-800 dark:text-white ${textClosingColor} `}
                               onClick={() => {
                                 handleCloneAlert(
                                   index,
@@ -846,7 +876,7 @@ const CardTableSeasons = ({
                         : "grid-cols-12 lg:grid-cols-2"
                     } `}
                   ></div>
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3 ">
                       <label
                         htmlFor="name"
@@ -864,9 +894,7 @@ const CardTableSeasons = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
-                  </div>
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-row flex-wrap gap-3">
                       <label
                         htmlFor="period"
@@ -1015,6 +1043,14 @@ const CardTableSeasons = ({
                           </p>
                         )}
                     </div>
+
+                    <div className="flex flex-col gap-3 bg-lightPrimary p-3 rounded-md">
+                      <div className="boxingClone flex gap-3 align-top">
+                        <input type="checkbox" id="clone" name="clone" {...register("clone")} checked />
+                        <p className="text-sm">¿Desea duplicar los últimos atributos del sector? Si no selecciona esta opción, se generará una nueva temporada sin atributos de sector, lo que requerirá que los ingrese manualmente en la sección "Atributos de sector".</p>
+                      </div>
+                    </div>
+
                   </div>
 
                   <input

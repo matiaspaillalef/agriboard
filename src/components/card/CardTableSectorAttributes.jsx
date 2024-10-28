@@ -100,7 +100,6 @@ const CardTableSectorAttributes = ({
       const seasons = await getDataSeasons(companyID);
       const sector = await getDataSectorBarracks(companyID);
 
-
       setDataVarieties(varieties);
       setDataSpecies(species);
       setDataQuality(quality);
@@ -235,7 +234,7 @@ const CardTableSectorAttributes = ({
   const handleCloneAlert = (id) => {
     setOpenAlert(false);
     setOpenAlertClone(true);
-    setItemToClone({id: id});
+    setItemToClone({ id: id });
   };
 
   const handleCloseAlert = () => {
@@ -276,7 +275,7 @@ const CardTableSectorAttributes = ({
   };
 
   const handlerClone = async () => {
-    const { id,} = itemToClone;
+    const { id } = itemToClone;
 
     try {
       const cloneItem = await cloneAttributesSector(id);
@@ -311,7 +310,7 @@ const CardTableSectorAttributes = ({
         company_id: Number(companyID),
         year_harvest: data.year_harvest,
         on_ha: Number(data.on_ha),
-        between_ha: Number(data.between_ha),       
+        between_ha: Number(data.between_ha),
       };
 
       const createItem = await createAttributesSector(transformedData);
@@ -374,7 +373,10 @@ const CardTableSectorAttributes = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = (initialData && Array.isArray(initialData)) ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
+  const currentItems =
+    initialData && Array.isArray(initialData)
+      ? initialData.slice(indexOfFirstItem, indexOfLastItem)
+      : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -406,12 +408,21 @@ const CardTableSectorAttributes = ({
     return dateString.substring(0, 10);
   }
 
+  // Función para formatear fechas como "YYYYMMDD" a solo el año (YYYY)
+  const extractYear = (date) => {
+    if (typeof date === "number" || typeof date === "string") {
+      return date.toString().slice(0, 4); // Extrae los primeros 4 caracteres como año
+    }
+    return date; // Si no es una fecha en formato YYYYMMDD, lo retornamos tal cual
+  };
+
   return (
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
-            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${
+            updateMessage.includes("correctamente") ? "green" : "red"
+          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -437,8 +448,9 @@ const CardTableSectorAttributes = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
-              } `}
+            className={`relative flex items-center ${
+              title ? "justify-between" : "justify-end"
+            } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -494,8 +506,9 @@ const CardTableSectorAttributes = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
-                                } `}
+                              className={`text-xs tracking-wide text-gray-600 ${
+                                columnsClasses[index] || "text-start"
+                              } `}
                             >
                               {label}
                             </p>
@@ -518,104 +531,139 @@ const CardTableSectorAttributes = ({
                 </thead>
               )}
 
-              <tbody role="rowgroup">
-                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no, el currentItems es de la paginación */}
-                {Array.isArray(initialData) && initialData.length > 0 ? (
-                  currentItems.map((row, index) => (
-                    <tr key={index} role="row">
-                      {Object.keys(row).map((key, rowIndex) => {
-                        if (omitirColumns.includes(key)) {
-                          return null; // Omitir la columna si está en omitirColumns
-                        }
+<tbody role="rowgroup">
+  {Array.isArray(initialData) && initialData.length > 0 ? (
+    (() => {
+      const lastItem = initialData.reduce((max, current) => {
+        return current.id > max.id ? current : max;
+      }, initialData[0]);
 
-                        return (
-                          <td
-                            key={rowIndex}
-                            role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
-                              } ${columnsClasses[rowIndex] || "text-left"}`}
-                          >
-                            <div className="text-base font-medium text-navy-700 dark:text-white">
-                              {key === "status" ? (
-                                row[key] == 1 ? (
-                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                    Activo
-                                  </p>
-                                ) : (
-                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                    Inactivo
-                                  </p>
-                                )
-                              ) : key === "date" ? (
-                                formatDate(row[key]) // Formatea la fecha aquí
-                              ) : (
-                                getNameByKey(key, row[key]) ||
-                                formatNumber(row[key])
-                              )}
-                            </div>
-                          </td>
-                        );
-                      })}
-                      {actions && (
-                        <td
-                          colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                            }`}
-                        >
+      const sortedItems = [...currentItems].sort((a, b) => b.id - a.id);
 
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            //onClick={() => handleOpen(row)}
-                            onClick={() => handleOpenEditUser(row)}
-                          >
-                            <PencilSquareIcon className="w-6 h-6" />
-                          </button>
+      const itemsWithActiveSeason = sortedItems.filter((row) => {
+        const relatedSeason = dataSeasons.find((season) => season.id === row.season);
+        return relatedSeason && relatedSeason.status === 1;
+      });
 
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            onClick={() => {
-                              //console.log('clone',row);
-                              handleCloneAlert(
-                                row.id,
-                              );
-                            }}
-                          >
-                            <DocumentDuplicateIcon className="w-6 h-6" />
-                          </button>
+      const hasActiveSeason = itemsWithActiveSeason.length > 0;
 
-                          <button
-                            id="remove"
-                            type="button"
-                            onClick={() => {
-                              handleOpenAlert(
-                                index,
-                                row.id,
-                                row.sector
-                                  ? getNameByKey("sector", row.sector)
-                                  : ""
-                              );
-                            }}
-                          >
-                            <TrashIcon className="w-6 h-6" />
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="py-4" colSpan={4}>
-                      No se encontraron registros.
-                    </td>
-                  </tr>
+      return sortedItems.map((row, index) => {
+        const isLastItem = row.id === lastItem.id;
+        const relatedSeason = dataSeasons.find((season) => season.id === row.season);
+        const isActiveSeason = relatedSeason && relatedSeason.status === 1;
+        const showActions = isActiveSeason || (!hasActiveSeason && isLastItem);
+
+        // Determina el estado (verde o rojo) dependiendo de si la temporada está activa o cerrada
+        const seasonStatusClass = isActiveSeason ? 'bg-lime-500 text-white' : 'bg-red-500 text-white';
+        const seasonStatusText = isActiveSeason ? 'Activo' : 'Cerrado';
+
+        return (
+          <tr key={index} role="row" className={isActiveSeason ? "activa" : "cerrada"}>
+            {/* Celda para mostrar el estado de la temporada (activo o cerrado) */}
+            <td
+              role="cell"
+              className={`pt-[14px] pb-3 text-[14px] px-5 min-w-auto ${
+                index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
+              } ${columnsClasses[index] || "text-left"}`}
+            >
+              <div   className={`flex items-center justify-center w-[20px] h-[20px] rounded-full bg-opacity-90 ${seasonStatusClass} animate-pulse pulse-animation`}>
+                <span className="text-base font-medium"></span>
+              </div>
+            </td>
+
+            {Object.keys(row).map((key, rowIndex) => {
+              if (omitirColumns.includes(key)) {
+                return null;
+              }
+
+              return (
+                <td
+                  key={rowIndex}
+                  role="cell"
+                  className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
+                    index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
+                  } ${columnsClasses[rowIndex] || "text-left"}`}
+                >
+                  <div className="text-base font-medium text-navy-700 dark:text-white">
+                    {key === "status" ? (
+                      row[key] == 1 ? (
+                        <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                          Activo
+                        </p>
+                      ) : (
+                        <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                          Inactivo
+                        </p>
+                      )
+                    ) : key === "date" ? (
+                      formatDate(row[key])
+                    ) : key === "year_harvest" ? (
+                      extractYear(row[key])
+                    ) : (
+                      getNameByKey(key, row[key]) || formatNumber(row[key])
+                    )}
+                  </div>
+                </td>
+              );
+            })}
+
+            {actions && (
+              <td
+                colSpan={columnLabels.length}
+                className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
+                  index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
+                }`}
+              >
+                {showActions && (
+                  <>
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                      onClick={() => handleOpenEditUser(row)}
+                    >
+                      <PencilSquareIcon className="w-6 h-6" />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                      onClick={() => {
+                        handleCloneAlert(row.id);
+                      }}
+                    >
+                      <DocumentDuplicateIcon className="w-6 h-6" />
+                    </button>
+                  </>
                 )}
-              </tbody>
+
+                <button
+                  id="remove"
+                  type="button"
+                  onClick={() => {
+                    handleOpenAlert(
+                      index,
+                      row.id,
+                      row.sector ? getNameByKey("sector", row.sector) : ""
+                    );
+                  }}
+                >
+                  <TrashIcon className="w-6 h-6" />
+                </button>
+              </td>
+            )}
+          </tr>
+        );
+      });
+    })()
+  ) : (
+    <tr>
+      <td className="py-4" colSpan={4}>
+        No se encontraron registros.
+      </td>
+    </tr>
+  )}
+</tbody>
+
             </table>
           </div>
 
@@ -635,8 +683,9 @@ const CardTableSectorAttributes = ({
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
-                      }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
+                      currentPage === 1 && "hidden"
+                    }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -646,10 +695,11 @@ const CardTableSectorAttributes = ({
                     <button
                       key={page}
                       type="button"
-                      className={`${currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
-                        }`}
+                      className={`${
+                        currentPage === page
+                          ? "font-semibold text-navy-500 dark:text-navy-300"
+                          : ""
+                      }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -684,8 +734,8 @@ const CardTableSectorAttributes = ({
               {openShowUser
                 ? "Datos del registro"
                 : isEdit
-                  ? "Editar registro"
-                  : "Nuevo registro"}
+                ? "Editar registro"
+                : "Nuevo registro"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -700,10 +750,11 @@ const CardTableSectorAttributes = ({
                     defaultValue={selectedItem ? selectedItem.id : ""}
                   />
                   <div
-                    className={`mb-3 grid gap-3 ${isEdit
-                      ? "grid-cols-2 lg:grid-cols-2"
-                      : "grid-cols-12 lg:grid-cols-2"
-                      } `}
+                    className={`mb-3 grid gap-3 ${
+                      isEdit
+                        ? "grid-cols-2 lg:grid-cols-2"
+                        : "grid-cols-12 lg:grid-cols-2"
+                    } `}
                   ></div>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
@@ -722,15 +773,26 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSeasons) &&
-                          dataSeasons.length > 0 ? (
-                          dataSeasons.map(
-                            (season) =>
-                              season.status == 1 && (
+                        dataSeasons.length > 0 ? (
+                          (() => {
+                            const activeSeasons = dataSeasons.filter(
+                              (season) => season.status === 1
+                            );
+
+                            if (activeSeasons.length > 0) {
+                              return activeSeasons.map((season) => (
                                 <option key={season.id} value={season.id}>
                                   {season.name}
                                 </option>
-                              )
-                          )
+                              ));
+                            } else {
+                              return (
+                                <option key="noActive" value="">
+                                  No hay temporadas activas
+                                </option>
+                              );
+                            }
+                          })()
                         ) : (
                           <option value="">No hay temporadas</option>
                         )}
@@ -753,7 +815,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSectorBarracks) &&
-                          dataSectorBarracks.length > 0 ? (
+                        dataSectorBarracks.length > 0 ? (
                           dataSectorBarracks.map(
                             (sector) =>
                               sector.status != 0 && (
@@ -784,7 +846,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSpecies) &&
-                          dataSpecies.length > 0 ? (
+                        dataSpecies.length > 0 ? (
                           dataSpecies.map(
                             (specie) =>
                               specie.status != 0 && (
@@ -815,7 +877,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSpecies) &&
-                          dataSpecies.length > 0 ? (
+                        dataSpecies.length > 0 ? (
                           dataVarieties.map(
                             (variety) =>
                               variety.status != 0 && (
@@ -847,7 +909,9 @@ const CardTableSectorAttributes = ({
                         max="2030" // Cambia esto según tu rango de años permitido
                         pattern="\d{4}" // Acepta solo 4 dígitos
                         {...register("year_harvest")}
-                        defaultValue={selectedItem ? selectedItem.year_harvest : ""}
+                        defaultValue={
+                          selectedItem ? selectedItem.year_harvest : ""
+                        }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
@@ -885,9 +949,7 @@ const CardTableSectorAttributes = ({
                         id="on_ha"
                         step={0.01}
                         {...register("on_ha")}
-                        defaultValue={
-                          selectedItem ? selectedItem.on_ha : ""
-                        }
+                        defaultValue={selectedItem ? selectedItem.on_ha : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
@@ -911,7 +973,6 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
-
                   </div>
                   <input
                     type="hidden"
@@ -1040,7 +1101,9 @@ const CardTableSectorAttributes = ({
                 ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} los
                 atributos del sector{" "}
                 <strong className="font-bold">
-                  {openAlert ? itemToDelete.sector : getNameByKey("sector", itemToClone.sector, dataMap)}
+                  {openAlert
+                    ? itemToDelete.sector
+                    : getNameByKey("sector", itemToClone.sector, dataMap)}
                 </strong>
                 ?
               </h2>
@@ -1054,8 +1117,9 @@ const CardTableSectorAttributes = ({
               <button
                 type="button"
                 onClick={openAlert ? handlerRemove : handlerClone}
-                className={`${openAlert ? "bg-red-500" : "bg-blueTertiary"
-                  } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
+                className={`${
+                  openAlert ? "bg-red-500" : "bg-blueTertiary"
+                } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
               >
                 {openAlert ? (
                   <>

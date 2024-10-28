@@ -31,7 +31,7 @@ const ProductionSeasons = () => {
       const companies = await getDataCompanies();
 
       setDataSeason(data);
-      setDataCompanies(companies);
+      setDataCompanies(companies)
 
     } catch (error) {
       console.error("Error al obtener datos:", error);
