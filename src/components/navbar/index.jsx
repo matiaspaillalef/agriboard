@@ -157,9 +157,8 @@ const Navbar = (props) => {
               value={selectedGround}
               onChange={handleGroundChange}
             >
-              {console.log('datagrounds', dataGrounds)}
-              {dataGrounds && Array.isArray(dataGrounds.grounds) && dataGrounds.grounds.length > 0 ? (
-                dataGrounds.grounds.map((ground) => (
+              {dataGrounds && Array.isArray(dataGrounds) && dataGrounds.length > 0 ? (
+                dataGrounds.map((ground) => (
                   <option key={ground.id} value={ground.id}>
                     {ground.name}
                   </option>
