@@ -134,11 +134,14 @@ const CardTableManualHarvesting = ({
         const fetchedDataScale = await getDataScale(companyID);
         const fetchedDataContractors = await getDataContractors(companyID);
 
-        //console.log("fetchedDataGround", fetchedDataGround);
+        let filteredWorkers = [];
 
-        const filteredWorkers = fetchedDataWorkers.filter(
-          (worker) => worker.rut
-        );
+        if (Array.isArray(fetchedDataWorkers)) {
+          // Filtra los trabajadores que tienen un rut
+          filteredWorkers = fetchedDataWorkers.filter(
+            (worker) => worker.rut
+          );
+      }
 
         setOptions({
           ground: fetchedDataGround.grounds,
@@ -324,6 +327,8 @@ useEffect(() => {
       setDataSpecies(fetchedDataSpecies);
       setDataQuality(fetchedDataQuality);
       setDataHarvestFormat(fetchedDataHarvestFormat);
+
+      console.log("fetchedDataGround", fetchedDataWorkers);
 
       if (fetchedDataGround.code === "OK") {
         const groundData = fetchedDataGround.grounds;

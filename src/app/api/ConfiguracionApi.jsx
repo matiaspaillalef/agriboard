@@ -10,10 +10,6 @@ const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
 
 export const getDataUser = async () => {
   try {
-    /*const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
-            expiresIn: 30000
-        });*/
-
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/usuarios/getUsuarios",
       {
@@ -27,13 +23,15 @@ export const getDataUser = async () => {
     );
 
     if (res.ok) {
-      
-      const userData = await res.json();
-      return  userData;
-
+      return await res.json();
+    } else {
+      const errorData = await res.json();
+      console.error('Error en la respuesta: ', errorData);
+      return { code: "ERROR", mensaje: errorData.mensaje || 'Error desconocido' }; // Asegúrate de que devuelva un objeto
     }
   } catch (err) {
-    console.error(err);
+    console.error('Error capturado: ', err);
+    return { code: "ERROR", mensaje: err.message || 'Error desconocido' }; // Asegúrate de que devuelva un objeto
   }
 };
 

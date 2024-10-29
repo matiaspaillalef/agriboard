@@ -27,7 +27,13 @@ const PeopleManagementWorkers = () => {
     setIsLoading(true);
     try {
       const data = await getDataWorkers(Number(companyId));
+
+      if (data == 'OK'){
       setDataWorkers(data);
+      }else{
+       setDataWorkers([]);
+      }
+      
     } catch (error) {
       console.error("Error al obtener datos:", error);
     } finally {

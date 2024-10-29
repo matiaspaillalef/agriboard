@@ -34,8 +34,7 @@ export const getDataContractors = async (id_company) => {
 
       if (contractorsData.code === "OK") {
         return contractorsData.contractors;
-      }
-      else if (contractorsData.code === "ERROR") {
+      }else{
         return contractorsData.mensaje;
       }
     }
@@ -717,6 +716,7 @@ export const deleteShift = async (id) => {
 
 //Management People - Workers
 export const getDataWorkers = async (id_company) => {
+  console.log('ID de la empresa:', id_company);
   try {
     const response = await fetch(
       `${URLAPI}/api/v1/management-people/workers/getWorkers/${id_company}`,
@@ -733,11 +733,11 @@ export const getDataWorkers = async (id_company) => {
     if (response.ok) {
       const workersData = await response.json();
 
+      console.log('Datos de los trabajadores:', workersData);
       if (workersData.code === "OK") {
         return workersData.workers;
       } else {
-        //console.error('Error code from API:', workersData.code);
-        throw new Error(workersData.mensaje || 'Error desconocido');
+        return workersData.mensaje;
       }
     } else {
       console.error('HTTP error:', response.status);

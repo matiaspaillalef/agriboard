@@ -7,20 +7,20 @@ import ModalUserCreation from "@/components/modal/ModalUserCreation";
 const UserCreationPage = async () => {
 
   const dataUsersfetch = await getDataUser();
-  var dataUsers;
+  let dataUsers = [];
 
   console.log(dataUsersfetch);
 
   if(dataUsersfetch.code === 'OK'){
-
     dataUsers =  dataUsersfetch.usuarios;
-
+  }else{
+    dataUsers = [];
   }
 
   const roles = await getRoles();
   const companies = await getDataCompanies();
 
-  console.log(roles);
+  //console.log(roles);
   
   return (
     <>
