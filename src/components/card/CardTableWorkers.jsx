@@ -153,12 +153,17 @@ const CardTableWorkers = ({
     const handleNameItems = async () => {
       const position = await getDataPositions(companyID);
       const contractor = await getDataContractors(companyID);
-
       const squad = await getDataSquads(companyID);
       const shift = await getDataShifts(companyID);
 
       setDataPosition(position);
-      setDataContractor(contractor);
+
+      if (Array.isArray(contractor)) {
+        setDataContractor(contractor);
+      }else{
+        setDataContractor([]);
+      }
+
       setDataSquad(squad.squads);
       setDataShift(shift.shifts);
     };

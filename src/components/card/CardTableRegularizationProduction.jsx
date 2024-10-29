@@ -673,7 +673,13 @@ const CardTableRegularizationProduction = ({
         setDataSpecies(fetchedDataSpecies);
         setDataQuality(fetchedDataQuality);
         setDataHarvestFormat(fetchedDataHarvestFormat);
-        setDataGround(fetchedDataGround);
+
+        if (fetchedDataGround == 'OK'){
+          setDataGround(fetchedDataGround.grounds);
+        }else{
+          setDataGround([]);
+        }
+
         setDataSeasons(fetchedDataSeasons);
         setDataContractors(fetchedDataContractors);
 
@@ -696,10 +702,10 @@ const CardTableRegularizationProduction = ({
                 )?.name,
                 Lote: item.batch,
                 Cosechero:
-                  fetchedDataWorkers.find((worker) => worker.id === item.worker)
+                fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
                     ?.name +
                   " " +
-                  fetchedDataWorkers.find((worker) => worker.id === item.worker)
+                  fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
                     ?.lastname,
                 "RUT Cosechero": item.worker_rut,
                 "Fecha cosecha": formatDate(item.harvest_date),

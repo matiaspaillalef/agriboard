@@ -77,7 +77,12 @@ const CardTableBarracks = ({
   const handleDataGround = async () => {
     try {
       const groundData = await getDataGround(companyID);
-      setDataGround(groundData);
+
+      if(groundData.code == 'OK'){
+      setDataGround(groundData.grounds);
+      }else{
+        setDataGround([]);
+      }
     } catch (error) {
       console.error("Error al obtener el nombre del ground:", error);
       return "Desconocido";
@@ -409,7 +414,7 @@ const CardTableBarracks = ({
                                   </p>
                                 )
                               ) : key === "ground" ? (
-                                dataGround.find(
+                                dataGround && dataGround.find(
                                   (ground) => ground.id === row[key]
                                 )?.name
                               ) : (
