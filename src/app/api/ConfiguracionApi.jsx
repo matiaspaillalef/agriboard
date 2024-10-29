@@ -62,6 +62,7 @@ export const deleteUser = async (idUser) => {
     console.error(err);
   }
 };
+
 export const createUser = async (data) => {
   try {
     const res = await fetch(
@@ -134,9 +135,6 @@ export const updateUser = async (data) => {
 
 export const getRoles = async () => {
   try {
-    const token = jwt.sign({ uid: "agrisoft" }, process.env.JWT_SECRET, {
-      expiresIn: 30000,
-    });
 
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/usuarios/getRoles",
