@@ -34,8 +34,8 @@ import {
   getDataHarvestFormat,
   getDataRegularizationProduction,
   updateRegularizationProduction,
-  createRegularizationProduction,
-  deleteRegularizationProduction,
+  //createRegularizationProduction,
+  //deleteRegularizationProduction,
 } from "@/app/api/ProductionApi";
 
 import {

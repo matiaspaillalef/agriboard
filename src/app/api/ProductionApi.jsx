@@ -12,8 +12,6 @@ const token = jwt.sign({ uid: "agrisoft" }, APIKEY, {
 
 export const getDataGround = async (id_company) => {
   try {
-    console.log("id_company" , id_company);
-    console.log(URLAPI);
     const res = await fetch(
       URLAPI + `/api/v1/configuracion/production/getGround/${id_company}`,
       {
@@ -99,9 +97,7 @@ export const updateGround = async (data) => {
 
     if (res.ok) {
       const groundData = await res.json();
-      //console.log("groundData", groundData);
 
-      console.log("groundData", groundData);
       if (groundData.code === "OK") {
         return "OK"; // Indicar que la actualización fue exitosa
       } else if (groundData.code === "ERROR") {
@@ -315,8 +311,6 @@ export const getDataAttributesSector = async (id_company) => {
 
 export const createAttributesSector = async (data) => {
 
-  console.log("DATA", data);
-  
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createAttributeSector",
@@ -344,7 +338,6 @@ export const createAttributesSector = async (data) => {
     if (res.ok) {
       const attributeSectorData = await res.json();
 
-      console.log("attributeSectorData", attributeSectorData);
       if (attributeSectorData.code === "OK") {
         return "OK"; // Indicar que la creación fue exitosa
       } else if (attributeSectorData.code === "ERROR") {
@@ -360,7 +353,7 @@ export const createAttributesSector = async (data) => {
 };
 
 export const cloneAttributesSector = async (data) => {
-  console.log("ID" ,data);
+
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/cloneAttributesSector",
@@ -654,7 +647,6 @@ export const createSpecies = async (data) => {
     if (res.ok) {
       const speciesData = await res.json();
 
-      console.log("speciesData", speciesData);
       if (speciesData.code === "OK") {
         return "OK"; // Indicar que la creación fue exitosa
       } else if (speciesData.code === "ERROR") {
@@ -1108,8 +1100,6 @@ export const updateQuality = async (data) => {
     if (res.ok) {
       const qualityData = await res.json();
 
-      console.log("qualityData", qualityData);
-
       if (qualityData.code === "OK") {
         return "OK"; // Indicar que la actualización fue exitosa
       } else {
@@ -1330,7 +1320,7 @@ export const getDataScale = async (id_company) => {
 };
 
 export const createScale = async (data) => {
-  console.log("data", data);
+
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createScale",
@@ -1470,7 +1460,6 @@ export const getDataScaleRegister = async (id_company) => {
 };
 
 export const createScaleRegister = async (data) => {
-  console.log("data", data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createScaleRegister",
@@ -1740,7 +1729,6 @@ export const getDataExporters = async (id_company) => {
 };
 
 export const createExporter = async (data) => {
-  console.log("data", data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createExporter",
@@ -1992,7 +1980,6 @@ export const getDataDispatchGuide = async (id_company) => {
 };
 
 export const createDispatchGuide = async (data) => {
-  console.log(data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/createDispatchGuide",

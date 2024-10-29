@@ -156,7 +156,11 @@ const CardTableWorkers = ({
       const squad = await getDataSquads(companyID);
       const shift = await getDataShifts(companyID);
 
-      setDataPosition(position);
+      if (Array.isArray(position)) {
+        setDataPosition(position);
+      }else{
+        setDataPosition([]);
+      }
 
       if (Array.isArray(contractor)) {
         setDataContractor(contractor);
@@ -164,8 +168,18 @@ const CardTableWorkers = ({
         setDataContractor([]);
       }
 
-      setDataSquad(squad.squads);
-      setDataShift(shift.shifts);
+      if (Array.isArray(squad)) {
+        setDataSquad(squad);
+      }else{
+        setDataSquad([]);
+      }
+
+      if (Array.isArray(shift.shifts)) {
+        setDataShift(shift.shifts);
+      }else{
+        setDataShift([]);
+      }
+
     };
     handleNameItems();
   }, []);
