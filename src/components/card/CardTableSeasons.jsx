@@ -88,6 +88,12 @@ const CardTableSeasons = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [check, setCheck] = useState(true);
+
+  const handleCheckboxChangeAttr = () => {
+    setCheck((prevCheck) => !prevCheck);
+  };
+
   useEffect(() => {
     const handleNameShifts = async () => {
       const shifts = await getDataShifts(companyID);
@@ -1046,7 +1052,7 @@ const CardTableSeasons = ({
 
                     <div className="flex flex-col gap-3 bg-lightPrimary p-3 rounded-md">
                       <div className="boxingClone flex gap-3 align-top">
-                        <input type="checkbox" id="clone" name="clone" {...register("clone")} checked />
+                        <input type="checkbox" id="clone" name="clone" {...register("clone")} checked={check} onChange={handleCheckboxChangeAttr} />
                         <p className="text-sm">¿Desea duplicar los últimos atributos del sector? Si no selecciona esta opción, se generará una nueva temporada sin atributos de sector, lo que requerirá que los ingrese manualmente en la sección "Atributos de sector".</p>
                       </div>
                     </div>
