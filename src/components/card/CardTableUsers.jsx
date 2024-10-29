@@ -55,7 +55,7 @@ const CardTableUsers = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState(data || []);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -79,6 +79,19 @@ const CardTableUsers = ({
     nombre: "",
     apellido: "",
   });
+
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      setInitialData(data);
+    } else {
+      setInitialData([]);
+    }
+    setLoading(false);
+  }, [data]);
+
+  if (!Array.isArray(initialData)) {
+    return <div>No hay datos disponibles.</div>;
+  }
 
   const handleOpenNewUser = () => {
     setIsEdit(false);
@@ -301,6 +314,8 @@ const CardTableUsers = ({
   useEffect(() => {
     if (data && Object.keys(data).length > 0) {
       setLoading(false);
+    }else{
+      setLoading(true);
     }
   }, [data]);
 

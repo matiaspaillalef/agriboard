@@ -9,9 +9,9 @@ const UserCreationPage = async () => {
   const dataUsersfetch = await getDataUser();
   let dataUsers = [];
 
-  console.log(dataUsersfetch);
+  //console.log(dataUsersfetch);
 
-  if(dataUsersfetch.code === 'OK'){
+  if (dataUsersfetch && dataUsersfetch.code === 'OK') {
     dataUsers =  dataUsersfetch.usuarios;
   }else{
     dataUsers = [];
