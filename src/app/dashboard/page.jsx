@@ -138,31 +138,36 @@ const Dashboard = () => {
       } else {
         const grounds = await getDataGround(companyId);
 
-        if (Array.isArray(grounds) && grounds.length > 0) {
-          
-          const firstGroundId = grounds[0].id;
+        if(grounds.code === 'OK'){
+          if (Array.isArray(grounds.grounds) && grounds.grounds.length > 0) {
+            
+            const firstGroundId = grounds.grounds[0].id;
 
-          setSelectedGround(firstGroundId);
-          const dataDay = await getDataKgDay(companyId, firstGroundId);
-          const dataSeason = await getDataKgSeason(companyId, firstGroundId);
-          const dataWorkers = await getDataWorkers(companyId, firstGroundId);
-          const dataWorkersWeek = await getdataWorkersWeek(companyId, firstGroundId);
-          const dataVaritiesDay = await getDataVaritiesDay(companyId, firstGroundId);
-          const dataDispatchGuideDay = await getDataDispatchDay(companyId, firstGroundId);
-          const dataVarietiesSeasonPercentage = await getDataVarietiesSeasonPercentage(companyId, firstGroundId);
-          const dataHumidityTemperatureSeason = await getDataHumidityTemperatureSeason(companyId, firstGroundId);
+            setSelectedGround(firstGroundId);
+            const dataDay = await getDataKgDay(companyId, firstGroundId);
+            const dataSeason = await getDataKgSeason(companyId, firstGroundId);
+            const dataWorkers = await getDataWorkers(companyId, firstGroundId);
+            const dataWorkersWeek = await getdataWorkersWeek(companyId, firstGroundId);
+            const dataVaritiesDay = await getDataVaritiesDay(companyId, firstGroundId);
+            const dataDispatchGuideDay = await getDataDispatchDay(companyId, firstGroundId);
+            const dataVarietiesSeasonPercentage = await getDataVarietiesSeasonPercentage(companyId, firstGroundId);
+            const dataHumidityTemperatureSeason = await getDataHumidityTemperatureSeason(companyId, firstGroundId);
 
-          setDataKgDay(dataDay);
-          setDataKgSeason(dataSeason);
-          setDataWorkers(dataWorkers);
-          setDataWorkersWeek(dataWorkersWeek);
-          setDataVaritiesDay(dataVaritiesDay);
-          setDataDispatchGuideDay(dataDispatchGuideDay);
-          setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
-          setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
-        } else {
-          setError("No grounds found for the company.");
+            setDataKgDay(dataDay);
+            setDataKgSeason(dataSeason);
+            setDataWorkers(dataWorkers);
+            setDataWorkersWeek(dataWorkersWeek);
+            setDataVaritiesDay(dataVaritiesDay);
+            setDataDispatchGuideDay(dataDispatchGuideDay);
+            setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
+            setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
+          } else {
+            setError("No grounds found for the company.");
+          }
+        }else{
+          setSelectedGround("");
         }
+
       }
     } catch (error) {
       setError("Error al obtener datos: " + error.message);
@@ -186,16 +191,21 @@ const Dashboard = () => {
 
     if (companyClass) {
       const newCompanyId = companyClass.split("-")[1];
-      console.log(newCompanyId);
       if (newCompanyId !== companyId) {
         setCompanyId(newCompanyId);
         const grounds = await getDataGround(newCompanyId);
-        console.log(grounds);
-        if (grounds.length > 0) {
-          const firstGroundId = grounds[0].id;
-          setSelectedGround(firstGroundId);
-          fetchDataDay(newCompanyId, firstGroundId);
-          fetchKgDataQlty(newCompanyId, firstGroundId, 1);
+
+        if (grounds.code == 'OK'){
+          if (grounds.grounds.length > 0) {
+            const firstGroundId = grounds.grounds[0].id;
+            setSelectedGround(firstGroundId);
+            fetchDataDay(newCompanyId, firstGroundId);
+            fetchKgDataQlty(newCompanyId, firstGroundId, 1);
+          }
+        }else{
+          setSelectedGround("");
+          fetchDataDay(newCompanyId, "");
+          fetchKgDataQlty(newCompanyId, "", 1);
         }
       }
     }
