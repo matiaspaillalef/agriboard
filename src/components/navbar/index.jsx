@@ -46,7 +46,13 @@ const Navbar = (props) => {
     setIsLoading(true);
     try {
       const data = await getDataGround(companyId);
-      setDataGrounds(data);
+
+      if (data.code === "OK"){
+        setDataGrounds(data.grounds);
+      }else{
+        setDataGrounds([]);
+      }
+
     } catch (error) {
       console.error("Error al obtener datos:", error);
     } finally {
@@ -151,6 +157,7 @@ const Navbar = (props) => {
               value={selectedGround}
               onChange={handleGroundChange}
             >
+              {console.log('datagrounds', dataGrounds)}
               {dataGrounds && Array.isArray(dataGrounds.grounds) && dataGrounds.grounds.length > 0 ? (
                 dataGrounds.grounds.map((ground) => (
                   <option key={ground.id} value={ground.id}>
