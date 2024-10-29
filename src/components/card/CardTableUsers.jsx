@@ -714,7 +714,7 @@ const CardTableUsers = ({
                       defaultValue={selectedUser ? selectedUser.id_rol : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {datoscombos.map((rol, index) => {
+                      {Array.isArray(datoscombos) && datoscombos.map((rol, index) => {
                         return (
                           <option key={index} value={rol.id_rol}>
                             {rol.descripcion}
