@@ -116,7 +116,6 @@ const CardTableUsers = ({
   };
 
   const onUpdateUser = async (data) => {
-
     try {
       const updateUserApi = await updateUser(data);
 
@@ -171,13 +170,9 @@ const CardTableUsers = ({
 
         setUpdateMessage(updateUserApi.mensaje);
         setOpen(false);
-        
-      }else if (updateUserApi.code === "ERROR") {
-
+      } else if (updateUserApi.code === "ERROR") {
         setUpdateMessage(updateUserApi.mensaje);
-
       }
-
     } catch (error) {
       console.error(error);
       // Manejo de errores
@@ -205,27 +200,18 @@ const CardTableUsers = ({
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteUser.code === "OK") {
-
         setOpenAlert(false);
         setUpdateMessage(deleteUser.mensaje);
         //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
 
-        if(newDataFetch.code  === "OK"){
-
+        if (newDataFetch.code === "OK") {
           setInitialData(newDataFetch.usuarios);
-
-        }else if (newDataFetch.code === "ERROR") {
-
+        } else if (newDataFetch.code === "ERROR") {
           setUpdateMessage(newDataFetch.mensaje);
-
         }
-
-
-      }else if (deleteUser.code === "ERROR") {
-
+      } else if (deleteUser.code === "ERROR") {
         setUpdateMessage(deleteUser.mensaje);
-
       }
     } catch (error) {
       console.error(error);
@@ -236,7 +222,6 @@ const CardTableUsers = ({
 
   // Creación de usuario
   const onSubmitForm = async (data) => {
-
     try {
       const createUserapi = await createUser(data);
       // Agrega la fila del front-end
@@ -246,15 +231,16 @@ const CardTableUsers = ({
 
         let id_rol = data.id_rol;
 
-        datoscombos && datoscombos.forEach((value) => {
-          if (value.id_rol == id_rol) {
-            data = {
-              ...data,
-              descripcion: value.descripcion,
-              id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
-            };
-          }
-        });
+        datoscombos &&
+          datoscombos.forEach((value) => {
+            if (value.id_rol == id_rol) {
+              data = {
+                ...data,
+                descripcion: value.descripcion,
+                id_rol: value.id_rol, //Igual paso el id_rol ya que es necesario para la actualización de datos
+              };
+            }
+          });
 
         datosCompanies.forEach((value) => {
           if (value.id == id_company) {
@@ -272,23 +258,17 @@ const CardTableUsers = ({
 
         //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
-        
-        if(newDataFetch.code  === "OK"){
 
+        if (newDataFetch.code === "OK") {
           setInitialData(newDataFetch.usuarios);
-
-        }else if (newDataFetch.code === "ERROR") {
-
+        } else if (newDataFetch.code === "ERROR") {
           setUpdateMessage(newDataFetch.mensaje);
-
         }
 
         setOpen(false);
         setUpdateMessage("Usuario creado correctamente");
       } else if (createUserapi.code === "ERROR") {
-       
-          setUpdateMessage(createUserapi.mensaje);
-        
+        setUpdateMessage(createUserapi.mensaje);
       }
     } catch (error) {
       console.error(error);
@@ -314,7 +294,7 @@ const CardTableUsers = ({
   useEffect(() => {
     if (data && Object.keys(data).length > 0) {
       setLoading(false);
-    }else{
+    } else {
       setLoading(true);
     }
   }, [data]);
@@ -714,13 +694,14 @@ const CardTableUsers = ({
                       defaultValue={selectedUser ? selectedUser.id_rol : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {Array.isArray(datoscombos) && datoscombos.map((rol, index) => {
-                        return (
-                          <option key={index} value={rol.id_rol}>
-                            {rol.descripcion}
-                          </option>
-                        );
-                      })}
+                      {Array.isArray(datoscombos) &&
+                        datoscombos.map((rol, index) => {
+                          return (
+                            <option key={index} value={rol.id_rol}>
+                              {rol.descripcion}
+                            </option>
+                          );
+                        })}
                     </select>
                   </div>
                   <div className="flex flex-col gap-3">
@@ -737,13 +718,16 @@ const CardTableUsers = ({
                       defaultValue={selectedUser ? selectedUser.id_company : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      {Array.isArray(datosCompanies) && datosCompanies.map((empresas, index) => {
-                        return (
-                          <option key={index} value={empresas.id}>
-                            {empresas.name_company}
+                      {datosCompanies.code === "OK" &&
+                      Array.isArray(datosCompanies.companies) ? (
+                        datosCompanies.companies.map((empresa, index) => (
+                          <option key={index} value={empresa.id}>
+                            {empresa.name_company}
                           </option>
-                        );
-                      })}
+                        ))
+                      ) : (
+                        <option value="">No hay empresas disponibles</option> // Opcional: Mensaje si no hay empresas
+                      )}
                     </select>
                   </div>
                   <div className="flex flex-col gap-3">
