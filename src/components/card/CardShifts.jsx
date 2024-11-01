@@ -314,7 +314,7 @@ const CardTableShifts = ({
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  if (!data || data.length === 0) {
+ if (!data || data.length === 0) {
     return <div>No hay datos disponibles.</div>;
   }
 
@@ -372,7 +372,7 @@ const CardTableShifts = ({
                   />
                 )}
 
-              {SearchInput && (
+              {initialData && SearchInput && (
                 <input
                   type="search"
                   placeholder="Buscar"
@@ -433,7 +433,8 @@ const CardTableShifts = ({
               )}
 
               <tbody role="rowgroup">
-                {Array.isArray(initialData) && initialData.length > 0 ? (
+                {console.log(initialData)}
+                {Array.isArray(initialData) && initialData.length > 0 && initialData != 'undefined' ? (
                   currentItems.map((row, index) => (
                     <tr key={index} role="row">
                       {Object.keys(row).map((key, rowIndex) => {
