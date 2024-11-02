@@ -106,7 +106,10 @@ const CardTableShifts = ({
 
   //Para cargar los datos de lado del cliente
   useEffect(() => {
-    if (data && data.length > 0) {
+    if (data.code == "OK") {
+      setInitialData(data.shifts);
+    }
+    else {
       setInitialData(data);
     }
   }, [data]);
@@ -294,7 +297,8 @@ const CardTableShifts = ({
   };
 
   let totalPages;
-  if (initialData === undefined) {
+  console.log("CAMBIO 1 RECORDAR" , initialData);
+  if (initialData  === undefined) {
     totalPages = 0; // O cualquier otro valor por defecto que desees asignar
   } else {
     totalPages = Math.ceil(initialData.length / itemsPerPage);
@@ -314,9 +318,6 @@ const CardTableShifts = ({
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
- if (!data || data.length === 0) {
-    return <div>No hay datos disponibles.</div>;
-  }
 
   return (
     <>
@@ -372,7 +373,7 @@ const CardTableShifts = ({
                   />
                 )}
 
-              {initialData && SearchInput && (
+              {SearchInput && (
                 <input
                   type="search"
                   placeholder="Buscar"
@@ -433,8 +434,7 @@ const CardTableShifts = ({
               )}
 
               <tbody role="rowgroup">
-                {console.log(initialData)}
-                {Array.isArray(initialData) && initialData.length > 0 && initialData != 'undefined' ? (
+                {Array.isArray(initialData) && initialData.length > 0 ? (
                   currentItems.map((row, index) => (
                     <tr key={index} role="row">
                       {Object.keys(row).map((key, rowIndex) => {
