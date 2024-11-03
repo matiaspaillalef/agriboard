@@ -133,7 +133,7 @@ const CardTableGround = ({
   const initialPosition = [currentLat, currentLng]; // Mostramos como posición inicial la ubicación actual
   const [position, setPosition] = useState(initialPosition);
 
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState(data || []);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -375,7 +375,7 @@ const CardTableGround = ({
   }, [updateMessage]);
 
   useEffect(() => {
-    if (data && Object.keys(data).length > 0) {
+    if (data) {
       setLoading(false);
     }
   }, [data]);
@@ -410,6 +410,8 @@ const CardTableGround = ({
 
 
   const [isMounted, setIsMounted] = useState(false);
+
+  //console.log("initialData", initialData);
 
   useEffect(() => {
     setIsMounted(true);

@@ -441,7 +441,7 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
               </tbody>
             </table>
           </div>
-          {initialData.length > 0 && pagination.length > 1 && (
+          {Array.isArray(initialData) && initialData.length > 0 && pagination.length > 1 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
                 <p className="text-sm text-gray-800 dark:text-white">

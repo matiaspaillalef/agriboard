@@ -41,7 +41,7 @@ const PeopleManagementPositions = () => {
       const data = await getDataPositions(companyId);
       setDataPositions(data);
 
-      console.log("Data de cargos:", data);
+      //console.log("Data de cargos:", data);
 
     } catch (error) {
 

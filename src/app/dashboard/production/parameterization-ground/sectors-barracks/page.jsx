@@ -30,7 +30,7 @@ const PeopleManagementSectorsBarracks = () => {
       const data = await getDataSectorBarracks(companyId);
       const companies = await getDataCompanies();
 
-      console.log("Data de sectores:", data);
+      //console.log("Data de sectores:", data);
 
       if(data === 'ERROR'){
         console.log("Error al obtener datos de sectores");
@@ -43,8 +43,8 @@ const PeopleManagementSectorsBarracks = () => {
 
       
       setDataCompanies(companies);
-      console.log("Data de sectores:", data);
-      console.log("Data de empresas:", companies);
+      //console.log("Data de sectores:", data);
+      //console.log("Data de empresas:", companies);
 
     } catch (error) {
       console.error("Error al obtener datos:", error);
