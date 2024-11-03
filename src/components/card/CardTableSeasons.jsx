@@ -467,7 +467,7 @@ const CardTableSeasons = ({
     setFormData(data);
 
     // Verificar si el estado es 1 y mostrar el modal si es necesario
-    if (data.status == 1 && initialData.find((season) => season.status === 1)) {
+    if (data.status == 1 && Array.isArray(initialData) && initialData.find((season) => season.status === 1)) {
       setIsModalOpen(true);
     } else {
       await submitForm();

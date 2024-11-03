@@ -611,7 +611,7 @@ const CardTableRegularizationProduction = ({
       const worker = data?.find((item) => item.id === value);
       return worker ? `${worker.name} ${worker.lastname}` : value;
     } else {
-      return data?.find((item) => item.id === value)?.name || value;
+      return Array.isArray(data) && data?.find((item) => item.id === value)?.name || value;
     }
   };
 
