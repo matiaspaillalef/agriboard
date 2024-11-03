@@ -174,23 +174,23 @@ const CardTableSquads = ({
   };
 
   const handleAddWorkers = (squad) => {
-
     setSelectSquad(squad);
     setOpenAddWorkers(!openAddWorkers);
 
     // Convertir la cadena de texto de workers a un array de números
     const workerIds = JSON.parse(squad.workers);
 
-    // Actualizar el estado de los trabajadores para marcar los ya asignados
-    const updatedWorkers = workers.map((worker) => ({
+    // Verificar que workers es un array antes de mapear
+    const updatedWorkers = Array.isArray(workers) ? workers.map((worker) => ({
         ...worker,
         isSelected: workerIds.includes(worker.id),
-    }));
+    })) : []; // O puedes definir un array vacío si no es un array
 
     console.log("Updated workers:", updatedWorkers);
 
     setWorkers(updatedWorkers);
 };
+
 
   const handleOpenEditUser = (user) => {
     const workersJson = JSON.parse(user.workers);
@@ -354,7 +354,7 @@ const CardTableSquads = ({
   }, [updateMessage]);
 
   useEffect(() => {
-    if (data && Object.keys(data).length > 0) {
+    if (data /*&& Object.keys(data).length > 0*/) {
       setLoading(false);
     }
   }, [data]);
@@ -364,7 +364,7 @@ const CardTableSquads = ({
     const fetchGroups = async () => {
       try {
         const groupsData = await getDataGroups(companyID);
-        console.log(groupsData);
+        //console.log(groupsData);
         setGroups(groupsData.groups);
       } catch (error) {
         console.error("Error al obtener los grupos", error);
@@ -416,9 +416,9 @@ const CardTableSquads = ({
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  if (!data || data.length === 0) {
+  /*if (!data || data.length === 0) {
     return <div>No hay datos disponibles.</div>;
-  }
+  }*/
 
   return (
     <>
