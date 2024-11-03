@@ -56,7 +56,7 @@ const CardTableShifts = ({
   } = useForm();
 
   //console.log(data);
-  const [initialData, setInitialData] = useState();
+  const [initialData, setInitialData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -224,49 +224,38 @@ const CardTableShifts = ({
 
   // Creación de empresa
   const onSubmitForm = async (data) => {
-
-    console.log(data);
-
+    //console.log(data);
+  
     try {
       const createShiftapi = await createShift(data);
-
-      // Agrega la fila del front-end
-      if (createShiftapi.code == "OK") {
-
-        const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
-
+      //console.log("DATA", createShiftapi);
+  
+      if (createShiftapi.code === "OK") {
+        const updatedData = Array.isArray(initialData) ? [...initialData, data] : [data]; // Asegúrate de que initialData sea un arreglo
+  
+        //console.log("DATA", updatedData);
         setInitialData(updatedData);
-
-        //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
+  
         const newDataFetch = await getDataShifts(companyID);
-
-
+  
         if (newDataFetch.code === "OK") {
-
           setInitialData(newDataFetch.shifts);
-
         } else if (newDataFetch.code === "ERROR") {
-
           setUpdateMessage(newDataFetch.mensaje);
-
         }
-
-        
+  
         setUpdateMessage(createShiftapi.mensaje);
-
       } else if (createShiftapi.code === "ERROR") {
-
         setUpdateMessage(createShiftapi.mensaje);
-
       }
-
+  
       setOpen(false);
-
     } catch (error) {
       console.error(error);
       // Manejo de errores
     }
   };
+  
 
   useEffect(() => {
     if (updateMessage) {
