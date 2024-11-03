@@ -71,6 +71,8 @@ const CardTableGroups = ({
   useEffect(() => {
     if (data && data.length > 0) {
       setInitialData(data);
+    }else{
+      setInitialData([]);
     }
   }, [data]);
 
@@ -232,7 +234,7 @@ const CardTableGroups = ({
   }, [updateMessage]);
 
   useEffect(() => {
-    if (data && Object.keys(data).length > 0) {
+    if (data /*&& Object.keys(data).length > 0*/) {
       setLoading(false);
     }
   }, [data]);
@@ -271,13 +273,13 @@ const CardTableGroups = ({
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  if (!data || data.length === 0) {
+  /*if (!data || data.length === 0) {
     return (
       <div>
         No hay datos disponibles.
       </div>
     );
-  }
+  }*/
 
   return (
     <>

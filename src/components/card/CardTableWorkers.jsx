@@ -143,7 +143,6 @@ const CardTableWorkers = ({
     setFile(selectedFile);
   };
 
-
   const [dataPosition, setDataPosition] = useState([]);
   const [dataContractor, setDataContractor] = useState([]);
   const [dataSquad, setDataSquad] = useState([]);
@@ -158,36 +157,41 @@ const CardTableWorkers = ({
 
       if (Array.isArray(position)) {
         setDataPosition(position);
-      }else{
+      } else {
         setDataPosition([]);
       }
 
       if (Array.isArray(contractor)) {
         setDataContractor(contractor);
-      }else{
+      } else {
         setDataContractor([]);
       }
 
-      if (Array.isArray(squad)) {
-        setDataSquad(squad);
-      }else{
+      if (squad.code === "OK") {
+        if (Array.isArray(squad.squads)) {
+          const filteredSquads = squad.squads.filter(
+            (squad) => squad.status === 1
+          );
+          setDataSquad(filteredSquads);
+        }
+      } else {
         setDataSquad([]);
       }
 
       if (Array.isArray(shift.shifts)) {
         setDataShift(shift.shifts);
-      }else{
+      } else {
         setDataShift([]);
       }
-
     };
     handleNameItems();
   }, []);
 
-
   //Mapeamos la data para no mostrar en el excel los ID, sino que mostrar el nombre
   const cargoMap = new Map(dataPosition.map((item) => [item.id, item.name]));
-  const contractorMap = new Map(dataContractor.map((item) => [item.id, item.name]));
+  const contractorMap = new Map(
+    dataContractor.map((item) => [item.id, item.name])
+  );
   const squadMap = new Map(dataSquad.map((item) => [item.id, item.name]));
   const workerMap = new Map(dataSquad.map((item) => [item.id, item.name]));
   const shiftMap = new Map(dataShift.map((item) => [item.id, item.name]));
@@ -230,7 +234,6 @@ const CardTableWorkers = ({
 
     const transformKeys = (data) => {
       return data.map((item) => {
-
         const bornDate = excelDateToJSDate(item["Fecha de nacimiento"]);
         const admissionDate = excelDateToJSDate(item["Fecha de ingreso"]);
 
@@ -249,11 +252,26 @@ const CardTableWorkers = ({
           phone_company: item["Teléfono empresa"],
           state: item.Estado,
           state_civil: item["Estado civil"],
-          position: [...cargoMap.entries()].find(([_, name]) => name === item.Cargo)?.[0] || null,
-          contractor: [...contractorMap.entries()].find(([_, name]) => name === item.Contratista)?.[0] || null,
-          squad: [...squadMap.entries()].find(([_, name]) => name === item.Cuadrilla)?.[0] || null,
-          leader_squad: [...workerMap.entries()].find(([_, name]) => name === item["Líder de Cuadrilla"])?.[0] || null,
-          shift: [...shiftMap.entries()].find(([_, name]) => name === item["Turno"])?.[0] || null,
+          position:
+            [...cargoMap.entries()].find(
+              ([_, name]) => name === item.Cargo
+            )?.[0] || null,
+          contractor:
+            [...contractorMap.entries()].find(
+              ([_, name]) => name === item.Contratista
+            )?.[0] || null,
+          squad:
+            [...squadMap.entries()].find(
+              ([_, name]) => name === item.Cuadrilla
+            )?.[0] || null,
+          leader_squad:
+            [...workerMap.entries()].find(
+              ([_, name]) => name === item["Líder de Cuadrilla"]
+            )?.[0] || null,
+          shift:
+            [...shiftMap.entries()].find(
+              ([_, name]) => name === item["Turno"]
+            )?.[0] || null,
           wristband: item["Pulsera"],
           observation: item["Observación"],
           bank: item.Banco,
@@ -266,7 +284,6 @@ const CardTableWorkers = ({
         };
       });
     };
-    
 
     const transformedData = transformKeys(jsonData);
 
@@ -275,30 +292,31 @@ const CardTableWorkers = ({
     const duplicatedRuts = [];
     // Obtenemos el número de filas (sin contar la cabecera)
     const numberOfWorkers = transformedData.length;
-    
+
     for (let i = 0; i < numberOfWorkers; i++) {
       const worker = transformedData[i];
       try {
         //console.log("Creando trabajador:", worker);
         const createWorkerResult = await createWorker(worker);
-    
+
         if (createWorkerResult.code !== "OK") {
           //console.error(`Error al procesar trabajador ${worker.rut}:`, createWorkerResult);
           duplicatedRuts.push(worker.rut);
           success = false;
         }
-  
       } catch (error) {
         console.error(`Error al procesar trabajador ${worker.rut}:`, error);
         duplicatedRuts.push(worker.rut);
         success = false;
       }
     }
-    
+
     if (!success) {
       const uniqueDuplicatedRuts = [...new Set(duplicatedRuts)]; // Elimina duplicados en el array
       const rutMessage = uniqueDuplicatedRuts.join(", ");
-      setUpdateMessage(`Error al importar algunos trabajadores rut: ${rutMessage}`);
+      setUpdateMessage(
+        `Error al importar algunos trabajadores rut: ${rutMessage}`
+      );
     } else {
       const newDataFetch = await getDataWorkers(companyID);
       setUpdateMessage("Trabajadores importados correctamente");
@@ -306,7 +324,6 @@ const CardTableWorkers = ({
       setInitialData(newDataFetch);
       setOpenImport(false);
     }
-
   };
 
   const handleOpenShowUser = (user) => {
@@ -342,65 +359,70 @@ const CardTableWorkers = ({
   };
 
   const onUpdateItem = async (data) => {
+    //console.log(data);
+
     try {
-      const transformedData = {
-        id: Number(data.id),
-        rut: data.rut,
-        name: data.name,
-        lastname: data.lastname,
-        lastname2: data.lastname2,
-        born_date: data.born_date,
-        gender: data.gender,
-        state_civil: data.state_civil,
-        state: data.state,
-        city: data.city,
-        address: data.address,
-        phone: data.phone,
-        email: data.email,
-        //phone_company: data.phone_company,
-        date_admission: data.date_admission,
-        status: data.status,
-        position: data.position,
-        contractor: data.contractor,
-        squad: data.squad,
-        leader_squad: data.leader_squad,
-        shift: data.shift,
-        wristband: data.wristband,
-        observation: data.observation,
-        bank: data.bank,
-        account_type: data.account_type,
-        account_number: data.account_number,
-        afp: data.afp,
-        health: data.health,
-        company_id: Number(data.company_id),
-      };
-      const updateWorkerApi = await updateWorker(transformedData);
+        const transformedData = {
+            id: Number(data.id), // Esto debería funcionar bien
+            rut: data.rut,
+            name: data.name,
+            lastname: data.lastname,
+            lastname2: data.lastname2,
+            born_date: data.born_date,
+            gender: data.gender,
+            state_civil: data.state_civil,
+            state: data.state,
+            city: data.city,
+            address: data.address,
+            phone: data.phone,
+            email: data.email,
+            date_admission: data.date_admission,
+            status: Number(data.status), // Convertir a   número
+            position: isNaN(Number(data.position)) ? null : Number(data.position),
+            contractor: isNaN(Number(data.contractor)) ? null : Number(data.contractor),
+            squad: isNaN(Number(data.squad)) ? null : Number(data.squad),
+            leader_squad: isNaN(Number(data.leader_squad)) ? null : Number(data.leader_squad),
+            shift: isNaN(Number(data.shift)) ? null : Number(data.shift),
+            wristband: data.wristband,
+            observation: data.observation || null, // Convertir vacío a null
+            bank: data.bank,
+            account_type: data.account_type,
+            account_number: data.account_number,
+            afp: data.afp,
+            health: data.health,
+            company_id: isNaN(Number(data.company_id)) ? null : Number(data.company_id),
+        };
 
-      // Elimina la fila del front-end
-      if (updateWorkerApi.code === "OK") {
-        const newFetchData = await getDataWorkers(companyID);
+        
+        // Verificar los valores antes de enviar
+        //console.log("Datos transformados antes de enviar:", transformedData);
 
-        const updatedData = initialData.map((item) =>
-          item.id == transformedData.id ? { ...transformedData } : item
-        );
+        const updateWorkerApi = await updateWorker(transformedData);
 
-        setInitialData(updatedData);
-        setInitialData(newFetchData);
-        setUpdateMessage("Trabajadoractualizado correctamente");
-        setOpen(false);
-      } else {
-        setUpdateMessage(
-          updateWorkerApi.mensaje
-            ? updateWorkerApi.mensaje
-            : "No se pudo actualizar al trabajador"
-        );
-      }
+        if (updateWorkerApi.code === "OK") {
+            const newFetchData = await getDataWorkers(companyID);
+
+            const updatedData = initialData.map((item) =>
+                item.id == transformedData.id ? { ...transformedData } : item
+            );
+
+            setInitialData(updatedData);
+            setUpdateMessage("Trabajador actualizado correctamente");
+            setOpen(false);
+        } else {
+            setUpdateMessage(
+                updateWorkerApi.mensaje
+                    ? updateWorkerApi.mensaje
+                    : "No se pudo actualizar al trabajador"
+            );
+        }
     } catch (error) {
-      console.error(error);
-      // Manejo de errores
-      setUpdateMessage("Error al intentar actualizar al trabajador");
+        console.error(error);
+        setUpdateMessage("Error al intentar actualizar al trabajador");
     }
-  };
+};
+
+
 
   const handleOpenAlert = (index, id, name, lastname) => {
     setItemToDelete({ index, id, name, lastname });
@@ -480,12 +502,14 @@ const CardTableWorkers = ({
 
   useEffect(() => {
     if (updateMessage) {
-      const duration = updateMessage.includes("algunos trabajadores") ? 10000 : 4000; // 10s si contiene para el mensaje de rut duplicados
+      const duration = updateMessage.includes("algunos trabajadores")
+        ? 10000
+        : 4000; // 10s si contiene para el mensaje de rut duplicados
       const timer = setTimeout(() => {
         setUpdateMessage(null);
         reset();
       }, duration);
-  
+
       return () => clearTimeout(timer);
     }
   }, [updateMessage]);
@@ -629,7 +653,8 @@ const CardTableWorkers = ({
       Cargo: cargoMap.get(item.position) || item.position,
       Contratista: contractorMap.get(item.contractor) || item.contractor,
       Cuadrilla: squadMap.get(item.squad) || item.squad,
-      "Líder de Cuadrilla": workerMap.get(item.leader_squad) || item.leader_squad,
+      "Líder de Cuadrilla":
+        workerMap.get(item.leader_squad) || item.leader_squad,
       Turno: shiftMap.get(item.shift) || item.shift,
       Pulsera: item.wristband,
       Observación: item.observation,
@@ -695,7 +720,7 @@ const CardTableWorkers = ({
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
               {console.log("initialData", exportData)}
-              {Array.isArray(initialData) &&  
+              {Array.isArray(initialData) &&
                 initialData.length > 0 &&
                 downloadBtn && (
                   <ExportarExcel
@@ -1381,6 +1406,7 @@ const CardTableWorkers = ({
                       >
                         Cuadrilla
                       </label>
+                      {console.log("squad", dataSquad)}
                       <select
                         name="squad"
                         id="squad"
@@ -1425,7 +1451,6 @@ const CardTableWorkers = ({
                       >
                         <option value="0">No</option>
                         <option value="1">Sí</option>
-                        
                       </select>
                     </div>
 

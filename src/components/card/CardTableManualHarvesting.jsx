@@ -607,11 +607,17 @@ const CardTableManualHarvesting = ({
 
   const getNameByKey = (key, value) => {
     const data = dataMap[key];
+
+    // Verifica si data es un arreglo
+    if (!Array.isArray(data)) {
+      return value; // Retorna el valor original si data no es un arreglo
+    }
+
     if (key === "worker" || key === "squad_leader") {
-      const worker = data?.find((item) => item.id === value);
+      const worker = data.find((item) => item.id === value);
       return worker ? `${worker.name} ${worker.lastname}` : value;
     } else {
-      return data?.find((item) => item.id === value)?.name || value;
+      return data.find((item) => item.id === value)?.name || value;
     }
   };
 
@@ -668,6 +674,7 @@ const CardTableManualHarvesting = ({
         // Aquí puedes guardar los datos en el estado si es necesario
         setDataSector(fetchedDataSector);
         setDataSquads(fetchedDataSquads.squads);
+        console.log("fetchedDataW", fetchedDataWorkers);
         setDataWorkers(fetchedDataWorkers);
         setDataVarieties(fetchedDataVarieties);
         setDataSpecies(fetchedDataSpecies);
@@ -677,62 +684,67 @@ const CardTableManualHarvesting = ({
         setDataSeasons(fetchedDataSeasons);
         setDataContractors(fetchedDataContractors);
 
+        console.log(initialData);
+
         if (initialData) {
           const formatData = await Promise.all(
-            initialData.map(async (item) => {
-              return {
-                //Zona: item.zone,
-                Campo: fetchedDataGround.grounds.find(
-                  (ground) => ground.id === item.ground
-                )?.name,
-                Sector: fetchedDataSector.find(
-                  (sector) => sector.id === item.sector
-                )?.name,
-                Cuadrilla: fetchedDataSquads.squads.find(
-                  (squad) => squad.id === item.squad
-                )?.name,
-                /*"Jefe cuadrilla": fetchedDataWorkers.find(
+            Array.isArray(initialData) &&
+              initialData.map(async (item) => {
+                return {
+                  //Zona: item.zone,
+                  Campo: fetchedDataGround.grounds.find(
+                    (ground) => ground.id === item.ground
+                  )?.name,
+                  Sector: fetchedDataSector.find(
+                    (sector) => sector.id === item.sector
+                  )?.name,
+                  Cuadrilla: fetchedDataSquads.squads.find(
+                    (squad) => squad.id === item.squad
+                  )?.name,
+                  /*"Jefe cuadrilla": fetchedDataWorkers.find(
                   (worker) => worker.id === item.squad_leader
                 )?.name,*/
-                Lote: item.batch,
-                Cosechero:
-                  fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.name +
-                  " " +
-                  fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.lastname,
-                "RUT Cosechero": item.worker_rut,
-                "Fecha cosecha": formatDate(item.harvest_date),
-                Especie: fetchedDataSpecies.find(
-                  (specie) => specie.id === item.specie
-                )?.name,
-                Variedad: fetchedDataVarieties.find(
-                  (variety) => variety.id === item.variety
-                )?.name,
-                Cajas: item.boxes,
-                "Kilos Caja": item.kg_boxes,
-                Calidad: fetchedDataQuality.find(
-                  (quality) => quality.id === item.quality
-                )?.name,
-                /*Hilera: item.hilera,
+                  Lote: item.batch,
+                  Cosechero:
+                    fetchedDataWorkers.find(
+                      (worker) => worker.id === item.worker
+                    )?.name +
+                    " " +
+                    fetchedDataWorkers.find(
+                      (worker) => worker.id === item.worker
+                    )?.lastname,
+                  "RUT Cosechero": item.worker_rut,
+                  "Fecha cosecha": formatDate(item.harvest_date),
+                  Especie: fetchedDataSpecies.find(
+                    (specie) => specie.id === item.specie
+                  )?.name,
+                  Variedad: fetchedDataVarieties.find(
+                    (variety) => variety.id === item.variety
+                  )?.name,
+                  Cajas: item.boxes,
+                  "Kilos Caja": item.kg_boxes,
+                  Calidad: fetchedDataQuality.find(
+                    (quality) => quality.id === item.quality
+                  )?.name,
+                  /*Hilera: item.hilera,
                 "Formato cosecha": fetchedDataHarvestFormat.find(
                   (format) => format.id === item.harvest_format
                 )?.name,*/
-                "RUT Pesador": item.weigher_rut,
-                Sincronizado: item.sync,
-                "Fecha sincronización": item.sync_date,
-                Temporada: fetchedDataSeasons.find(
-                  (season) => season.id === item.season
-                )?.name,
-                Turnos: item.turns,
-                "Fecha registro": item.date_register,
-                //Temp: item.temp,
-                //Humedad: item.wet,
-                Contratista: fetchedDataContractors.find(
-                  (contractor) => contractor.id === item.contractor
-                )?.name,
-              };
-            })
+                  "RUT Pesador": item.weigher_rut,
+                  Sincronizado: item.sync,
+                  "Fecha sincronización": item.sync_date,
+                  Temporada: fetchedDataSeasons.find(
+                    (season) => season.id === item.season
+                  )?.name,
+                  Turnos: item.turns,
+                  "Fecha registro": item.date_register,
+                  //Temp: item.temp,
+                  //Humedad: item.wet,
+                  Contratista: fetchedDataContractors.find(
+                    (contractor) => contractor.id === item.contractor
+                  )?.name,
+                };
+              })
           );
 
           //console.log("formatData", formatData);
@@ -1284,7 +1296,7 @@ const CardTableManualHarvesting = ({
                       <select
                         name="squad"
                         id="squad"
-                        required={true}
+                        required={false}
                         {...register("squad")}
                         defaultValue={selectedItem ? selectedItem.squad : ""}
                         onChange={(e) => {
@@ -1307,7 +1319,6 @@ const CardTableManualHarvesting = ({
                         )}
                       </select>
                     </div>
-
 
                     <div className="flex flex-col gap-3">
                       <label
@@ -1361,6 +1372,7 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.worker : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
+                        {console.log("dataChangeSquad", dataSqaads)}
                         {dataChangeSquad ? (
                           dataSqaads.length > 0 ? (
                             <>
@@ -1398,6 +1410,17 @@ const CardTableManualHarvesting = ({
                           ) : (
                             <option value="">No hay trabajadores</option>
                           )
+                        ) : dataWorkers && dataWorkers.length > 0 ? (
+                          <>
+                            <option value="">Elige cosechero</option>
+                            {dataWorkers.map((worker) =>
+                              worker.status !== 0 ? (
+                                <option key={worker.id} value={worker.id}>
+                                  {worker.name + " " + worker.lastname}
+                                </option>
+                              ) : null
+                            )}
+                          </>
                         ) : (
                           <option value="">No hay trabajadores</option>
                         )}
@@ -1505,43 +1528,41 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.variety : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <>
-                          <option value="">Elige una variedad</option>
-                          {Array.isArray(dataSpecies) &&
-                          dataSpecies.length > 0 ? (
-                            dataSpecies
-                              .filter((specie) => specie.id == dataChangeSpecie)
-                              .map((specie) =>
-                                Array.isArray(specie.varieties) &&
-                                specie.varieties.length > 0 ? (
-                                  <>
-                                    <option key="empty" value="">
-                                      Elige una variedad
+                        <option value="">Elige una variedad</option>
+
+                        {Array.isArray(dataSpecies) &&
+                        dataSpecies.length > 0 ? (
+                          dataSpecies
+                            .filter((specie) => specie.id == dataChangeSpecie)
+                            .map((specie) =>
+                              Array.isArray(specie.varieties) &&
+                              specie.varieties.length > 0 ? (
+                                specie.varieties.map((variety) => {
+                                  const varietySelect = dataVarieties.find(
+                                    (varietySelect) =>
+                                      varietySelect.id == variety
+                                  );
+                                  return varietySelect ? (
+                                    <option
+                                      key={varietySelect.id} // Asegúrate de que cada opción tenga una clave única
+                                      value={varietySelect.id}
+                                    >
+                                      {varietySelect.name}
                                     </option>
-                                    {specie.varieties.map((variety) =>
-                                      dataVarieties
-                                        .filter(
-                                          (varietySelect) =>
-                                            varietySelect.id == variety
-                                        )
-                                        .map((varietySelect) => (
-                                          <option
-                                            key={varietySelect.id}
-                                            value={varietySelect.id}
-                                          >
-                                            {varietySelect.name}
-                                          </option>
-                                        ))
-                                    )}
-                                  </>
-                                ) : (
-                                  <option value="">No hay variedades</option>
-                                )
+                                  ) : null;
+                                })
+                              ) : (
+                                <option
+                                  key={`no-varieties-${specie.id}`}
+                                  value=""
+                                >
+                                  No hay variedades
+                                </option>
                               )
-                          ) : (
-                            <option value="">No hay variedades</option>
-                          )}
-                        </>
+                            )
+                        ) : (
+                          <option value="">No hay variedades</option>
+                        )}
                       </select>
                     </div>
 
@@ -1616,8 +1637,6 @@ const CardTableManualHarvesting = ({
                         </>
                       </select>
                     </div>
-
-            
 
                     <div className="flex flex-col gap-3">
                       <label
@@ -1761,7 +1780,7 @@ const CardTableManualHarvesting = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="">Elige un turno</option>
-                        {Array.isArray(dataShifts) && dataShifts.length > 0 ? (
+                        {Array.isArray(dataShifts) && dataShifts.length > 0 && (
                           dataShifts.map(
                             (turn) =>
                               turn.status != 0 && (
@@ -1770,9 +1789,7 @@ const CardTableManualHarvesting = ({
                                 </option>
                               )
                           )
-                        ) : (
-                          <option value="">No hay turnos</option>
-                        )}
+                        ) }
                       </select>
                     </div>
 
@@ -1943,7 +1960,7 @@ const CardTableManualHarvesting = ({
                     <strong>Turno:</strong>{" "}
                     {getNameByKey("turns", selectedItem.turns, dataMap)}
                   </p>
-                 
+
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Sincronización:</strong> {selectedItem.sync || "-"}
                   </p>

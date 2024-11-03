@@ -806,7 +806,7 @@ export const createWorker = async (data) => {
 }
 
 export const updateWorker = async (data) => {
-  console.log('Datos enviados al backend:', data);
+  //console.log('Datos enviados al backend:', data);
 
   try {
     const res = await fetch(
