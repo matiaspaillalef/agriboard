@@ -62,8 +62,10 @@ const CardTableSeasons = ({
     formState: { errors },
   } = useForm();
 
+console.log(data);
+
   const [initialData, setInitialData] = useState(() => {
-    return data.sort((a, b) => {
+    return Array.isArray(data) && data.sort((a, b) => {
       if (a.status === 1 && b.status !== 1) return -1; // `a` va primero
       if (a.status !== 1 && b.status === 1) return 1; // `b` va primero
       return 0; // Mantiene el orden original si ambos son iguales
@@ -353,30 +355,50 @@ const CardTableSeasons = ({
     });
   };
 
-  const handlerRemove = async () => {
-    const { index, id } = itemToDelete;
-    try {
-      //if (userConfirmed) {
-      const deleteItem = await deleteSeason(id);
+const handlerRemove = async () => {
+  const { index, id } = itemToDelete;
 
-      // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteItem === "OK") {
-        const updatedData = [...initialData];
-        updatedData.splice(index, 1);
-        setInitialData(updatedData);
-        setOpenAlert(false);
-        setUpdateMessage("Registro eliminado correctamente");
-      } else {
-        setUpdateMessage(
-          "Error al eliminar el registro. Inténtalo nuevamente."
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      // Manejo de errores
+  console.log(itemToDelete);
+
+  try {
+    const deleteItem = await deleteSeason(id);
+
+    console.log(deleteItem);
+
+    // Elimina la fila del front-end si la eliminación fue exitosa
+    if (deleteItem === "OK") {
+      const updatedData = [...initialData];
+      updatedData.splice(index, 1);
+      setInitialData(updatedData);
+      setOpenAlert(false);
+      setUpdateMessage("Registro eliminado correctamente");
+    }
+    
+    else if(deleteItem.includes("ER_ROW_IS_REFERENCED_2")){
+      setUpdateMessage(
+        "No se puede eliminar el registro porque está siendo utilizado en otros registros. Primero elimina las relaciones asociadas."
+      );
+    }
+    
+    else {
+      setUpdateMessage(
+        "Error al eliminar el registro. Inténtalo nuevamente."
+      );
+    }
+  } catch (error) {
+    console.error(error);
+
+    // Manejo de errores específico para la restricción de clave foránea
+    if (error.message.includes("ER_ROW_IS_REFERENCED_2")) {
+      setUpdateMessage(
+        "No se puede eliminar el registro porque está siendo utilizado en otros registros. Primero elimina las relaciones asociadas."
+      );
+    } else {
       setUpdateMessage("Ocurrió un error al intentar eliminar el registro.");
     }
-  };
+  }
+};
+
 
   const handlerClone = async () => {
     // Desestructuramos los campos que necesitas
@@ -536,7 +558,7 @@ const CardTableSeasons = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = Array.isArray(initialData) && initialData.slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
