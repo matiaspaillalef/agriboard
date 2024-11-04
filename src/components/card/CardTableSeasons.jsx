@@ -62,7 +62,14 @@ const CardTableSeasons = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState(() => {
+    return data.sort((a, b) => {
+      if (a.status === 1 && b.status !== 1) return -1; // `a` va primero
+      if (a.status !== 1 && b.status === 1) return 1; // `b` va primero
+      return 0; // Mantiene el orden original si ambos son iguales
+    });
+  });
+  
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -206,6 +213,8 @@ const CardTableSeasons = ({
 
   const onUpdateItem = async (data) => {
 
+    //console.log(data);
+
     try {
       if (!data || !data.id) {
         throw new Error(
@@ -213,13 +222,18 @@ const CardTableSeasons = ({
         );
       }
 
+
       let updatedData;
 
       if (selectedShifts != "") {
         updatedData = { ...data, shifts: selectedShifts };
-      } else {
+      } else if(data.status == undefined){
+        updatedData = { ...data, status: 2 };
+      }else {
         updatedData = { ...data };
       }
+
+      //console.log(updatedData);
 
       const updateItemApi = await updateSeason(updatedData);
       const dataNew = await getDataSeasons(companyID);
@@ -365,18 +379,25 @@ const CardTableSeasons = ({
   };
 
   const handlerClone = async () => {
-    const { name, period, date_from, date_until, shifts, status, company_id } =
-      itemToClone;
-
+    // Desestructuramos los campos que necesitas
+    const { name, period, date_from, date_until, shifts, status, company_id } = itemToClone;
+  
+    // Creamos un nuevo objeto para clonar
+    const clonedItem = {
+      ...itemToClone,
+      name: `${name}_copy`, // Agregamos _copy al nombre
+    };
+  
     try {
-      const cloneItem = await createSeason(itemToClone);
+      // Usamos el nuevo objeto para crear la temporada
+      const cloneItem = await createSeason(clonedItem);
       const dataNew = await getDataSeasons(companyID);
-
+  
       if (cloneItem === "OK") {
-        const updatedData = [...initialData, itemToClone];
-
+        // Actualizamos la lista de datos con el nuevo registro clonado
+        const updatedData = [...initialData, clonedItem]; // Usamos clonedItem en lugar de itemToClone
         setInitialData(updatedData);
-        setInitialData(dataNew);
+        setInitialData(dataNew); // Esto podría ser redundante, considera dejar solo uno de los setInitialData
         setOpenAlertClone(false);
         setUpdateMessage("Registro clonado correctamente");
       } else {
@@ -399,20 +420,20 @@ const CardTableSeasons = ({
     await submitForm();
   };
 
-  const submitForm = async () => {
+  const submitForm = async (data) => {
     setIsSubmitting(true);
 
-    //console.log(formData);
+    //console.log(data);
     try {
       const transformedData = {
-        id: Number(formData.id) || null,
-        name: formData.name ? formData.name.trim() : "", // Verifica que no sea undefined
-        period: formData.period ? formData.period.trim() : "", // Verifica que no sea undefined
-        date_from: formData.date_from ? formData.date_from.trim() : "", // Verifica que no sea undefined
-        date_until: formData.date_until ? formData.date_until.trim() : "", // Verifica que no sea undefined
-        shifts: formData.shifts,
-        company_id: Number(formData.company_id) || null,
-        status: formData.status ? Number(formData.status.trim()) : 0,
+        id: Number(data.id) || null,
+        name: data.name ? data.name.trim() : "", // Verifica que no sea undefined
+        period: data.period ? data.period.trim() : "", // Verifica que no sea undefined
+        date_from: data.date_from ? data.date_from.trim() : "", // Verifica que no sea undefined
+        date_until: data.date_until ? data.date_until.trim() : "", // Verifica que no sea undefined
+        shifts: data.shifts,
+        company_id: Number(data.company_id) || null,
+        status: data.status ? Number(data.status.trim()) : 0,
       };
 
       //console.log(transformedData);
@@ -420,7 +441,7 @@ const CardTableSeasons = ({
       const createItem = await createSeason(transformedData);
       const dataNew = await getDataSeasons(companyID);
 
-      console.log(createItem);
+      //console.log(createItem);
       if (createItem === "OK") {
         const updatedData = [...initialData, transformedData];
         setInitialData(updatedData);
@@ -429,7 +450,7 @@ const CardTableSeasons = ({
         setOpen(false);
         setUpdateMessage("Registro creado correctamente");
 
-        if (formData.clone == true) {
+        if (data.clone == true) {
           const allAttributes = await getDataAttributesSector(companyID); // Obtener todos los atributos
           const allSeasons = await getDataSeasons(companyID); // Obtener todas las temporadas
           const lastSeasonId = allSeasons.length > 0 ? Math.max(...allSeasons.map(season => season.id)) : 0; // Obtener el último ID de temporada y sumarle 1
@@ -463,14 +484,14 @@ const CardTableSeasons = ({
 
   const onSubmitForm = async (data) => {
     // Guardar los datos del formulario en el estado
-    //console.log(data);
+    console.log(data);
     setFormData(data);
 
     // Verificar si el estado es 1 y mostrar el modal si es necesario
     if (data.status == 1 && Array.isArray(initialData) && initialData.find((season) => season.status === 1)) {
       setIsModalOpen(true);
     } else {
-      await submitForm();
+      await submitForm(data);
     }
   };
   
@@ -1015,12 +1036,13 @@ const CardTableSeasons = ({
                       >
                         Estado
                       </label>
+                      {console.log(selectedItem)}
                       <select
                         name="status"
                         id="status"
                         required={true}
                         {...register("status")}
-                        defaultValue={selectedItem ? selectedItem.status : ""}
+                        defaultValue={selectedItem ? selectedItem.status : 2}
                         className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${
                           isStatusReadonly &&
                           selectedItem &&
@@ -1042,7 +1064,7 @@ const CardTableSeasons = ({
                       {isStatusReadonly &&
                         selectedItem &&
                         selectedItem.status != 1 && (
-                          <p className="text-gray-800 dark:text-white bg-yellow-200 rounded-md py-2 px-4 text-sm">
+                          <p className="text-gray-800 dark:text-white bg-yellow-200 dark:bg-blueSecondary rounded-md py-2 px-4 text-sm">
                             No se puede cambiar el estado de una temporada
                             cerrada, para cambiar el estado de una temporada
                             cerrada, debe eliminar la temporada activa actual.
