@@ -220,10 +220,15 @@ const CardTableUsers = ({
     }
   };
 
+
   // Creación de usuario
   const onSubmitForm = async (data) => {
+
+    //console.log(data);
     try {
       const createUserapi = await createUser(data);
+
+      //console.log(createUserapi);
       // Agrega la fila del front-end
       if (createUserapi.code === "OK") {
         //const newUser = { ...data };
@@ -242,22 +247,31 @@ const CardTableUsers = ({
             }
           });
 
-        datosCompanies.forEach((value) => {
-          if (value.id == id_company) {
-            data = {
-              ...data,
-              name_company: value.name_company,
-              id_company: value.id, //Igual paso el id_company ya que es necesario para la actualización de datos
-            };
+          //console.log(datosCompanies);
+
+          if(datosCompanies == 'OK'){
+            datosCompanies.companies.forEach((value) => {
+              if (value.id == id_company) {
+                data = {
+                  ...data,
+                  name_company: value.name_company,
+                  id_company: value.id, //Igual paso el id_company ya que es necesario para la actualización de datos
+                };
+              }
+            });
           }
-        });
+        
 
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
 
+        //console.log(updatedData);
+
         //HAgo este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataUser(); // Actualizar la lista de usuarios
+
+        //console.log(newDataFetch);
 
         if (newDataFetch.code === "OK") {
           setInitialData(newDataFetch.usuarios);

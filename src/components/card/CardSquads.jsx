@@ -465,7 +465,7 @@ const CardTableSquads = ({
             )}
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {Array.isArray(initialData) && downloadBtn && (
+              {Array.isArray(initialData) && initialData.length > 0 && downloadBtn && (
                 <ExportarExcel
                   data={initialData}
                   filename="empresas"
@@ -671,7 +671,7 @@ const CardTableSquads = ({
               </tbody>
             </table>
           </div>
-          {Array.isArray(initialData) && initialData.length > 0 && (
+          {Array.isArray(initialData) && initialData.length > 0 && pagination.length > 1 && (
             <div className="flex items-center justify-between mt-5">
               <div className="flex items-center gap-5">
                 <p className="text-sm text-gray-800 dark:text-white">
@@ -909,7 +909,7 @@ const CardTableSquads = ({
                   />
                   <label
                     htmlFor="showSelectedWorkers"
-                    className="text-sm font-semibold"
+                    className="text-sm font-semibold dark:text-white"
                   >
                     Ver asignados
                   </label>
@@ -928,11 +928,11 @@ const CardTableSquads = ({
               <table className="w-full">
                 <thead>
                   <tr>
-                    <th className="inputcheck border-b-gray-200 border-b"></th>
-                    <th className="text-left border-b-gray-200 border-b">
+                    <th className="inputcheck border-b-gray-200 border-b dark:text-white"></th>
+                    <th className="text-left border-b-gray-200 border-b dark:text-white">
                       Nombre
                     </th>
-                    <th className="text-left border-b-gray-200 border-b">
+                    <th className="text-left border-b-gray-200 border-b dark:text-white">
                       RUT
                     </th>
                   </tr>
@@ -952,7 +952,7 @@ const CardTableSquads = ({
                         <td className="py-2">
                           <input
                             type="checkbox"
-                            className="!bg-center rounded-sm"
+                            className="!bg-center rounded-sm "
                             checked={worker.isSelected || false}
                             onChange={() => {
                               worker.isSelected = !worker.isSelected;
@@ -960,8 +960,8 @@ const CardTableSquads = ({
                             }}
                           />
                         </td>
-                        <td>{worker.name + " " + worker.lastname}</td>
-                        <td>{worker.rut}</td>
+                        <td className="dark:text-white">{worker.name + " " + worker.lastname}</td>
+                        <td className="dark:text-white">{worker.rut}</td>
                       </tr>
                     ))
                   ) : (

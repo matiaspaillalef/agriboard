@@ -1780,16 +1780,18 @@ const CardTableManualHarvesting = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="">Elige un turno</option>
-                        {Array.isArray(dataShifts) && dataShifts.length > 0 && (
-                          dataShifts.map(
+
+                        {dataShifts.code === "OK" &&
+                          Array.isArray(dataShifts.shifts) &&
+                          dataShifts.shifts.length > 0 &&
+                          dataShifts.shifts.map(
                             (turn) =>
-                              turn.status != 0 && (
+                              turn.status !== 0 && (
                                 <option key={turn.id} value={turn.id}>
                                   {turn.name}
                                 </option>
                               )
-                          )
-                        ) }
+                          )}
                       </select>
                     </div>
 
