@@ -26,6 +26,7 @@ const Sidebar = ({ open, onClose }) => {
     sessionStorage.removeItem("isLoggedIn");
     sessionStorage.removeItem("userData");
     sessionStorage.removeItem("darkmode");
+    sessionStorage.removeItem("selectedCompanyId");
     router.push("/");
   }
 
