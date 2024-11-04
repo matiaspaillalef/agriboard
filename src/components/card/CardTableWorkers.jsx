@@ -634,7 +634,7 @@ const CardTableWorkers = ({
   };
 
   //Mapeamos la data a exportar
-  const exportData = initialData.map((item) => {
+  const exportData = Array.isArray(initialData) && initialData && initialData.map((item) => {
     return {
       Rut: item.rut,
       Nombre: item.name,
