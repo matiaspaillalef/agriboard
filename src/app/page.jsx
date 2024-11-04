@@ -37,6 +37,12 @@ function LoginPage(props) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+
+    const isLoggedIn = sessionStorage.getItem("isLoggedIn");
+    if (!isLoggedIn) {
+      router.push("/"); // Redirigir al inicio de sesión si no está conectado
+    }
+
     // Verifica el tema preferido del navegador
     const prefersDarkMode = window.matchMedia(
       "(prefers-color-scheme: dark)"
@@ -223,7 +229,7 @@ function LoginPage(props) {
             </p>
           </div>
 
-          <div className="absolute right-0 hidden h-dvh min-h-screen md:block lg:w-[49vw] 2xl:w-[44vw]">
+          <div className="absolute right-0 hidden h-dvh min-h-screen md:hidden lg:block lg:w-[49vw] 2xl:w-[44vw]">
             <div className="relative h-full w-full lg:rounded-bl-[120px] xl:rounded-bl-[200px] overflow-hidden">
               <SimpleSlider
                 slides={[Slide1, Slide2, Slide3, Slide4]}

@@ -34,8 +34,12 @@ const PeopleManagementGround = () => {
       const data = await getDataGround(companyId);
 
       const companies = await getDataCompanies();
+      //console.log("data", data);
+      //console.log("companies", companies);
       if (data.code === "OK") {
         setDataGrounds(data.grounds);
+      }else{
+        setDataGrounds([]);
       }
       //setDataGrounds(data.grounds);
       setDataCompanies(companies);

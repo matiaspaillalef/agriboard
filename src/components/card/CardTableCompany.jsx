@@ -330,6 +330,7 @@ const CardTableCompany = ({
       const createCompanyApi = await createCompany(updatedDataLogo);
 
       if (createCompanyApi.code === "OK") {
+        document.body.classList.add('newCompany');
         const updatedData = [...initialData, updatedDataLogo];
         setInitialData(updatedData);
 
