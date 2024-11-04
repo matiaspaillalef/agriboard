@@ -339,13 +339,17 @@ const CardTableExporters = ({
       const createItem = await createExporter(data);
       const dataNew = await getDataExporters(companyID);
 
+      //console.log(data);
+      //console.log(createItem);
+      //console.log(dataNew);
+
       if (createItem === "OK") {
         const updatedData = [...initialData, data];
 
         setInitialData(updatedData); //Actualizamos la visualización de la tabla
         setInitialData(dataNew); //Actualizamos la visualizacion pero con el id, quizas sea necesario quitar el de ahi arriba
         setOpen(false);
-        setSelectedVarieties([]);
+        //setSelectedVarieties([]);
         setUpdateMessage("Registro creado correctamente");
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");

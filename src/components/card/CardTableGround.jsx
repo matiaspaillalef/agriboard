@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, use, useMemo, useCallback } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import ExportarPDF from "@/components/button/ButtonExportPDF";
@@ -37,47 +37,100 @@ import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
 import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 
-import dynamic from 'next/dynamic';
-const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
-const useMapEvents = dynamic(() => import('react-leaflet').then(mod => mod.useMapEvents), { ssr: false });
+import dynamic from "next/dynamic";
+
+const useMapEvents = dynamic(
+  () => import("react-leaflet").then((mod) => mod.useMapEvents),
+  { ssr: false }
+);
 //import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 //import L from "leaflet";
 import customMarker from "@/../public/pin.png";
 import { custom } from "zod";
 
-const LocationSelector = ({ position, setPosition, setLatLng }) => {
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+  ssr: false,
+});
+
+const center = {
+  lat: 51.505,
+  lng: -0.09,
+};
+
+function DraggableMarker({ position, setPosition, setLatitude, setLongitude }) {
+  const [draggable, setDraggable] = useState(true);
   const [customIcon, setCustomIcon] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Solo se ejecuta en el cliente
-      const icon = new L.Icon({
-        iconUrl: customMarker.src,
-        iconSize: [30, 35],
-        iconAnchor: [17.5, 35],
-        popupAnchor: [0, -30],
-      });
-      setCustomIcon(icon);
-      setLatLng(position[0], position[1]);
-    }
-  }, [position, setLatLng]);
+    const icon = new L.Icon({
+      iconUrl: customMarker.src,
+      iconSize: [30, 35],
+      iconAnchor: [17.5, 35],
+      popupAnchor: [0, -30],
+    });
+    setCustomIcon(icon);
 
-  useMapEvents({
-    dblclick(e) {
-      const { lat, lng } = e.latlng;
-      setPosition([lat, lng]);
-    },
-  });
+    return () => {
+      setCustomIcon(null); // Limpieza del icono
+    };
+  }, []);
 
-  if (!customIcon) {
-    return null; // Espera a que se cargue el icono
-  }
+  const handleDragEnd = (event) => {
+    const marker = event.target;
+    const { lat, lng } = marker.getLatLng();
+    setPosition({ lat, lng });
+    setLatitude(lat);
+    setLongitude(lng);
+  };
+  
 
-  return <Marker position={position} icon={customIcon} />;
-};
+  const handleDrag = (event) => {
+    const marker = event.target;
+    const { lat, lng } = marker.getLatLng();
+    setPosition({ lat, lng });
+    setLatitude(lat);
+    setLongitude(lng);
+  };
+
+  const toggleDraggable = useCallback(() => {
+    setDraggable((d) => !d);
+  }, []);
+
+  if (!customIcon) return null;
+
+  return (
+    <Marker
+      draggable={draggable}
+      position={position}
+      eventHandlers={{
+        dragend: handleDragEnd,
+        drag: handleDrag,
+      }}
+      icon={customIcon}
+    >
+      <Popup minWidth={90}>
+        <span onClick={toggleDraggable}>
+          {draggable
+            ? "Marker is draggable"
+            : "Click here to make marker draggable"}
+        </span>
+      </Popup>
+    </Marker>
+  );
+}
 
 const CardTableGround = ({
   data,
@@ -103,35 +156,43 @@ const CardTableGround = ({
     formState: { errors },
   } = useForm();
 
-  const [currentLat, setCurrentLat] = useState("");
-  const [currentLng, setCurrentLng] = useState("");
+  const [position, setPosition] = useState(center);
+  const [latitude, setLatitude] = useState(center.lat);
+  const [longitude, setLongitude] = useState(center.lng);
+  const [isMounted, setIsMounted] = useState(false);
+  const [mapInitialized, setMapInitialized] = useState(false);
 
   useEffect(() => {
     const fetchLocationByIP = async () => {
       try {
         const response = await fetch("https://ipapi.co/json/");
         const data = await response.json();
-
-        if (data && data.latitude && data.longitude) {
-          const { latitude: lat, longitude: lng } = data;
-          setPosition([lat, lng]);
-          setCurrentLat(lat);
-          setCurrentLng(lng);
+        const { latitude, longitude } = data;
+        if (latitude && longitude) {
+          setPosition([latitude, longitude]);
+          setLatitude(latitude);
+          setLongitude(longitude);
         } else {
-          console.warn("No latitude/longitude found in the response:", data);
-          setPosition(initialPosition); // Establecer posición por defecto
+          setPosition([0, 0]);
         }
       } catch (error) {
         console.error("Error fetching location:", error);
-        setPosition(initialPosition); // Establecer posición por defecto
+        setPosition([0, 0]);
       }
     };
 
     fetchLocationByIP();
+    setIsMounted(true);
   }, []);
 
-  const initialPosition = [currentLat, currentLng]; // Mostramos como posición inicial la ubicación actual
-  const [position, setPosition] = useState(initialPosition);
+  useEffect(() => {
+    setIsMounted(true);
+    return () => {
+      setIsMounted(false); // Limpieza al desmontar
+    };
+  }, []);
+
+  /*const initialPosition = [currentLat, currentLng]; // Mostramos como posición inicial la ubicación actual*/
 
   const [initialData, setInitialData] = useState(data || []);
   const [loading, setLoading] = useState(true);
@@ -154,9 +215,6 @@ const CardTableGround = ({
   const [rutValido, setRutValido] = useState(false);
 
   const [rol, setRol] = useState(""); // control de item por rol
-
-  const [latitude, setLatitude] = useState(""); // Inicializa el estado de latitud
-  const [longitude, setLongitude] = useState("");
 
   useEffect(() => {
     // Cuando cambia la región, reiniciamos la ciudad seleccionada
@@ -211,6 +269,8 @@ const CardTableGround = ({
     reset();
     setSelectedItem(user); // Actualiza el estado con los datos del usuario seleccionado
     setOpen(!open);
+    setLatitude(user ? user.latitude : center.lat);
+    setLongitude(user ? user.longitude : center.lng);
   };
 
   const onUpdateItem = async (formData) => {
@@ -243,7 +303,7 @@ const CardTableGround = ({
         );
 
         setInitialData(updatedList);
-        setInitialData(dataNew);
+        setInitialData(dataNew.grounds);
         setUpdateMessage("Registro actualizado correctamente");
         setOpen(false);
       } else {
@@ -286,7 +346,6 @@ const CardTableGround = ({
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem.code === "OK") {
-
         const updatedData = [...initialData];
 
         updatedData.splice(index, 1);
@@ -296,11 +355,8 @@ const CardTableGround = ({
         setOpenAlert(false);
 
         setUpdateMessage(deleteItem.mensaje);
-
-      }else if (deleteItem.code === "ERROR") {
-
+      } else if (deleteItem.code === "ERROR") {
         setUpdateMessage(deleteItem.mensaje);
-
       }
     } catch (error) {
       console.error(error);
@@ -333,31 +389,23 @@ const CardTableGround = ({
 
       const createItem = await createGround(data);
       if (createItem.code === "OK") {
-
         const updatedData = [...initialData, data];
 
         const dataNew = await getDataGround(companyID);
 
-        if(dataNew.code  === "OK"){
-
+        if (dataNew.code === "OK") {
           setInitialData(updatedData);
           setInitialData(dataNew.grounds);
           setOpen(false);
           setUpdateMessage(createItem.mensaje);
           setLatitude("");
           setLongitude("");
-
-        }else if (dataNew.code === "ERROR") {
-
+        } else if (dataNew.code === "ERROR") {
           setUpdateMessage(dataNew.mensaje);
-
         }
-
       } else if (createItem.code === "ERROR") {
-       
         setUpdateMessage(createItem.mensaje);
-      
-    }
+      }
     } catch (error) {
       console.error(error);
     }
@@ -402,14 +450,11 @@ const CardTableGround = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = initialData
+  const currentItems = Array.isArray(initialData)
     ? initialData.slice(indexOfFirstItem, indexOfLastItem)
     : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-
-  const [isMounted, setIsMounted] = useState(false);
 
   //console.log("initialData", initialData);
 
@@ -1017,7 +1062,8 @@ const CardTableGround = ({
 
               <div className="mb-4 dark:text-white">
                 <p className="text-sm">
-                  Haz doble clic en el mapa para seleccionar la ubicación
+                  Arrastre el pin en el mapa para obtener los datos
+                  correspondientes de su ubicación.
                 </p>
                 <div className="flex gap-2">
                   <span className="font-semibold">Latitud:</span>
@@ -1028,28 +1074,25 @@ const CardTableGround = ({
                   <span>{longitude}</span>
                 </div>
               </div>
-       
-              {isMounted && (
-              <MapContainer
-                center={position}
-                zoom={13}
-                style={{ height: "300px", width: "100%" }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
-                />
-                <LocationSelector
-                  position={position}
-                  setPosition={setPosition}
-                  setLatLng={(lat, lng) => {
-                    setLatitude(lat); // Actualiza el estado de latitud
-                    setLongitude(lng); // Actualiza el estado de longitud
-                  }}
-                />
-              </MapContainer>
- )}
 
+              {isMounted && (
+                <MapContainer
+                  center={position}
+                  zoom={13}
+                  style={{ height: "300px", width: "100%" }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <DraggableMarker
+                    position={position}
+                    setPosition={setPosition}
+                    setLatitude={setLatitude}
+                    setLongitude={setLongitude}
+                  />
+                </MapContainer>
+              )}
             </>
           </Dialog>
         </>
