@@ -55,8 +55,26 @@ const Sidebar = ({ open, onClose }) => {
       }
     };
 
+     // Función para observar cambios en el body
+  const observerCallback = (mutationsList) => {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'attributes' && mutation.target.classList.contains('newCompany')) {
+        fetchData(); // Volver a obtener la lista de empresas
+        document.body.classList.remove('newCompany'); // Eliminar la clase después de usarla
+      }
+    }
+  };
+
+  const observer = new MutationObserver(observerCallback);
+  observer.observe(document.body, { attributes: true, childList: false, subtree: false });
+
     getStoredCompanyId(); // Obtener el idCompany almacenado
     fetchData(); // Obtener datos de las empresas
+    
+  // Limpiar el observer al desmontar el componente
+  return () => {
+    observer.disconnect();
+  };
 
   }, []);
   
