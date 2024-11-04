@@ -328,7 +328,9 @@ useEffect(() => {
       setDataQuality(fetchedDataQuality);
       setDataHarvestFormat(fetchedDataHarvestFormat);
 
-      console.log("fetchedDataGround", fetchedDataWorkers);
+      console.log("fetchedDataGround", fetchedDataQuality);
+      console.log("fetchedDataGround", fetchedDataHarvestFormat);
+   
 
       if (fetchedDataGround.code === "OK") {
         const groundData = fetchedDataGround.grounds;
@@ -348,6 +350,8 @@ useEffect(() => {
       setDataSeasons(fetchedDataSeasons);
       setDataTurns(fetchedDataTurns);
       setDataContractors(fetchedDataContractors);
+
+      console.log("fetchedDataGround", fetchedDataSeasons);
 
       if (Array.isArray(initialData) && initialData.length > 0) {
         // Crear mapas para búsquedas rápidas
