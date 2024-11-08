@@ -44,6 +44,7 @@ import {
   getDataShifts,
   getDataContractors,
 } from "@/app/api/ManagementPeople";
+
 import { sync } from "framer-motion";
 
 const CardTableManualHarvesting = ({
@@ -475,7 +476,6 @@ const CardTableManualHarvesting = ({
 
   // Creación
   const onSubmitForm = async (data) => {
-    console.log(data);
     try {
       // Preparar los datos transformados
       const transformedData = {
@@ -674,7 +674,6 @@ const CardTableManualHarvesting = ({
         // Aquí puedes guardar los datos en el estado si es necesario
         setDataSector(fetchedDataSector);
         setDataSquads(fetchedDataSquads.squads);
-        console.log("fetchedDataW", fetchedDataWorkers);
         setDataWorkers(fetchedDataWorkers);
         setDataVarieties(fetchedDataVarieties);
         setDataSpecies(fetchedDataSpecies);
@@ -684,9 +683,7 @@ const CardTableManualHarvesting = ({
         setDataSeasons(fetchedDataSeasons);
         setDataContractors(fetchedDataContractors);
 
-        console.log(initialData);
-
-        if (initialData) {
+        if (initialData && Array.isArray(initialData)) {
           const formatData = await Promise.all(
             Array.isArray(initialData) &&
               initialData.map(async (item) => {
@@ -1372,7 +1369,6 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.worker : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        {console.log("dataChangeSquad", dataSqaads)}
                         {dataChangeSquad ? (
                           dataSqaads.length > 0 ? (
                             <>
