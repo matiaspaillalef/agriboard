@@ -1410,7 +1410,7 @@ const CardTableManualHarvesting = ({
                         ) : dataWorkers && dataWorkers.length > 0 ? (
                           <>
                             <option value="">Elige cosechero</option>
-                            {dataWorkers.map((worker) =>
+                            {Array.isArray(dataWorkers) && dataWorkers.map((worker) =>
                               worker.status !== 0 ? (
                                 <option key={worker.id} value={worker.id}>
                                   {worker.name + " " + worker.lastname}
