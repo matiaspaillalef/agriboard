@@ -716,7 +716,7 @@ export const deleteShift = async (id) => {
 
 //Management People - Workers
 export const getDataWorkers = async (id_company) => {
-  console.log('ID de la empresa:', id_company);
+  //console.log('ID de la empresa:', id_company);
   try {
     const response = await fetch(
       `${URLAPI}/api/v1/management-people/workers/getWorkers/${id_company}`,
@@ -733,7 +733,7 @@ export const getDataWorkers = async (id_company) => {
     if (response.ok) {
       const workersData = await response.json();
 
-      console.log('Datos de los trabajadores:', workersData);
+      //console.log('Datos de los trabajadores:', workersData);
       if (workersData.code === "OK") {
         return workersData.workers;
       } else {
