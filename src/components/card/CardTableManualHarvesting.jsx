@@ -1369,8 +1369,9 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.worker : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
+ 
                         {dataChangeSquad ? (
-                          dataSqaads.length > 0 ? (
+                          Array.isArray(dataSqaads) && dataSqaads.length > 0 ? (
                             <>
                               <option value="">Elige cosechero</option>
                               {dataSqaads
