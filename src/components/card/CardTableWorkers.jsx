@@ -350,7 +350,6 @@ const CardTableWorkers = ({
   };
 
   const handleOpenEditUser = (user) => {
-    console.log(user);
     setRutValido(true); //Se pasa en true ya que si leventa la ventada de editar es por que los datos ya fueron validados
     setOpenShowUser(false);
     setSelectedRegion(user.state);
@@ -1495,6 +1494,7 @@ const CardTableWorkers = ({
                       </select>
                     </div>
 
+                    {/*
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="squad"
@@ -1525,6 +1525,7 @@ const CardTableWorkers = ({
                         )}
                       </select>
                     </div>
+                    */}
 
                     <div className="flex flex-col gap-3">
                       <label

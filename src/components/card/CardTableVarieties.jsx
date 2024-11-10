@@ -562,7 +562,7 @@ const CardTableGround = ({
                     />
                   </div>
 
-                  {/*-
+                  {/* 
                   <div className="flex flex-col gap-3">
                     <label
                       htmlFor="species_id"
@@ -588,11 +588,7 @@ const CardTableGround = ({
                       })}
                     </select>
                   </div>
-
-                  */}
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                */}
 
                   <div className="flex flex-col gap-3">
                     <label
