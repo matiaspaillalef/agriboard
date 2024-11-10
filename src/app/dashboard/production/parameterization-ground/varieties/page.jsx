@@ -86,7 +86,7 @@ const ProductionVarieties = () => {
                 actions={true}
                 companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
                 datosCompanies={dataCompanies}
-                omitirColumns={["id", "company_id"]}
+                omitirColumns={["id", "company_id", "species_id"]}
               />
             </div>
           </div>

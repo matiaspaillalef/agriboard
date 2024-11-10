@@ -114,7 +114,7 @@ const Sidebar = ({ open, onClose }) => {
 
     <div id="sidenav" className={`sm:none duration-175 linear fixed !z-50 flex flex-col bg-blueTertiary pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 min-w-[300px] rounded-xl sm:left-0 md:left-[15px] top-1/2 translate-y-[-50%] translate-x-[-130%] ${open ? '!translate-x-0' : ''}`}>
       <span className="absolute top-4 right-4 block cursor-pointer xl:hidden" onClick={onClose}>
-        <HiX />
+        <HiX className="text-white"/>
       </span>
 
       <CustomImage companyID={selectedCompanyId} />

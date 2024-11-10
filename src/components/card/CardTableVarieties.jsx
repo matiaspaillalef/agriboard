@@ -24,7 +24,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { getDataVarieties, createVariety, updateVariety, deleteVariety } from "@/app/api/ProductionApi";
+import { getDataVarieties, createVariety, updateVariety, deleteVariety, getDataSpecies } from "@/app/api/ProductionApi";
 
 const CardTableGround = ({
   data,
@@ -69,7 +69,7 @@ const CardTableGround = ({
 
   const [rol, setRol] = useState(""); // control de item por rol
 
-
+  const [dataSpecies, setDataSpecies] = useState([]);
 
   const [openAlert, setOpenAlert] = useState(false);
 
@@ -109,17 +109,23 @@ const CardTableGround = ({
       if (!data || !data.id) {
         throw new Error("Los datos para actualizar son inválidos o incompletos.");
       }
-  
+
       const updateItemApi = await updateVariety(data);
       const dataNew = await getDataVarieties(companyID);
-  
+
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
           item.id === Number(data.id) ? { ...item, ...data } : item
         );
-  
-        //Le coloque Number por que llega como string y debe ser number
-  
+
+        /*const dataSpecies = await getDataSpecies(companyID);
+
+        console.log('dataspecie', dataSpecies);
+        
+        if (dataSpecies) {
+          dataSpecies.filter((item) => item.id === data.species_id);
+        }*/
+
         setInitialData(updatedList);
         setInitialData(dataNew);
         setUpdateMessage("Registro actualizado correctamente");
@@ -177,7 +183,7 @@ const CardTableGround = ({
         name: data.name.trim(), // Elimina espacios en blanco alrededor
         company_id: Number(data.company_id) || null, // Convierte a número
         status: data.status.trim() // Elimina espacios en blanco alrededor
-    };
+      };
 
       const createItem = await createVariety(transformedData);
       const dataNew = await getDataVarieties(companyID);
@@ -189,7 +195,7 @@ const CardTableGround = ({
         setInitialData(dataNew); //Actualizamos la visualizacion pero con el id, quizas sea necesario quitar el de ahi arriba
         setOpen(false);
         setUpdateMessage("Registro creado correctamente");
-        
+
       } else {
         setUpdateMessage(createItem || "No se pudo crear el registro");
       }
@@ -216,6 +222,15 @@ const CardTableGround = ({
     }
   }, [data]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const dataSpecies = await getDataSpecies(companyID);
+      setDataSpecies(dataSpecies);
+    };
+
+    fetchData();
+  }, [companyID]);
+
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
     const filteredData = data.filter((item) =>
@@ -237,7 +252,7 @@ const CardTableGround = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -245,9 +260,8 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -273,9 +287,8 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -331,9 +344,8 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -370,11 +382,10 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                              index % 2 !== 0
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0
                                 ? "bg-lightPrimary dark:bg-navy-900"
                                 : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
@@ -387,12 +398,12 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
                                     Inactivo
                                   </p>
                                 )
-                              ) 
-                              
-                              : key === "ground"  ?  dataGround.find((ground) => ground.id === row[key])?.name
+                              )
 
-                              : (formatNumber(row[key]))
-                               }
+                                : key === "ground" ? dataGround.find((ground) => ground.id === row[key])?.name
+
+                                  : (formatNumber(row[key]))
+                              }
                             </div>
                           </td>
                         );
@@ -400,11 +411,10 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
                       {actions && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
-                            index % 2 !== 0
+                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          }`}
+                            }`}
                         >
                           <button
                             type="button"
@@ -455,9 +465,8 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
               <div className="flex items-center gap-5">
                 <button
                   type="button"
-                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                    currentPage === 1 && "hidden"
-                  }`}
+                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                    }`}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
@@ -467,11 +476,10 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
                   <button
                     key={page}
                     type="button"
-                    className={`${
-                      currentPage === page
+                    className={`${currentPage === page
                         ? "font-semibold text-navy-500 dark:text-navy-300"
                         : ""
-                    }`}
+                      }`}
                     onClick={() => handlePageChange(page)}
                   >
                     {page}
@@ -530,11 +538,10 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
                   defaultValue={selectedItem ? selectedItem.id : ""}
                 />
                 <div
-                  className={`mb-3 grid gap-3 ${
-                    isEdit
+                  className={`mb-3 grid gap-3 ${isEdit
                       ? "grid-cols-2 lg:grid-cols-2"
                       : "grid-cols-12 lg:grid-cols-2"
-                  } `}
+                    } `}
                 ></div>
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <div className="flex flex-col gap-3 ">
@@ -555,6 +562,37 @@ const currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
                     />
                   </div>
 
+                  {/*-
+                  <div className="flex flex-col gap-3">
+                    <label
+                      htmlFor="species_id"
+                      className="text-sm font-semibold text-gray-800 dark:text-white"
+                    >
+                      Especie
+                    </label>
+            
+                    <select
+                      name="species_id"
+                      id="species_id"
+                      required={true}
+                      {...register("species_id")}
+                      defaultValue={selectedItem ? selectedItem.species_id : ""}
+                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                    >
+                      {Array.isArray(dataSpecies) && dataSpecies.map((variedades, index) => {
+                        return (
+                          <option key={index} value={variedades.id}>
+                            {variedades.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  */}
+                </div>
+
+                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
 
                   <div className="flex flex-col gap-3">
                     <label

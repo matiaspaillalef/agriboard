@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import * as XLSX from "xlsx";
-import { useForm } from "react-hook-form";
+import { get, useForm } from "react-hook-form";
 import Link from "next/link";
 import "@/assets/css/Table.css";
 import {
@@ -37,6 +37,12 @@ import {
   getDataShifts,
 } from "@/app/api/ManagementPeople";
 
+import {
+  deleteUser,
+  getDataUser,
+  createUser,
+} from "@/app/api/ConfiguracionApi";
+
 import { ProvitionalCL } from "@/app/data/dataSalud";
 import { dataBank, dataAccountType } from "@/app/data/dataBank";
 import { dataSalud } from "@/app/data/dataSalud";
@@ -46,6 +52,7 @@ import Rut from "@/components/validateRUT";
 import { StateCL } from "@/app/data/dataStates";
 import { set } from "date-fns";
 import { shift, values } from "xlsx-populate/lib/colorIndexes";
+import Checkbox from "../checkbox";
 
 const CardTableWorkers = ({
   data,
@@ -343,6 +350,7 @@ const CardTableWorkers = ({
   };
 
   const handleOpenEditUser = (user) => {
+    console.log(user);
     setRutValido(true); //Se pasa en true ya que si leventa la ventada de editar es por que los datos ya fueron validados
     setOpenShowUser(false);
     setSelectedRegion(user.state);
@@ -359,73 +367,104 @@ const CardTableWorkers = ({
   };
 
   const onUpdateItem = async (data) => {
-    //console.log(data);
-
     try {
-        const transformedData = {
-            id: Number(data.id), // Esto debería funcionar bien
-            rut: data.rut,
-            name: data.name,
-            lastname: data.lastname,
-            lastname2: data.lastname2,
-            born_date: data.born_date,
-            gender: data.gender,
-            state_civil: data.state_civil,
-            state: data.state,
-            city: data.city,
-            address: data.address,
-            phone: data.phone,
-            email: data.email,
-            date_admission: data.date_admission,
-            status: Number(data.status), // Convertir a   número
-            position: isNaN(Number(data.position)) ? null : Number(data.position),
-            contractor: isNaN(Number(data.contractor)) ? null : Number(data.contractor),
-            squad: isNaN(Number(data.squad)) ? null : Number(data.squad),
-            leader_squad: isNaN(Number(data.leader_squad)) ? null : Number(data.leader_squad),
-            shift: isNaN(Number(data.shift)) ? null : Number(data.shift),
-            wristband: data.wristband,
-            observation: data.observation || null, // Convertir vacío a null
-            bank: data.bank,
-            account_type: data.account_type,
-            account_number: data.account_number,
-            afp: data.afp,
-            health: data.health,
-            company_id: isNaN(Number(data.company_id)) ? null : Number(data.company_id),
-        };
+      // Transformamos los datos que recibimos para enviarlos correctamente
+      const transformedData = {
+        id: Number(data.id), // Aseguramos que el ID sea un número
+        rut: data.rut,
+        name: data.name,
+        lastname: data.lastname,
+        lastname2: data.lastname2,
+        born_date: data.born_date,
+        gender: data.gender,
+        state_civil: data.state_civil,
+        state: data.state,
+        city: data.city,
+        address: data.address,
+        phone: data.phone,
+        email: data.email,
+        date_admission: data.date_admission,
+        status: Number(data.status), // Convertimos a número
+        position: isNaN(Number(data.position)) ? null : Number(data.position),
+        contractor: isNaN(Number(data.contractor)) ? null : Number(data.contractor),
+        squad: isNaN(Number(data.squad)) ? null : Number(data.squad),
+        leader_squad: isNaN(Number(data.leader_squad)) ? null : Number(data.leader_squad),
+        shift: isNaN(Number(data.shift)) ? null : Number(data.shift),
+        wristband: data.wristband,
+        observation: data.observation || null, // Si está vacío, lo ponemos como null
+        bank: data.bank,
+        account_type: data.account_type,
+        account_number: data.account_number,
+        afp: data.afp,
+        health: data.health,
+        company_id: isNaN(Number(data.company_id)) ? null : Number(data.company_id),
+        is_weigher: data.is_weigher == false ? 0 : 1, // Convertimos `is_weigher` a 1 o 0
+      };
+  
+      // Llamada a la API para actualizar el trabajador
+      const updateWorkerApi = await updateWorker(transformedData);
 
-        
-        // Verificar los valores antes de enviar
-        //console.log("Datos transformados antes de enviar:", transformedData);
-
-        const updateWorkerApi = await updateWorker(transformedData);
-
-        if (updateWorkerApi.code === "OK") {
-            const newFetchData = await getDataWorkers(companyID);
-
-            const updatedData = initialData.map((item) =>
-                item.id == transformedData.id ? { ...transformedData } : item
-            );
-
-            setInitialData(updatedData);
-            setUpdateMessage("Trabajador actualizado correctamente");
-            setOpen(false);
+      // Si la respuesta es exitosa
+      if (updateWorkerApi.code === "OK") {
+        // Recargamos los datos actualizados de los trabajadores
+        const newFetchData = await getDataWorkers(companyID);
+  
+        // Actualizamos la lista de trabajadores en el estado
+        const updatedData = initialData.map((item) =>
+          item.id == transformedData.id ? { ...transformedData } : item
+        );
+        setInitialData(updatedData);
+        setUpdateMessage("Trabajador actualizado correctamente");
+  
+        // Si el trabajador es un pesador, creamos un usuario
+        if (transformedData.is_weigher == 1) {
+          const formatRutPass = (rut) => {
+            // Formateamos el RUT para quitar puntos y guiones
+            return rut ? rut.replace(/\./g, '').replace('-', '') : '123456'; // Valor por defecto si no hay RUT
+          };
+  
+          const dataWeigher = {
+            name: transformedData.name,
+            lastname: transformedData.lastname,
+            mail: transformedData.email,
+            id_rol: 6, // Asignamos el rol de pesador (ID 6)
+            password: formatRutPass(transformedData.rut), // Usamos el RUT como contraseña
+            id_state: 1, // Estado activo
+            id_company: transformedData.company_id,
+          };
+  
+          // Creamos al usuario
+          const updateUser = await createUser(dataWeigher);
         } else {
-            setUpdateMessage(
-                updateWorkerApi.mensaje
-                    ? updateWorkerApi.mensaje
-                    : "No se pudo actualizar al trabajador"
-            );
+          // Si no es pesador, buscamos al usuario y lo eliminamos
+          const getUserData = await getDataUser();
+          const userToDelete = getUserData.usuarios.find((user) => user.mail == transformedData.email);
+  
+          if (userToDelete) {
+            const updateDeleteUser = await deleteUser(userToDelete.id); // Eliminamos el usuario si existe
+          }
         }
+  
+        // Cerramos el modal o el formulario de edición
+        setOpen(false);
+  
+      } else {
+        // Si no fue posible actualizar, mostramos el mensaje de error
+        setUpdateMessage(
+          updateWorkerApi.mensaje
+            ? updateWorkerApi.mensaje
+            : "No se pudo actualizar al trabajador"
+        );
+      }
     } catch (error) {
-        console.error(error);
-        setUpdateMessage("Error al intentar actualizar al trabajador");
+      console.error(error);
+      setUpdateMessage("Error al intentar actualizar al trabajador");
     }
-};
+  };
+  
 
-
-
-  const handleOpenAlert = (index, id, name, lastname) => {
-    setItemToDelete({ index, id, name, lastname });
+  const handleOpenAlert = (index, id, name, lastname, email) => {
+    setItemToDelete({ index, id, name, lastname, email });
     setOpenAlert(true);
   };
 
@@ -435,19 +474,36 @@ const CardTableWorkers = ({
   };
 
   const handlerRemove = async () => {
-    const { index, id } = itemToDelete;
+    const { index, id, email } = itemToDelete;
 
     try {
       //if (userConfirmed) {
       const deleteWorker = await deleteWorkerApi(id);
+      const userData = await getDataUser();
 
       // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteWorker === "OK") {
+      if (deleteWorker == "OK") {
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
         setOpenAlert(false);
         setUpdateMessage("Trabajador eliminado correctamente");
+        
+
+        if(userData.code == "OK"){
+                const userToDelete = userData.usuarios.find((user) => user.mail == email);
+        
+                if(userToDelete){
+                  const deleteUserApi = await deleteUser(userToDelete.id);
+                  //console.log(deleteUserApi);
+                  /*if(deleteUserApi.code == "OK"){
+                    console.log("Usuario eliminado correctamente");
+                  }else{
+                    console.log("Error al eliminar usuario");
+                  }*/
+        }
+
+      }
       } else {
         setUpdateMessage(
           "Error al eliminar al trabajador. Inténtalo nuevamente."
@@ -462,6 +518,7 @@ const CardTableWorkers = ({
 
   // Creación
   const onSubmitForm = async (data) => {
+
     //Remove ID
     delete data.id;
 
@@ -470,6 +527,7 @@ const CardTableWorkers = ({
       phone: data.phone ? "+56" + data.phone : "",
       phone_company: data.phone_company ? "+56" + data.phone_company : "",
       //company_id: companyID,
+      is_weigher: data.is_weigher == false ? 0 : 1,
     };
 
     try {
@@ -479,6 +537,26 @@ const CardTableWorkers = ({
         const updatedData = [...initialData, newData]; // Agregar el nuevo usuario a la lista de datos existente
 
         setInitialData(updatedData);
+
+        if (data.is_weigher == 1) {
+
+          const formatRutPass = (rut) => {
+            return rut.replace(/\./g, '').replace('-', '');
+          };
+
+          const dataWeigher = {
+            name: data.name,
+            lastname: data.lastname,
+            mail: data.email,
+            id_rol: 6, //Asignamos rol de pesador ID 6
+            password: formatRutPass(data.rut), //Formateamos el rut para asignar como contraseña
+            id_state: 1,
+            id_company: data.company_id,
+          };
+
+          const createWeigher = await createUser(dataWeigher);
+
+        }
 
         const newDataFetch = await getDataWorkers(companyID);
         //console.log(newDataFetch);
@@ -640,6 +718,7 @@ const CardTableWorkers = ({
       Nombre: item.name,
       Apellido: item.lastname,
       "Apellido materno": item.lastname2,
+      "Pesador": item.weigher == 1 ? "Sí" : "No",
       "Fecha de nacimiento": formatDateToInput(item.born_date),
       Género: item.gender,
       "Estado civil": item.state_civil,
@@ -671,9 +750,8 @@ const CardTableWorkers = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -708,9 +786,8 @@ const CardTableWorkers = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -719,7 +796,6 @@ const CardTableWorkers = ({
             )}
 
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {console.log("initialData", exportData)}
               {Array.isArray(initialData) &&
                 initialData.length > 0 &&
                 downloadBtn && (
@@ -767,9 +843,8 @@ const CardTableWorkers = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -804,11 +879,10 @@ const CardTableWorkers = ({
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                              index % 2 !== 0
+                            className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                                 ? "bg-lightPrimary dark:bg-navy-900"
                                 : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
@@ -841,11 +915,10 @@ const CardTableWorkers = ({
                       {actions && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                            index % 2 !== 0
+                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          }`}
+                            }`}
                         >
                           <Tooltip
                             placement="bottom"
@@ -889,7 +962,8 @@ const CardTableWorkers = ({
                                   index,
                                   row.id,
                                   row.name ? row.name : "",
-                                  row.lastname ? row.lastname : ""
+                                  row.lastname ? row.lastname : "",
+                                  row.email ? row.email : ""
                                 );
                               }}
                             >
@@ -923,9 +997,8 @@ const CardTableWorkers = ({
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -935,11 +1008,10 @@ const CardTableWorkers = ({
                     <button
                       key={page}
                       type="button"
-                      className={`${
-                        currentPage === page
+                      className={`${currentPage === page
                           ? "font-semibold text-navy-500 dark:text-navy-300"
                           : ""
-                      }`}
+                        }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -975,8 +1047,8 @@ const CardTableWorkers = ({
               {openShowUser
                 ? "Datos del trabajador"
                 : isEdit
-                ? "Editar trabajador"
-                : "Nuevo trabajador"}
+                  ? "Editar trabajador"
+                  : "Nuevo trabajador"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -991,6 +1063,30 @@ const CardTableWorkers = ({
                     defaultValue={selectedItem ? selectedItem.id : ""}
                   />
                   <h3 className="font-bold my-4">Información personal</h3>
+
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                    <div className="flex flex-col gap-3 bg-blueTertiary dark:bg-brandLinear p-5 rounded-md">
+                      <div className="flex gap-3 ">
+                        <input
+                          type="checkbox"
+                          id="is_weigher"
+                          name="is_weigher"
+                          {...register("is_weigher")}
+                          className="rounded-sm"
+                          defaultChecked={selectedItem ? Number(selectedItem.is_weigher) : 0}
+                        />
+                        <label
+                          htmlFor="is_weigher"
+                          className="text-sm font-semibold text-white"
+                        >
+                          {selectedItem && Number(selectedItem.is_weigher) ? "Desactivar como pesador" : "Activar como pesador"}
+                        </label>
+                      </div>
+                      <p className="text-xs text-white">
+                        {selectedItem && Number(selectedItem.is_weigher) ? "Si desactiva esta opción, el trabajador no podrá realizar pesajes en la pesa." : "Si activa esta opción, el trabajador podrá realizar pesajes en la pesa y con ello ingresar al sistema."}
+                      </p>
+                    </div>
+                  </div>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-col gap-3 ">
                       <label
@@ -1105,7 +1201,7 @@ const CardTableWorkers = ({
                               : ""
                           }
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                          //onChange={handleDateChange}
+                        //onChange={handleDateChange}
                         />
                       </div>
                     </div>
@@ -1352,7 +1448,7 @@ const CardTableWorkers = ({
                       >
                         <option value="">Selecciona un cargo</option>
                         {Array.isArray(dataPosition) &&
-                        dataPosition.length > 0 ? (
+                          dataPosition.length > 0 ? (
                           dataPosition.map((position) => (
                             <option key={position.id} value={position.id}>
                               {position.name}
@@ -1385,7 +1481,7 @@ const CardTableWorkers = ({
                       >
                         <option value="">Selecciona un contratista</option>
                         {Array.isArray(dataContractor) &&
-                        dataContractor.length > 0 ? (
+                          dataContractor.length > 0 ? (
                           dataContractor.map((contractor) => (
                             <option key={contractor.id} value={contractor.id}>
                               {contractor.name}
@@ -1406,7 +1502,6 @@ const CardTableWorkers = ({
                       >
                         Cuadrilla
                       </label>
-                      {console.log("squad", dataSquad)}
                       <select
                         name="squad"
                         id="squad"
@@ -1696,11 +1791,17 @@ const CardTableWorkers = ({
                 </form>
               ) : (
                 <div className="flex flex-col gap-3">
+
                   <p className="text-md font-semibold text-gray-800 dark:text-white">
                     <strong>
                       {selectedItem.name || "-"} {selectedItem.lastname || "-"}{" "}
                       {selectedItem.lastname2 || "-"}
                     </strong>
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Rol:</strong>
+                    {selectedItem.is_weigher == 1 ? "Pesador" : "Trabajador"}
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
@@ -1711,8 +1812,8 @@ const CardTableWorkers = ({
                     <strong>Fecha de nacimiento:</strong>
                     {selectedItem.born_date
                       ? formatDateView(
-                          formatDateToInput(selectedItem.born_date)
-                        )
+                        formatDateToInput(selectedItem.born_date)
+                      )
                       : "Fecha no registrada"}
                   </p>
 
@@ -1801,8 +1902,8 @@ const CardTableWorkers = ({
                     <strong>Cargo:</strong>{" "}
                     {Array.isArray(dataPosition) && dataPosition
                       ? dataPosition.find(
-                          (position) => position.id == selectedItem.position
-                        )?.name || "-"
+                        (position) => position.id == selectedItem.position
+                      )?.name || "-"
                       : "-"}
                   </p>
 
@@ -1810,9 +1911,9 @@ const CardTableWorkers = ({
                     <strong>Contratista:</strong>{" "}
                     {Array.isArray(dataContractor) && dataContractor
                       ? dataContractor.find(
-                          (contractor) =>
-                            contractor.id == selectedItem.contractor
-                        )?.name || "-"
+                        (contractor) =>
+                          contractor.id == selectedItem.contractor
+                      )?.name || "-"
                       : "-"}
                   </p>
 
@@ -1820,8 +1921,8 @@ const CardTableWorkers = ({
                     <strong>Cuadrilla:</strong>{" "}
                     {Array.isArray(dataSquad) && dataSquad
                       ? dataSquad.find(
-                          (squad) => squad.id == selectedItem.squad
-                        )?.name || "-"
+                        (squad) => squad.id == selectedItem.squad
+                      )?.name || "-"
                       : "-"}
                   </p>
 
@@ -1834,8 +1935,8 @@ const CardTableWorkers = ({
                     <strong>Turno:</strong>{" "}
                     {Array.isArray(dataShift) && dataShift
                       ? dataShift.find(
-                          (shift) => shift.id == selectedItem.shift
-                        )?.name || "-"
+                        (shift) => shift.id == selectedItem.shift
+                      )?.name || "-"
                       : "-"}
                   </p>
 
@@ -1854,7 +1955,7 @@ const CardTableWorkers = ({
                     <strong>Banco:</strong>
                     {dataBank
                       ? dataBank.find((bank) => bank.bank == selectedItem.bank)
-                          ?.bank || "-"
+                        ?.bank || "-"
                       : "-"}
                   </p>
 
@@ -1862,9 +1963,9 @@ const CardTableWorkers = ({
                     <strong>Tipo de cuenta:</strong>{" "}
                     {dataAccountType
                       ? dataAccountType.find(
-                          (accountType) =>
-                            accountType.accountType == selectedItem.account_type
-                        )?.accountType || "-"
+                        (accountType) =>
+                          accountType.accountType == selectedItem.account_type
+                      )?.accountType || "-"
                       : "-"}
                   </p>
 
@@ -1877,7 +1978,7 @@ const CardTableWorkers = ({
                     <strong>AFP:</strong>
                     {dataAFP && selectedItem.afp
                       ? dataAFP.find((afp) => afp.afp == selectedItem.afp)
-                          ?.afp || "-"
+                        ?.afp || "-"
                       : "-"}
                   </p>
 
@@ -1885,8 +1986,8 @@ const CardTableWorkers = ({
                     <strong>Previsión:</strong>{" "}
                     {dataSalud
                       ? dataSalud.find(
-                          (health) => health.salud == selectedItem.health
-                        )?.salud || "-"
+                        (health) => health.salud == selectedItem.health
+                      )?.salud || "-"
                       : "-"}
                   </p>
 
@@ -1987,9 +2088,8 @@ const CardTableWorkers = ({
               <button
                 type="button"
                 onClick={handleFileUpload}
-                className={`bg-green-600 text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-3 hover:bg-green-700 ${
-                  file == null && "disabled:opacity-75"
-                }`}
+                className={`bg-green-600 text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-3 hover:bg-green-700 ${file == null && "disabled:opacity-75"
+                  }`}
                 disabled={file == null}
               >
                 <ArrowUpOnSquareIcon className="w-5 h-5" /> Subir archivo

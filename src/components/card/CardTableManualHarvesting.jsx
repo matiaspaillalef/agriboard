@@ -115,6 +115,9 @@ const CardTableManualHarvesting = ({
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
+  const userDataString = sessionStorage.getItem("userData");
+  const userData = JSON.parse(userDataString);
+
   useEffect(() => {
     const handleNameItems = async () => {
       const ground = await getDataGround(companyID);
@@ -244,8 +247,6 @@ const CardTableManualHarvesting = ({
     setDataChangeSpecie(user.specie);
 
     //Cuando se habra el modal de edición valida si es un usuario con rol de administrador (1)
-    const userDataString = sessionStorage.getItem("userData");
-    const userData = JSON.parse(userDataString);
     const userRol = userData.rol;
 
     setRol(userRol);
@@ -857,7 +858,7 @@ const CardTableManualHarvesting = ({
                         );
                       })}
                     {/* Aquí se renderiza la columna Actions si actions es true */}
-                    {actions && (
+                    {actions && (userData.rol === 1 ||  userData.rol === 2) && (
                       <th
                         colSpan={1}
                         role="columnheader"
@@ -913,7 +914,7 @@ const CardTableManualHarvesting = ({
                           </td>
                         );
                       })}
-                      {actions && (
+                      {actions && (userData.rol === 1 ||  userData.rol === 2) && (
                         <td
                           colSpan={columnLabels.length}
                           className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
@@ -1690,44 +1691,19 @@ const CardTableManualHarvesting = ({
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        {dataChangeSquad ? (
-                          dataSqaads.length > 0 ? (
-                            <>
-                              <option value="">Elige pesador</option>
-                              {dataSqaads
-                                .filter((squad) => squad.id == dataChangeSquad)
-                                .map((squad) =>
-                                  JSON.parse(squad.workers).length > 0 ? (
-                                    JSON.parse(squad.workers).map(
-                                      (worker) =>
-                                        worker.status != 0 &&
-                                        dataWorkers
-                                          .filter(
-                                            (workerSelect) =>
-                                              workerSelect.id == worker
-                                          )
-                                          .map((workerSelect) => (
-                                            <option
-                                              key={workerSelect.id}
-                                              value={workerSelect.rut}
-                                            >
-                                              {workerSelect.name +
-                                                " " +
-                                                workerSelect.lastname}
-                                            </option>
-                                          ))
-                                    )
-                                  ) : (
-                                    <option value="">No hay pesadores</option>
-                                  )
-                                )}
-                            </>
-                          ) : (
-                            <option value="">No hay pesadores</option>
-                          )
-                        ) : (
-                          <option value="">No hay pesadores</option>
+                        {dataWorkers && dataWorkers.length > 0 && (
+                          <>
+                            <option value="">Elige pesador</option>
+                            {Array.isArray(dataWorkers) && dataWorkers.map((worker) =>
+                              worker.status !== 0 && worker.is_weigher == 1 ? (
+                                <option key={worker.id} value={worker.id}>
+                                  {worker.name + " " + worker.lastname}
+                                </option>
+                              ) : null
+                            )}
+                          </>
                         )}
+
                       </select>
                     </div>
 
