@@ -363,9 +363,8 @@ const CardTableSpecies = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -391,9 +390,8 @@ const CardTableSpecies = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -449,9 +447,8 @@ const CardTableSpecies = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -488,11 +485,10 @@ const CardTableSpecies = ({
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                              index % 2 !== 0
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0
                                 ? "bg-lightPrimary dark:bg-navy-900"
                                 : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
@@ -519,11 +515,10 @@ const CardTableSpecies = ({
                       {actions && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
-                            index % 2 !== 0
+                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          }`}
+                            }`}
                         >
                           <button
                             type="button"
@@ -601,9 +596,8 @@ const CardTableSpecies = ({
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -613,11 +607,10 @@ const CardTableSpecies = ({
                     <button
                       key={page}
                       type="button"
-                      className={`${
-                        currentPage === page
+                      className={`${currentPage === page
                           ? "font-semibold text-navy-500 dark:text-navy-300"
                           : ""
-                      }`}
+                        }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -652,8 +645,8 @@ const CardTableSpecies = ({
               {openShowUser
                 ? "Datos de la especie"
                 : isEdit
-                ? "Editar especie"
-                : "Nueva especie"}
+                  ? "Editar especie"
+                  : "Nueva especie"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -668,11 +661,10 @@ const CardTableSpecies = ({
                     defaultValue={selectedItem ? selectedItem.id : ""}
                   />
                   <div
-                    className={`mb-3 grid gap-3 ${
-                      isEdit
+                    className={`mb-3 grid gap-3 ${isEdit
                         ? "grid-cols-2 lg:grid-cols-2"
                         : "grid-cols-12 lg:grid-cols-2"
-                    } `}
+                      } `}
                   ></div>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                     <div className="flex flex-col gap-3 ">
@@ -702,8 +694,8 @@ const CardTableSpecies = ({
                         Variedades
                       </label>
 
-                      {Array.isArray(dataVarieties) &&  dataVarieties.map(
-                        (variety) =>
+                      {Array.isArray(dataVarieties) && dataVarieties.length > 0 ? (
+                        dataVarieties.map((variety) =>
                           variety.status == 1 && (
                             <div key={variety.id} className="flex items-center">
                               <input
@@ -712,9 +704,7 @@ const CardTableSpecies = ({
                                 name="varieties"
                                 value={variety.id}
                                 checked={selectedVarieties.includes(variety.id)}
-                                onChange={() =>
-                                  handleCheckboxChange(variety.id)
-                                }
+                                onChange={() => handleCheckboxChange(variety.id)}
                                 className="mr-2"
                               />
                               <label
@@ -725,6 +715,13 @@ const CardTableSpecies = ({
                               </label>
                             </div>
                           )
+                        )
+                      ) : (
+                        <div className="flex items-center bg-blueSecondary rounded-md p-2">
+                          <p className="text-sm text-white">
+                            Aún no tienes variedades creadas, por favor dirígete a variedades y crea todas las variedades que necesites, luego asignáselas a la especie.
+                          </p>
+                        </div>
                       )}
                     </div>
 
@@ -812,9 +809,8 @@ const CardTableSpecies = ({
               <button
                 type="button"
                 onClick={openAlert ? handlerRemove : handlerClone}
-                className={`${
-                  openAlert ? "bg-red-500" : "bg-blueTertiary"
-                } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
+                className={`${openAlert ? "bg-red-500" : "bg-blueTertiary"
+                  } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
               >
                 {openAlert ? (
                   <>
