@@ -528,6 +528,7 @@ export const createVariety = async (data) => {
 };
 
 export const updateVariety = async (data) => {
+  console.log(data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/updateVariety",
@@ -542,6 +543,7 @@ export const updateVariety = async (data) => {
           name: data.name,
           company_id: data.company_id,
           status: data.status,
+          //species_id: Number(data.species_id),
         }),
       }
     );

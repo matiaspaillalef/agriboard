@@ -98,6 +98,7 @@ const PeopleManagementWorkers = () => {
                   "contractor",
                   "email",
                   "company_id",
+                  "is_weigher"
                 ]}
                 downloadBtn={true}
                 SearchInput={true}

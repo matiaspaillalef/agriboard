@@ -97,7 +97,7 @@ export const createUser = async (data) => {
 };
 
 export const updateUser = async (data) => {
-  //console.log(data);
+  console.log(data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/usuarios/actualizarUsuarios",

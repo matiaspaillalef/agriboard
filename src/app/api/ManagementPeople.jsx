@@ -790,6 +790,7 @@ export const createWorker = async (data) => {
           afp: data.afp,
           health: data.health,
           company_id: Number(data.company_id),
+          is_weigher: Number(data.is_weigher),
         }),
         cache: "no-store",
       }
@@ -806,7 +807,6 @@ export const createWorker = async (data) => {
 }
 
 export const updateWorker = async (data) => {
-  //console.log('Datos enviados al backend:', data);
 
   try {
     const res = await fetch(
@@ -822,15 +822,11 @@ export const updateWorker = async (data) => {
       }
     );
 
-    console.log('Respuesta del backend:', res);
-
     if (res.ok) {
       const workerData = await res.json();
-      console.log('Datos del trabajador actualizado:', workerData);
       return workerData;
     } else {
       const errorData = await res.json();
-      console.error('Error en la respuesta del backend:', errorData);
       return errorData;
     }
   } catch (err) {
