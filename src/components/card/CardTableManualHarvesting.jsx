@@ -921,12 +921,17 @@ const CardTableManualHarvesting = ({
                                     Inactivo
                                   </p>
                                 )
-                              ) : key === "harvest_date" ? (
+                              ) : key === "harvest_date" || key === 'date_register' ? (
                                 formatDate(row[key]) // Formatea la fecha aquí
-                              ) : (
+                              ) :
+                              key === 'kg_boxes' || key === 'boxes' ? (
+                                formatNumber(row[key])
+                              ) :
+                              (
                                 getNameByKey(key, row[key]) ||
                                 formatNumber(row[key])
                               )}
+                             
                             </div>
                           </td>
                         );
@@ -1484,6 +1489,7 @@ const CardTableManualHarvesting = ({
                         id="harvest_date"
                         required={true}
                         {...register("harvest_date")}
+                        max={new Date().toISOString().split("T")[0]}
                         defaultValue={
                           
                           selectedItem ? formatDateForInput(selectedItem.harvest_date) : ""
