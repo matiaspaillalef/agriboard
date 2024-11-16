@@ -391,7 +391,7 @@ const CardTableSectorAttributes = ({
 
   const getNameByKey = (key, value) => {
     const data = dataMap[key];
-    return data?.find((item) => item.id === value)?.name || value;
+    return data?.find((item) => item.id === value)?.name || formatNumber(value);
   };
 
   const formatDate = (isoDate) => {
@@ -420,9 +420,8 @@ const CardTableSectorAttributes = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -448,9 +447,8 @@ const CardTableSectorAttributes = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -506,9 +504,8 @@ const CardTableSectorAttributes = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -531,138 +528,137 @@ const CardTableSectorAttributes = ({
                 </thead>
               )}
 
-<tbody role="rowgroup">
-  {Array.isArray(initialData) && initialData.length > 0 ? (
-    (() => {
-      const lastItem = initialData.reduce((max, current) => {
-        return current.id > max.id ? current : max;
-      }, initialData[0]);
+              <tbody role="rowgroup">
+                {Array.isArray(initialData) && initialData.length > 0 ? (
+                  (() => {
+                    const lastItem = initialData.reduce((max, current) => {
+                      return current.id > max.id ? current : max;
+                    }, initialData[0]);
 
-      const sortedItems = [...currentItems].sort((a, b) => b.id - a.id);
+                    const sortedItems = [...currentItems].sort((a, b) => b.id - a.id);
 
-      const itemsWithActiveSeason = sortedItems.filter((row) => {
-        const relatedSeason = dataSeasons.find((season) => season.id === row.season);
-        return relatedSeason && relatedSeason.status === 1;
-      });
+                    const itemsWithActiveSeason = sortedItems.filter((row) => {
+                      const relatedSeason = dataSeasons.find((season) => season.id === row.season);
+                      return relatedSeason && relatedSeason.status === 1;
+                    });
 
-      const hasActiveSeason = itemsWithActiveSeason.length > 0;
+                    const hasActiveSeason = itemsWithActiveSeason.length > 0;
 
-      return sortedItems.map((row, index) => {
-        const isLastItem = row.id === lastItem.id;
-        const relatedSeason = dataSeasons.find((season) => season.id === row.season);
-        const isActiveSeason = relatedSeason && relatedSeason.status === 1;
-        const showActions = isActiveSeason || (!hasActiveSeason && isLastItem);
+                    return sortedItems.map((row, index) => {
+                      const isLastItem = row.id === lastItem.id;
+                      const relatedSeason = dataSeasons.find((season) => season.id === row.season);
+                      const isActiveSeason = relatedSeason && relatedSeason.status === 1;
+                      const showActions = isActiveSeason || (!hasActiveSeason && isLastItem);
 
-        // Determina el estado (verde o rojo) dependiendo de si la temporada está activa o cerrada
-        const seasonStatusClass = isActiveSeason ? 'bg-lime-500 text-white' : 'bg-red-500 text-white';
-        const seasonStatusText = isActiveSeason ? 'Activo' : 'Cerrado';
+                      // Determina el estado (verde o rojo) dependiendo de si la temporada está activa o cerrada
+                      const seasonStatusClass = isActiveSeason ? 'bg-lime-500 text-white' : 'bg-red-500 text-white';
+                      const seasonStatusText = isActiveSeason ? 'Activo' : 'Cerrado';
 
-        return (
-          <tr key={index} role="row" className={isActiveSeason ? "activa" : "cerrada"}>
-            {/* Celda para mostrar el estado de la temporada (activo o cerrado) */}
-            <td
-              role="cell"
-              className={`pt-[14px] pb-3 text-[14px] px-5 min-w-auto ${
-                index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
-              } ${columnsClasses[index] || "text-left"}`}
-            >
-              <div   className={`flex items-center justify-center w-[20px] h-[20px] rounded-full bg-opacity-90 ${seasonStatusClass} animate-pulse pulse-animation`}>
-                <span className="text-base font-medium"></span>
-              </div>
-            </td>
+                      return (
+                        <tr key={index} role="row" className={isActiveSeason ? "activa" : "cerrada"}>
+                          {/* Celda para mostrar el estado de la temporada (activo o cerrado) */}
+                          <td
+                            role="cell"
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-auto ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
+                              } ${columnsClasses[index] || "text-left"}`}
+                          >
+                            <div className={`flex items-center justify-center w-[20px] h-[20px] rounded-full bg-opacity-90 ${seasonStatusClass} animate-pulse pulse-animation`}>
+                              <span className="text-base font-medium"></span>
+                            </div>
+                          </td>
 
-            {Object.keys(row).map((key, rowIndex) => {
-              if (omitirColumns.includes(key)) {
-                return null;
-              }
+                          {Object.keys(row).map((key, rowIndex) => {
+                            if (omitirColumns.includes(key)) {
+                              return null;
+                            }
 
-              return (
-                <td
-                  key={rowIndex}
-                  role="cell"
-                  className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                    index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
-                  } ${columnsClasses[rowIndex] || "text-left"}`}
-                >
-                  <div className="text-base font-medium text-navy-700 dark:text-white">
-                    {key === "status" ? (
-                      row[key] == 1 ? (
-                        <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                          Activo
-                        </p>
-                      ) : (
-                        <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                          Inactivo
-                        </p>
-                      )
-                    ) : key === "date" ? (
-                      formatDate(row[key])
-                    ) : key === "year_harvest" ? (
-                      extractYear(row[key])
-                    ) : (
-                      getNameByKey(key, row[key]) || formatNumber(row[key])
-                    )}
-                  </div>
-                </td>
-              );
-            })}
+                            return (
+                              <td
+                                key={rowIndex}
+                                role="cell"
+                                className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
+                                  } ${columnsClasses[rowIndex] || "text-left"}`}
+                              >
+                                <div className="text-base font-medium text-navy-700 dark:text-white">
+                                  {key === "status" ? (
+                                    row[key] == 1 ? (
+                                      <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                        Activo
+                                      </p>
+                                    ) : (
+                                      <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                        Inactivo
+                                      </p>
+                                    )
+                                  ) : key === "date" ? (
+                                    formatDate(row[key])
+                                  ) : key === "year_harvest" ? (
+                                    extractYear(row[key])
+                                  ): key === "date_register" ? (
+                                    formatDate(row[key])
+                                  ) : (
+                                    getNameByKey(key, row[key]) || formatNumber(row[key])
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
 
-            {actions && (
-              <td
-                colSpan={columnLabels.length}
-                className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
-                  index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
-                }`}
-              >
-                {showActions && (
-                  <>
-                    <button
-                      type="button"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                      onClick={() => handleOpenEditUser(row)}
-                    >
-                      <PencilSquareIcon className="w-6 h-6" />
-                    </button>
+                          {actions && (
+                            <td
+                              colSpan={columnLabels.length}
+                              className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
+                                }`}
+                            >
+                              {showActions && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="text-sm font-semibold text-gray-800 dark:text-white"
+                                    onClick={() => handleOpenEditUser(row)}
+                                  >
+                                    <PencilSquareIcon className="w-6 h-6" />
+                                  </button>
 
-                    <button
-                      type="button"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                      onClick={() => {
-                        handleCloneAlert(row.id);
-                      }}
-                    >
-                      <DocumentDuplicateIcon className="w-6 h-6" />
-                    </button>
-                  </>
+                                  <button
+                                    type="button"
+                                    className="text-sm font-semibold text-gray-800 dark:text-white"
+                                    onClick={() => {
+                                      handleCloneAlert(row.id);
+                                    }}
+                                  >
+                                    <DocumentDuplicateIcon className="w-6 h-6" />
+                                  </button>
+                                </>
+                              )}
+
+                              <button
+                                id="remove"
+                                type="button"
+                                onClick={() => {
+                                  handleOpenAlert(
+                                    index,
+                                    row.id,
+                                    row.sector ? getNameByKey("sector", row.sector) : ""
+                                  );
+                                }}
+                              >
+                                <TrashIcon className="w-6 h-6" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    });
+                  })()
+                ) : (
+                  <tr>
+                    <td className="py-4" colSpan={4}>
+                      No se encontraron registros.
+                    </td>
+                  </tr>
                 )}
-
-                <button
-                  id="remove"
-                  type="button"
-                  onClick={() => {
-                    handleOpenAlert(
-                      index,
-                      row.id,
-                      row.sector ? getNameByKey("sector", row.sector) : ""
-                    );
-                  }}
-                >
-                  <TrashIcon className="w-6 h-6" />
-                </button>
-              </td>
-            )}
-          </tr>
-        );
-      });
-    })()
-  ) : (
-    <tr>
-      <td className="py-4" colSpan={4}>
-        No se encontraron registros.
-      </td>
-    </tr>
-  )}
-</tbody>
+              </tbody>
 
             </table>
           </div>
@@ -683,9 +679,8 @@ const CardTableSectorAttributes = ({
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -695,11 +690,10 @@ const CardTableSectorAttributes = ({
                     <button
                       key={page}
                       type="button"
-                      className={`${
-                        currentPage === page
+                      className={`${currentPage === page
                           ? "font-semibold text-navy-500 dark:text-navy-300"
                           : ""
-                      }`}
+                        }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -734,8 +728,8 @@ const CardTableSectorAttributes = ({
               {openShowUser
                 ? "Datos del registro"
                 : isEdit
-                ? "Editar registro"
-                : "Nuevo registro"}
+                  ? "Editar registro"
+                  : "Nuevo registro"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -750,11 +744,10 @@ const CardTableSectorAttributes = ({
                     defaultValue={selectedItem ? selectedItem.id : ""}
                   />
                   <div
-                    className={`mb-3 grid gap-3 ${
-                      isEdit
+                    className={`mb-3 grid gap-3 ${isEdit
                         ? "grid-cols-2 lg:grid-cols-2"
                         : "grid-cols-12 lg:grid-cols-2"
-                    } `}
+                      } `}
                   ></div>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div className="flex flex-col gap-3">
@@ -773,7 +766,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSeasons) &&
-                        dataSeasons.length > 0 ? (
+                          dataSeasons.length > 0 ? (
                           (() => {
                             const activeSeasons = dataSeasons.filter(
                               (season) => season.status === 1
@@ -815,7 +808,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSectorBarracks) &&
-                        dataSectorBarracks.length > 0 ? (
+                          dataSectorBarracks.length > 0 ? (
                           dataSectorBarracks.map(
                             (sector) =>
                               sector.status != 0 && (
@@ -846,7 +839,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
+                          dataSpecies.length > 0 ? (
                           dataSpecies.map(
                             (specie) =>
                               specie.status != 0 && (
@@ -877,7 +870,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
+                          dataSpecies.length > 0 ? (
                           dataVarieties.map(
                             (variety) =>
                               variety.status != 0 && (
@@ -1117,9 +1110,8 @@ const CardTableSectorAttributes = ({
               <button
                 type="button"
                 onClick={openAlert ? handlerRemove : handlerClone}
-                className={`${
-                  openAlert ? "bg-red-500" : "bg-blueTertiary"
-                } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
+                className={`${openAlert ? "bg-red-500" : "bg-blueTertiary"
+                  } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
               >
                 {openAlert ? (
                   <>
