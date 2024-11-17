@@ -118,6 +118,8 @@ const CardTableManualHarvesting = ({
   const userDataString = sessionStorage.getItem("userData");
   const userData = JSON.parse(userDataString);
 
+  const [disbledButton, setDisbledButton] = useState(false);
+
   useEffect(() => {
     const handleNameItems = async () => {
       const ground = await getDataGround(companyID);
@@ -514,6 +516,9 @@ const CardTableManualHarvesting = ({
       const dataNew = await getDataManualHarvesting(companyID);
 
       if (createItem === "OK") {
+
+        setDisbledButton(true);
+
         const updatedData = [...initialData, transformedData];
 
         setInitialData(updatedData);
@@ -527,6 +532,9 @@ const CardTableManualHarvesting = ({
     } catch (error) {
       console.error("Error al crear el registro:", error);
       setUpdateMessage("Error al intentar crear el registro");
+    }
+    finally {
+      setDisbledButton(false);
     }
   };
 
@@ -1321,6 +1329,7 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.squad : ""}
                         onChange={(e) => {
                           setDataChangeSquad(e.target.value);
+                          setDataChangeWorker("");
                         }}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
@@ -1329,7 +1338,7 @@ const CardTableManualHarvesting = ({
                           dataSqaads.map(
                             (squad) =>
                               squad.status != 0 && (
-                                <option key={squad.id} value={squad.id}>
+                                <option key={`option-${squad.id}`} value={squad.id}>
                                   {squad.name}
                                 </option>
                               )
@@ -1339,6 +1348,7 @@ const CardTableManualHarvesting = ({
                         )}
                       </select>
                     </div>
+
 
                     <div className="flex flex-col gap-3">
                       <label
@@ -1392,7 +1402,6 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.worker : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
- 
                         {dataChangeSquad ? (
                           Array.isArray(dataSqaads) && dataSqaads.length > 0 ? (
                             <>
@@ -1401,27 +1410,24 @@ const CardTableManualHarvesting = ({
                                 .filter((squad) => squad.id == dataChangeSquad)
                                 .map((squad) =>
                                   JSON.parse(squad.workers).length > 0 ? (
-                                    JSON.parse(squad.workers).map(
-                                      (worker) =>
-                                        worker.status != 0 &&
-                                        dataWorkers
-                                          .filter(
-                                            (workerSelect) =>
-                                              workerSelect.id == worker
-                                          )
-                                          .map((workerSelect) => (
-                                            <option
-                                              key={workerSelect.id}
-                                              value={workerSelect.id}
-                                            >
-                                              {workerSelect.name +
-                                                " " +
-                                                workerSelect.lastname}
-                                            </option>
-                                          ))
-                                    )
+                                    JSON.parse(squad.workers).map((worker) => {
+                                      const workerData = dataWorkers.find(
+                                        (workerSelect) => workerSelect.id == worker
+                                      );
+                                      return (
+                                        workerData &&
+                                        workerData.status != 0 && (
+                                          <option
+                                            key={`worker-option-${workerData.id}`}
+                                            value={workerData.id}
+                                          >
+                                            {workerData.name + " " + workerData.lastname}
+                                          </option>
+                                        )
+                                      );
+                                    })
                                   ) : (
-                                    <option value="">
+                                    <option key={`no-workers-${squad.id}`} value="">
                                       No hay trabajadores
                                     </option>
                                   )
@@ -1433,18 +1439,24 @@ const CardTableManualHarvesting = ({
                         ) : dataWorkers && dataWorkers.length > 0 ? (
                           <>
                             <option value="">Elige cosechero</option>
-                            {Array.isArray(dataWorkers) && dataWorkers.map((worker) =>
-                              worker.status !== 0 ? (
-                                <option key={worker.id} value={worker.id}>
-                                  {worker.name + " " + worker.lastname}
-                                </option>
-                              ) : null
-                            )}
+                            {Array.isArray(dataWorkers) &&
+                              dataWorkers.map((worker) =>
+                                worker.status !== 0 ? (
+                                  <option
+                                    key={`worker-option-${worker.id}`}
+                                    value={worker.id}
+                                  >
+                                    {worker.name + " " + worker.lastname}
+                                  </option>
+                                ) : null
+                              )}
                           </>
                         ) : (
                           <option value="">No hay trabajadores</option>
                         )}
                       </select>
+
+
                     </div>
 
                     <div className="flex flex-col gap-3">
@@ -1454,6 +1466,7 @@ const CardTableManualHarvesting = ({
                       >
                         Rut cosechero
                       </label>
+                      {console.log(dataChangeWorker)}
                       <input
                         type="text"
                         name="worker_rut"
@@ -1461,6 +1474,9 @@ const CardTableManualHarvesting = ({
                         required={true}
                         {...register("worker_rut")}
                         readOnly={true}
+
+                        
+
                         defaultValue={
                           selectedItem
                             ? selectedItem.worker_rut
@@ -1852,9 +1868,10 @@ const CardTableManualHarvesting = ({
                     <div className="flex flex-col gap-3">
                       <button
                         type="submit"
-                        className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+                        className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 disabled:bg-gray-400 cursor-not-allowed"
                         //onSubmit={onUpdateItem}
                         onSubmit={isEdit ? onUpdateItem : onSubmitForm}
+                        disabled={disbledButton}
                       >
                         {isEdit ? "Editar" : "Crear"}
                       </button>
