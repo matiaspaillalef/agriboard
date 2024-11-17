@@ -625,12 +625,17 @@ const CardTableManualHarvesting = ({
   const today = new Date().toISOString().split("T")[0];
 
   const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
-    const day = date.getDate();
-    const month = date.toLocaleString("default", { month: "long" });
-    const year = date.getFullYear();
 
-    return `${day} de ${month} de ${year}`;
+    let dateTime = new Date(isoDate);
+    
+
+    let day = String(dateTime.getUTCDate()).padStart(2, '0');
+    let month = String(dateTime.getUTCMonth() + 1).padStart(2, '0');
+    let year = dateTime.getUTCFullYear();
+
+    let formattedDate = `${day}-${month}-${year}`;
+
+    return `${formattedDate}`;
   };
 
   const formatDateSearch = (dateString) => {
@@ -639,8 +644,20 @@ const CardTableManualHarvesting = ({
   };
 
   function formatDateForInput(dateString) {
-    if (!dateString) return "";
-    return dateString.substring(0, 10);
+    
+    const date = new Date(dateString);
+    // Extrae la fecha en formato "YYYY-MM-DDTHH:MM"
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    // console.log(dateString);
+    // if (!dateString) return "";
+    // console.log("dateString" , dateString);
+    // return dateString.substring(0, 10);
   }
 
   //Exportar Excel datas de front
@@ -1467,16 +1484,15 @@ const CardTableManualHarvesting = ({
                         Fecha cosecha
                       </label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         name="harvest_date"
                         id="harvest_date"
                         required={true}
                         {...register("harvest_date")}
                         max={new Date().toISOString().split("T")[0]}
                         defaultValue={
-                          selectedItem
-                            ? formatDateForInput(selectedItem.harvest_date)
-                            : ""
+                          
+                          selectedItem ? formatDateForInput(selectedItem.harvest_date) : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
@@ -1902,6 +1918,10 @@ const CardTableManualHarvesting = ({
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Fecha cosecha:</strong>{" "}
                     {formatDate(selectedItem.harvest_date) || "-"}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Hora cosecha:</strong>{" "}
+                    {selectedItem.harvest_time || "-"}
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Especie:</strong>{" "}

@@ -266,12 +266,19 @@ const CardTableManualHarvesting = ({
   };
 
   const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
-    const day = date.getDate();
-    const month = date.toLocaleString("default", { month: "long" });
-    const year = date.getFullYear();
 
-    return `${day} de ${month} de ${year}`;
+    let dateTime = new Date(isoDate);
+    
+    console.log("fecha antes de formatear : " ,isoDate);
+    let day = String(dateTime.getDate()).padStart(2, '0');
+    let month = String(dateTime.getMonth() + 1).padStart(2, '0');
+    let year = dateTime.getFullYear();
+    let hours = String(dateTime.getHours()).padStart(2, '0');
+    let minutes = String(dateTime.getMinutes()).padStart(2, '0');
+
+    let formattedDate = `${day}-${month}-${year}   ${hours}:${minutes}`;
+    return formattedDate;
+    
   };
 
   const formatDateSearch = (dateString) => {
@@ -476,7 +483,7 @@ useEffect(() => {
       label: "Formato cosecha",
     },
     contractor: { checked: false, type: "select", label: "Contratista" },
-    date_register: { checked: false, type: "date", label: "Fecha captura" },
+    harvest_date: { checked: false, type: "date", label: "Fecha Cosecha" },
     weigher_rut: { checked: false, type: "select", label: "Pesador" },
     season: { checked: false, type: "select", label: "Temporada" },
     batch: { checked: false, type: "select", label: "Lote" },
@@ -575,7 +582,7 @@ useEffect(() => {
       return acc;
     }, {});
 
-    //console.log("Filtros con IDs:", filtrosConIds);
+    console.log("Filtros con IDs:", filtrosConIds);
 
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
@@ -695,6 +702,7 @@ useEffect(() => {
     contractor: "Contratista",
     weigher_rut: "Pesador",
     batch: "Lote",
+    harvest_date: "fecha Cosecha",
   };
 
   return (
@@ -1144,8 +1152,8 @@ useEffect(() => {
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Fecha registro:</strong>{" "}
-                    {selectedItem.date_register
-                      ? formatDate(selectedItem.date_register)
+                    {selectedItem.harvest_date
+                      ? formatDate(selectedItem.harvest_date)
                       : "-"}
                   </p>
                 </div>
