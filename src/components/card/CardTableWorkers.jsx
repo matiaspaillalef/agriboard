@@ -1494,7 +1494,7 @@ const CardTableWorkers = ({
                       </select>
                     </div>
 
-                    {/*
+                    {
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="squad"
@@ -1525,7 +1525,7 @@ const CardTableWorkers = ({
                         )}
                       </select>
                     </div>
-                    */}
+                    }
 
                     <div className="flex flex-col gap-3">
                       <label
