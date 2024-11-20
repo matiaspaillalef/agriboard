@@ -139,7 +139,7 @@ const CardTableUsers = ({
           }
         });
 
-        datosCompanies.forEach((value) => {
+        datosCompanies.companies.forEach((value) => {
           if (value.id == id_company) {
             userDataWithoutPassword = {
               ...userDataWithoutPassword,
@@ -167,12 +167,17 @@ const CardTableUsers = ({
         );
 
         setInitialData(updatedData);
-
         setUpdateMessage(updateUserApi.mensaje);
         setOpen(false);
       } else if (updateUserApi.code === "ERROR") {
         setUpdateMessage(updateUserApi.mensaje);
       }
+
+
+      
+
+
+
     } catch (error) {
       console.error(error);
       // Manejo de errores

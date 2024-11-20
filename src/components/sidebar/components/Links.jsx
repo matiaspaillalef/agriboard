@@ -71,44 +71,37 @@ const SidebarMenu = ({ pathname }) => {
         return (
           <li
             key={menuItem.id}
-            className={`relative mb-3 px-8 ${
-              subItemsVisible === menuItem.id
+            className={`relative mb-3 px-8 ${subItemsVisible === menuItem.id
                 ? "show_submenu"
                 : "hidden_submenu"
-            }`}
+              }`}
           >
             {menuItem.children ? (
               <>
                 <button
                   onClick={() => toggleSubItemsVisibility(menuItem.id)}
-                  className={`flex cursor-pointer items-center w-full pb-2 px-8 ${
-                    isCurrentPage(menuItem.url) ? "active bg-blueQuinary !py-4 rounded-md mb-2" : "no-active"
-                  }`}
+                  className={`flex cursor-pointer items-center w-full pb-2 px-8 ${isCurrentPage(menuItem.url) ? "active bg-blueQuinary !py-4 rounded-md mb-2" : "no-active"
+                    }`}
                 >
                   <span
-                    className={`font-medium text-blueQuinary ${
-                      subItemsVisible === menuItem.id &&
+                    className={`font-medium text-blueQuinary ${subItemsVisible === menuItem.id &&
                       "text-white dark:text-white"
-                    }`}
+                      }`}
                   >
-                    <IconComponent className={`w-6 h-6 ${
-                    isCurrentPage(menuItem.url) ? "text-white" : (subItemsVisible === menuItem.id && "text-blueQuinary")
-                  }`}/>
+                    <IconComponent className={`w-6 h-6 ${isCurrentPage(menuItem.url) ? "text-white" : (subItemsVisible === menuItem.id && "text-blueQuinary")
+                      }`} />
                   </span>
                   <p
-                    className={`leading-1 flex justify-between items-center ms-4 font-medium text-white w-full text-sm text-left hover:text-blueQuinary ${
-                      isCurrentPage(menuItem.url) && "text-navy-700 hover:!text-white"
-                    } ${
-                      subItemsVisible === menuItem.id &&
+                    className={`leading-1 flex justify-between items-center ms-4 font-medium text-white w-full text-sm text-left hover:text-blueQuinary ${isCurrentPage(menuItem.url) && "text-navy-700 hover:!text-white"
+                      } ${subItemsVisible === menuItem.id &&
                       "text-navy-700 dark:text-white"
-                    }`}
+                      }`}
                   >
                     {menuItem.name}{" "}
                     <ChevronDownIcon
-                      className={`w-4 h-4 ml-1 ${
-                        subItemsVisible === menuItem.id &&
+                      className={`w-4 h-4 ml-1 ${subItemsVisible === menuItem.id &&
                         "text-white dark:text-white"
-                      }`}
+                        }`}
                     />
                   </p>
                   {isCurrentPage(menuItem.url) && (
@@ -121,11 +114,10 @@ const SidebarMenu = ({ pathname }) => {
                     {menuItem.children.map((subItem) => (
                       <li
                         key={subItem.id}
-                        className={`mb-1 leading-8  ${
-                          grandSonItemsVisible === subItem.id
+                        className={`mb-1 leading-8  ${grandSonItemsVisible === subItem.id
                             ? "show_submenu"
                             : "hidden_submenu"
-                        }`}
+                          }`}
                       >
                         {subItem.children ? (
                           <>
@@ -136,10 +128,9 @@ const SidebarMenu = ({ pathname }) => {
                               className="flex cursor-pointer items-center w-full pb-2 px-8"
                             >
                               <p
-                                className={`leading-1 flex justify-between items-center font-medium text-white w-full text-sm text-left hover:text-blueQuinary ${
-                                  grandSonItemsVisible === subItem.id &&
+                                className={`leading-1 flex justify-between items-center font-medium text-white w-full text-sm text-left hover:text-blueQuinary ${grandSonItemsVisible === subItem.id &&
                                   "text-blueQuinary dark:text-white"
-                                }`}
+                                  }`}
                               >
                                 {subItem.name}{" "}
                                 <ChevronDownIcon className="w-4 h-4 ml-1" />
@@ -149,37 +140,34 @@ const SidebarMenu = ({ pathname }) => {
                             {grandSonItemsVisible === subItem.id &&
                               subItem.children && (
                                 <ul className="pl-[55px] rounded-[8px] bg-clip-border dark:text-white dark:shadow-none items-center ">
-                                  {subItem.children.map((grandSonItem) => (
-                                    <li
-                                      key={grandSonItem.id}
-                                      className="mb-1 leading-8"
-                                    >
-                                      <Link
-                                        href={grandSonItem.url}
-                                        className={`text-sm text-white hover:text-blueQuinary dark:hover:text-blueQuinary ${
-                                          isCurrentPage(grandSonItem.url)
-                                            ? "font-semibold !text-blueQuinary dark:text-white"
-                                            : ""
-                                        }`}
-                                      >
-                                        {grandSonItem.name}
-                                      </Link>
-                                      {isCurrentPage(grandSonItem.url) && (
-                                        <div className="absolute top-px h-9 w-1 rounded-lg bg-brand-500 end-0 dark:bg-brand-400"></div>
-                                      )}
-                                    </li>
-                                  ))}
+                                  {subItem.children
+                                    .filter((grandSonItem) => !(grandSonItem.id === 20 && userData.rol !== 1 && userData.rol !== 2)) // Oculta si id es 1 y userData.rol no es 1
+                                    .map((grandSonItem) => (
+                                      <li key={grandSonItem.id} className="mb-1 leading-8">
+                                        <Link
+                                          href={grandSonItem.url}
+                                          className={`text-sm text-white hover:text-blueQuinary dark:hover:text-blueQuinary ${isCurrentPage(grandSonItem.url)
+                                              ? "font-semibold !text-blueQuinary dark:text-white"
+                                              : ""
+                                            }`}
+                                        >
+                                          {grandSonItem.name}
+                                        </Link>
+                                        {isCurrentPage(grandSonItem.url) && (
+                                          <div className="absolute top-px h-9 w-1 rounded-lg bg-brand-500 end-0 dark:bg-brand-400"></div>
+                                        )}
+                                      </li>
+                                    ))}
                                 </ul>
                               )}
                           </>
                         ) : (
                           <Link
                             href={subItem.url}
-                            className={`flex cursor-pointer items-center w-full pb-2 px-8 text-sm text-left font-medium text-white hover:text-blueQuinary ${
-                              isCurrentPage(subItem.url)
+                            className={`flex cursor-pointer items-center w-full pb-2 px-8 text-sm text-left font-medium text-white hover:text-blueQuinary ${isCurrentPage(subItem.url)
                                 ? "font-semibold !text-blueQuinary dark:text-white"
                                 : ""
-                            }`}
+                              }`}
                           >
                             {subItem.name}
                           </Link>
@@ -192,21 +180,18 @@ const SidebarMenu = ({ pathname }) => {
             ) : (
               <Link
                 href={menuItem.url}
-                className={`flex hover:cursor-pointer items-center px-8 ${
-                  isCurrentPage(menuItem.url) ? "active bg-blueQuinary py-4 rounded-md" : "no-active"
-                }`}
+                className={`flex hover:cursor-pointer items-center px-8 ${isCurrentPage(menuItem.url) ? "active bg-blueQuinary py-4 rounded-md" : "no-active"
+                  }`}
               >
                 <span
-                  className={`font-medium text-blueQuinary ${
-                    isCurrentPage(menuItem.url) && "text-white"
-                  }`}
+                  className={`font-medium text-blueQuinary ${isCurrentPage(menuItem.url) && "text-white"
+                    }`}
                 >
                   <IconComponent className="w-6 h-6" />
                 </span>
                 <p
-                  className={`leading-1 flex ms-4 font-medium text-white text-sm text-left hover:text-blueQuinary ${
-                    isCurrentPage(menuItem.url) && "text-navy-700"
-                  }`}
+                  className={`leading-1 flex ms-4 font-medium text-white text-sm text-left hover:text-blueQuinary ${isCurrentPage(menuItem.url) && "text-navy-700"
+                    }`}
                 >
                   {menuItem.name}
                 </p>
