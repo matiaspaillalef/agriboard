@@ -1505,7 +1505,7 @@ const CardTableManualHarvesting = ({
                         id="harvest_date"
                         required={true}
                         {...register("harvest_date")}
-                        max={new Date().toISOString().split("T")[0]}
+                        max={new Date().toISOString().slice(0, 16)}
                         defaultValue={
                           
                           selectedItem ? formatDateForInput(selectedItem.harvest_date) : ""

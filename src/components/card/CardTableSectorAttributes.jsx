@@ -898,7 +898,7 @@ const CardTableSectorAttributes = ({
                         id="year_harvest"
                         placeholder="YYYY"
                         required={true}
-                        min="2018" // Cambia esto según tu rango de años permitido
+                        min="1980" // Cambia esto según tu rango de años permitido
                         max="2030" // Cambia esto según tu rango de años permitido
                         pattern="\d{4}" // Acepta solo 4 dígitos
                         {...register("year_harvest")}
@@ -934,7 +934,7 @@ const CardTableSectorAttributes = ({
                         htmlFor="on_ha"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Sobre Ha
+                        Sobre Hilera
                       </label>
                       <input
                         type="number"
@@ -952,7 +952,7 @@ const CardTableSectorAttributes = ({
                         htmlFor="between_ha"
                         className="text-sm font-semibold text-gray-800 dark:text-white"
                       >
-                        Entre Ha
+                        Entre Hilera
                       </label>
                       <input
                         type="number"

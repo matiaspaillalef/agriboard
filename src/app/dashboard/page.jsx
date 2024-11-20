@@ -135,6 +135,7 @@ const Dashboard = () => {
         setDataDispatchGuideDay(dataDispatchGuideDay);
         setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
         setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
+        console.log(dataVaritiesDay);
       } else {
         const grounds = await getDataGround(companyId);
 
@@ -357,7 +358,7 @@ useEffect(() => {
             },
             {
               id: 2,
-              name: "Semana",
+              name: "Cant. Rgistros",
               value: dataWorkersWeek?.workersWeek || 0,
             },
           ]}
@@ -368,11 +369,10 @@ useEffect(() => {
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
           <CardTable
             data={dataVaritiesDay}
-            thead="Variedad, Cantidad, Cajas"
+            thead="Variedad,Especie, Cantidad, Cajas"
             columnsClasses={[
               "text-left",
-              "text-right",
-              "text-right",
+              "text-left",
               "text-right",
               "text-right",
             ]}
