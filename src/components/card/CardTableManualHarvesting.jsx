@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
-import { get, set, useForm } from "react-hook-form";
+import { get, set, useForm, watch } from "react-hook-form";
 import "@/assets/css/Table.css";
 import {
   PlusIcon,
@@ -68,6 +68,8 @@ const CardTableManualHarvesting = ({
     register,
     handleSubmit,
     reset,
+    setValue,
+    getValues,
     formState: { errors },
   } = useForm();
 
@@ -98,6 +100,7 @@ const CardTableManualHarvesting = ({
   const [dataChangeSquad, setDataChangeSquad] = useState("");
   const [dataChangeWorker, setDataChangeWorker] = useState("");
   const [dataChangeSpecie, setDataChangeSpecie] = useState("");
+  const [dataChangeRut, setDataChangeRut] = useState("");
 
   const [dataGround, setDataGround] = useState([]);
   const [dataSector, setDataSector] = useState([]);
@@ -117,6 +120,7 @@ const CardTableManualHarvesting = ({
 
   const userDataString = sessionStorage.getItem("userData");
   const userData = JSON.parse(userDataString);
+  
 
   const [disbledButton, setDisbledButton] = useState(false);
 
@@ -635,7 +639,7 @@ const CardTableManualHarvesting = ({
   const formatDate = (isoDate) => {
 
     let dateTime = new Date(isoDate);
-    
+
 
     let day = String(dateTime.getUTCDate()).padStart(2, '0');
     let month = String(dateTime.getUTCMonth() + 1).padStart(2, '0');
@@ -652,7 +656,7 @@ const CardTableManualHarvesting = ({
   };
 
   function formatDateForInput(dateString) {
-    
+
     const date = new Date(dateString);
     // Extrae la fecha en formato "YYYY-MM-DDTHH:MM"
     const year = date.getFullYear();
@@ -660,7 +664,7 @@ const CardTableManualHarvesting = ({
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-  
+
     return `${year}-${month}-${day}T${hours}:${minutes}`;
     // console.log(dateString);
     // if (!dateString) return "";
@@ -712,62 +716,62 @@ const CardTableManualHarvesting = ({
         if (initialData && Array.isArray(initialData)) {
           const formatData = await Promise.all(
             Array.isArray(initialData) &&
-              initialData.map(async (item) => {
-                return {
-                  //Zona: item.zone,
-                  Campo: fetchedDataGround.grounds.find(
-                    (ground) => ground.id === item.ground
-                  )?.name,
-                  Sector: fetchedDataSector.find(
-                    (sector) => sector.id === item.sector
-                  )?.name,
-                  Cuadrilla: fetchedDataSquads.squads.find(
-                    (squad) => squad.id === item.squad
-                  )?.name,
-                  /*"Jefe cuadrilla": fetchedDataWorkers.find(
-                  (worker) => worker.id === item.squad_leader
-                )?.name,*/
-                  Lote: item.batch,
-                  Cosechero:
-                    fetchedDataWorkers.find(
-                      (worker) => worker.id === item.worker
-                    )?.name +
-                    " " +
-                    fetchedDataWorkers.find(
-                      (worker) => worker.id === item.worker
-                    )?.lastname,
-                  "RUT Cosechero": item.worker_rut,
-                  "Fecha cosecha": formatDate(item.harvest_date),
-                  Especie: fetchedDataSpecies.find(
-                    (specie) => specie.id === item.specie
-                  )?.name,
-                  Variedad: fetchedDataVarieties.find(
-                    (variety) => variety.id === item.variety
-                  )?.name,
-                  Cajas: item.boxes,
-                  "Kilos Caja": item.kg_boxes,
-                  Calidad: fetchedDataQuality.find(
-                    (quality) => quality.id === item.quality
-                  )?.name,
-                  /*Hilera: item.hilera,
-                "Formato cosecha": fetchedDataHarvestFormat.find(
-                  (format) => format.id === item.harvest_format
-                )?.name,*/
-                  "RUT Pesador": item.weigher_rut,
-                  Sincronizado: item.sync,
-                  "Fecha sincronización": item.sync_date,
-                  Temporada: fetchedDataSeasons.find(
-                    (season) => season.id === item.season
-                  )?.name,
-                  Turnos: item.turns,
-                  "Fecha registro": item.date_register,
-                  //Temp: item.temp,
-                  //Humedad: item.wet,
-                  Contratista: fetchedDataContractors.find(
-                    (contractor) => contractor.id === item.contractor
-                  )?.name,
-                };
-              })
+            initialData.map(async (item) => {
+              return {
+                //Zona: item.zone,
+                Campo: fetchedDataGround.grounds.find(
+                  (ground) => ground.id === item.ground
+                )?.name,
+                Sector: fetchedDataSector.find(
+                  (sector) => sector.id === item.sector
+                )?.name,
+                Cuadrilla: fetchedDataSquads.squads.find(
+                  (squad) => squad.id === item.squad
+                )?.name,
+                /*"Jefe cuadrilla": fetchedDataWorkers.find(
+                (worker) => worker.id === item.squad_leader
+              )?.name,*/
+                Lote: item.batch,
+                Cosechero:
+                  fetchedDataWorkers.find(
+                    (worker) => worker.id === item.worker
+                  )?.name +
+                  " " +
+                  fetchedDataWorkers.find(
+                    (worker) => worker.id === item.worker
+                  )?.lastname,
+                "RUT Cosechero": item.worker_rut,
+                "Fecha cosecha": formatDate(item.harvest_date),
+                Especie: fetchedDataSpecies.find(
+                  (specie) => specie.id === item.specie
+                )?.name,
+                Variedad: fetchedDataVarieties.find(
+                  (variety) => variety.id === item.variety
+                )?.name,
+                Cajas: item.boxes,
+                "Kilos Caja": item.kg_boxes,
+                Calidad: fetchedDataQuality.find(
+                  (quality) => quality.id === item.quality
+                )?.name,
+                /*Hilera: item.hilera,
+              "Formato cosecha": fetchedDataHarvestFormat.find(
+                (format) => format.id === item.harvest_format
+              )?.name,*/
+                "RUT Pesador": item.weigher_rut,
+                Sincronizado: item.sync,
+                "Fecha sincronización": item.sync_date,
+                Temporada: fetchedDataSeasons.find(
+                  (season) => season.id === item.season
+                )?.name,
+                Turnos: item.turns,
+                "Fecha registro": item.date_register,
+                //Temp: item.temp,
+                //Humedad: item.wet,
+                Contratista: fetchedDataContractors.find(
+                  (contractor) => contractor.id === item.contractor
+                )?.name,
+              };
+            })
           );
 
           //console.log("formatData", formatData);
@@ -787,9 +791,8 @@ const CardTableManualHarvesting = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -815,9 +818,8 @@ const CardTableManualHarvesting = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -873,9 +875,8 @@ const CardTableManualHarvesting = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -883,7 +884,7 @@ const CardTableManualHarvesting = ({
                         );
                       })}
                     {/* Aquí se renderiza la columna Actions si actions es true */}
-                    {actions && (userData.rol === 1 ||  userData.rol === 2) && (
+                    {actions && (userData.rol === 1 || userData.rol === 2) && (
                       <th
                         colSpan={1}
                         role="columnheader"
@@ -912,11 +913,10 @@ const CardTableManualHarvesting = ({
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                              index % 2 !== 0
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0
                                 ? "bg-lightPrimary dark:bg-navy-900"
                                 : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
@@ -932,26 +932,25 @@ const CardTableManualHarvesting = ({
                               ) : key === "harvest_date" || key === 'date_register' ? (
                                 formatDate(row[key]) // Formatea la fecha aquí
                               ) :
-                              key === 'kg_boxes' || key === 'boxes' ? (
-                                formatNumber(row[key])
-                              ) :
-                              (
-                                getNameByKey(key, row[key]) ||
-                                formatNumber(row[key])
-                              )}
-                             
+                                key === 'kg_boxes' || key === 'boxes' ? (
+                                  formatNumber(row[key])
+                                ) :
+                                  (
+                                    getNameByKey(key, row[key]) ||
+                                    formatNumber(row[key])
+                                  )}
+
                             </div>
                           </td>
                         );
                       })}
-                      {actions && (userData.rol === 1 ||  userData.rol === 2) && (
+                      {actions && (userData.rol === 1 || userData.rol === 2) && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
-                            index % 2 !== 0
+                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          }`}
+                            }`}
                         >
                           <button
                             type="button"
@@ -1057,9 +1056,8 @@ const CardTableManualHarvesting = ({
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -1069,11 +1067,10 @@ const CardTableManualHarvesting = ({
                     <button
                       key={page}
                       type="button"
-                      className={`${
-                        currentPage === page
+                      className={`${currentPage === page
                           ? "font-semibold text-navy-500 dark:text-navy-300"
                           : ""
-                      }`}
+                        }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -1108,8 +1105,8 @@ const CardTableManualHarvesting = ({
               {openShowUser
                 ? "Datos de la cosecha"
                 : isEdit
-                ? "Editar cosecha"
-                : "Nueva cosecha"}
+                  ? "Editar cosecha"
+                  : "Nueva cosecha"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -1124,11 +1121,10 @@ const CardTableManualHarvesting = ({
                     defaultValue={selectedItem ? selectedItem.id : ""}
                   />
                   <div
-                    className={`mb-3 grid gap-3 ${
-                      isEdit
+                    className={`mb-3 grid gap-3 ${isEdit
                         ? "grid-cols-2 lg:grid-cols-2"
                         : "grid-cols-12 lg:grid-cols-2"
-                    } `}
+                      } `}
                   ></div>
 
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
@@ -1137,42 +1133,6 @@ const CardTableManualHarvesting = ({
                   </h3>
 
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                    {/*
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="zone"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Zona
-                      </label>
-                      <select
-                        name="zone"
-                        id="zone"
-                        required={true}
-                        {...register("zone")}
-                        defaultValue={selectedItem ? selectedItem.zone : ""}
-                        onChange={(e) => {
-                          setDataChangeZone(e.target.value);
-                          setDataChangeGround("");
-                          setDataChangeSector("");
-                        }}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option key="0" value="">
-                          Elige una zona
-                        </option>
-                        <option key="1" value="Norte">
-                          Norte
-                        </option>
-                        <option key="2" value="Centro">
-                          Centro
-                        </option>
-                        <option key="3" value="Sur">
-                          Sur
-                        </option>
-                      </select>
-                    </div>
-                    */}
 
                     <div className="flex flex-col gap-3">
                       <label
@@ -1181,52 +1141,7 @@ const CardTableManualHarvesting = ({
                       >
                         Campo
                       </label>
-                      {/*
-                      <select
-                        name="ground"
-                        id="ground"
-                        required={true}
-                        {...register("ground")}
-                        value={dataChangeGround} // Usar value en lugar de defaultValue
-                        onChange={(e) => {
-                          setDataChangeGround(e.target.value);
-                          setDataChangeSector(""); // Resetear sector cuando cambia el campo
-                        }}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option key="0" value="">
-                          Elige un campo
-                        </option>
-                        {Array.isArray(dataGround) && dataGround.length > 0 ? (
-                          dataGround.filter(
-                            (ground) =>
-                              ground.status != 0 &&
-                              ground.zone == dataChangeZone
-                          ).length > 0 ? (
-                            dataGround
-                              .filter(
-                                (ground) =>
-                                  ground.status != 0 &&
-                                  ground.zone == dataChangeZone
-                              )
-                              .map((ground) => (
-                                <option key={ground.id} value={ground.id}>
-                                  {ground.name}
-                                </option>
-                              ))
-                          ) : (
-                            <option key="no-fields" value="">
-                              No hay campos
-                            </option>
-                          )
-                        ) : (
-                          <option key="no-fields" value="">
-                            No hay campos
-                          </option>
-                        )}
-                      </select>
-                      */}
-
+                      
                       <select
                         name="ground"
                         id="ground"
@@ -1328,8 +1243,9 @@ const CardTableManualHarvesting = ({
                         {...register("squad")}
                         defaultValue={selectedItem ? selectedItem.squad : ""}
                         onChange={(e) => {
-                          setDataChangeSquad(e.target.value);
-                          setDataChangeWorker("");
+                          setDataChangeSquad(e.target.value); // Actualiza el valor de la cuadrilla seleccionada
+                          setDataChangeWorker(""); // Reinicia el valor del cosechero
+                          setValue("worker_rut", ""); // Reinicia el valor del RUT del cosechero
                         }}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
@@ -1348,6 +1264,8 @@ const CardTableManualHarvesting = ({
                         )}
                       </select>
                     </div>
+
+
 
 
                     <div className="flex flex-col gap-3">
@@ -1396,10 +1314,14 @@ const CardTableManualHarvesting = ({
                         id="worker"
                         required={true}
                         {...register("worker")}
-                        onChange={(e) => {
-                          setDataChangeWorker(e.target.value);
-                        }}
-                        defaultValue={selectedItem ? selectedItem.worker : ""}
+                        value={dataChangeWorker}  // Esto asegura que el valor seleccionado esté sincronizado
+                        onChange={
+                          (e) => {
+                            setDataChangeWorker(e.target.value);
+                            setDataChangeRut(e.target.value);
+                          }
+                        }
+                          // Llama a la función al cambiar de cosechero
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {dataChangeSquad ? (
@@ -1455,8 +1377,6 @@ const CardTableManualHarvesting = ({
                           <option value="">No hay trabajadores</option>
                         )}
                       </select>
-
-
                     </div>
 
                     <div className="flex flex-col gap-3">
@@ -1466,7 +1386,6 @@ const CardTableManualHarvesting = ({
                       >
                         Rut cosechero
                       </label>
-                      {console.log(dataChangeWorker)}
                       <input
                         type="text"
                         name="worker_rut"
@@ -1474,24 +1393,10 @@ const CardTableManualHarvesting = ({
                         required={true}
                         {...register("worker_rut")}
                         readOnly={true}
-
-                        
-
-                        defaultValue={
-                          selectedItem
-                            ? selectedItem.worker_rut
-                            : dataChangeWorker.length > 0
-                            ? dataWorkers
-                                .filter(
-                                  (worker) => worker.id == dataChangeWorker
-                                )
-                                .map((worker) => worker.rut)
-                            : ""
-                        }
+                        value={dataChangeWorker ? dataWorkers.find((worker) => worker.id == dataChangeWorker)?.rut : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
-
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="harvest_date"
@@ -1507,7 +1412,7 @@ const CardTableManualHarvesting = ({
                         {...register("harvest_date")}
                         max={new Date().toISOString().slice(0, 16)}
                         defaultValue={
-                          
+
                           selectedItem ? formatDateForInput(selectedItem.harvest_date) : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
@@ -1534,7 +1439,7 @@ const CardTableManualHarvesting = ({
                       >
                         <option value="">Elige una especie</option>
                         {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
+                          dataSpecies.length > 0 ? (
                           dataSpecies.map(
                             (specie) =>
                               specie.status != 0 && (
@@ -1567,12 +1472,12 @@ const CardTableManualHarvesting = ({
                         <option value="">Elige una variedad</option>
 
                         {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
+                          dataSpecies.length > 0 ? (
                           dataSpecies
                             .filter((specie) => specie.id == dataChangeSpecie)
                             .map((specie) =>
                               Array.isArray(specie.varieties) &&
-                              specie.varieties.length > 0 ? (
+                                specie.varieties.length > 0 ? (
                                 specie.varieties.map((variety) => {
                                   const varietySelect = dataVarieties.find(
                                     (varietySelect) =>
@@ -1658,7 +1563,7 @@ const CardTableManualHarvesting = ({
                         <>
                           <option value="">Elige una calidad</option>
                           {Array.isArray(dataQuality) &&
-                          dataQuality.length > 0 ? (
+                            dataQuality.length > 0 ? (
                             dataQuality.map(
                               (quality) =>
                                 quality.status != 0 && (
@@ -1694,7 +1599,7 @@ const CardTableManualHarvesting = ({
                         <>
                           <option value="">Elige un formato de cosecha</option>
                           {Array.isArray(dataHarvestFormat) &&
-                          dataHarvestFormat.length > 0 ? (
+                            dataHarvestFormat.length > 0 ? (
                             dataHarvestFormat.map(
                               (harvest_format) =>
                                 harvest_format.status != 0 && (
@@ -1761,7 +1666,7 @@ const CardTableManualHarvesting = ({
                       >
                         <option value="">Elige una temporada</option>
                         {Array.isArray(dataSeasons) &&
-                        dataSeasons.length > 0 ? (
+                          dataSeasons.length > 0 ? (
                           dataSeasons.map(
                             (season) =>
                               season.status == 1 && (
@@ -1824,7 +1729,7 @@ const CardTableManualHarvesting = ({
                       >
                         <option value="">Elige un contratista</option>
                         {Array.isArray(dataContractors) &&
-                        dataContractors.length > 0 ? (
+                          dataContractors.length > 0 ? (
                           dataContractors.map(
                             (contractor) =>
                               contractor.status != 0 && (
@@ -2032,9 +1937,8 @@ const CardTableManualHarvesting = ({
               <button
                 type="button"
                 onClick={openAlert ? handlerRemove : handlerClone}
-                className={`${
-                  openAlert ? "bg-red-500" : "bg-blueTertiary"
-                } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
+                className={`${openAlert ? "bg-red-500" : "bg-blueTertiary"
+                  } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
               >
                 {openAlert ? (
                   <>
