@@ -267,51 +267,48 @@ const CardTableManualHarvesting = ({
   const onUpdateItem = async (data) => {
     try {
       console.log("data", data);
-      if (!data || !data.id) {
-        throw new Error(
-          "Los datos para actualizar son inválidos o incompletos."
-        );
-      }
-
+  
+      /*if (!data || !data.id || isNaN(Number(data.id))) {
+        throw new Error("Los datos para actualizar son inválidos o incompletos.");
+      }*/
+  
       const updateData = {
-        id: Number(data.id) || null,
-        //zone: data.zone,
-        ground: data.ground,
-        sector: data.sector,
+        id: Number(data.id),
+        ground: data.ground || null,
+        sector: data.sector || null,
         squad: data.squad ? data.squad : null,
-        //squad_leader: data.squad_leader ? data.squad_leader : null,
-        batch: data.batch ? data.batch : null,
-        worker: data.worker ? data.worker : null,
-        worker_rut: data.worker_rut ? data.worker_rut : null,
-        harvest_date: data.harvest_date,
-        specie: data.specie,
-        variety: data.variety,
+        batch: data.batch || null,
+        worker: data.worker || null,
+        worker_rut: data.worker_rut || null,
+        harvest_date: data.harvest_date || null,
+        specie: data.specie || null,
+        variety: data.variety || null,
         boxes: data.boxes ? Number(data.boxes) : null,
         kg_boxes: data.kg_boxes ? Number(data.kg_boxes) : null,
-        quality: data.quality ? data.quality : null,
-        //hilera: data.hilera ? Number(data.hilera) : null,
-        harvest_format: data.harvest_format,
-        weigher_rut: data.weigher_rut ? data.weigher_rut : null,
-        sync: data.sync ? data.sync : null,
-        sync_date: data.sync_date ? data.sync_date : null,
-        season: data.season ? data.season : null,
-        turns: data.turns ? data.turns : null,
-        date_register: data.date_register ? data.date_register : null,
-        //temp: data.temp ? data.temp : null,
-        //wet: data.wet ? data.wet : null,
-        contractor: data.contractor ? data.contractor : null,
+        quality: data.quality || null,
+        harvest_format: data.harvest_format || null,
+        weigher_rut: data.weigher_rut || null,
+        sync: data.sync || null,
+        sync_date: data.sync_date || null,
+        season: data.season || null,
+        turns: data.turns || null,
+        date_register: data.date_register || null,
+        contractor: data.contractor || null,
         source: 1,
         company_id: Number(companyID),
       };
-
+  
       const updateItemApi = await updateManualHarvesting(updateData);
       const dataNew = await getDataManualHarvesting(companyID);
 
+      console.log("updateItemApi", updateItemApi);
+      console.log("dataNew", dataNew);
+  
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
           item.id === Number(data.id) ? { ...item, ...updateData } : item
         );
-
+  
         setInitialData(updatedList);
         setInitialData(dataNew);
         setUpdateMessage("Registro actualizado correctamente");
@@ -324,6 +321,7 @@ const CardTableManualHarvesting = ({
       setUpdateMessage("Error al intentar actualizar el registro.");
     }
   };
+  
 
   const handleOpenAlert = (index, id, harvest_date, ground) => {
     setItemToDelete({ index, id, harvest_date, ground });
@@ -785,8 +783,16 @@ const CardTableManualHarvesting = ({
 
     fetchData();
 
-    fetchData();
   }, [initialData, companyID]);
+
+  useEffect(() => {
+    if (dataChangeWorker) {
+      const selectedWorker = dataWorkers.find(
+        (worker) => worker.id == dataChangeWorker
+      );
+      setValue("worker_rut", selectedWorker?.rut || ""); // Actualiza el valor del campo
+    }
+  }, [dataChangeWorker, dataWorkers, setValue]);
 
   return (
     <>
@@ -1381,24 +1387,22 @@ const CardTableManualHarvesting = ({
                     </div>
 
                     <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="worker_rut"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Rut cosechero
-                      </label>
-                      <input
-                        type="text"
-                        name="worker_rut"
-                        id="worker_rut"
-                        required={true}
-                        {...register("worker_rut")}
-                        readOnly={true}
-                        setDefaultValue={dataChangeRut ? dataWorkers.find((worker) => worker.id == dataChangeRut)?.rut : ""}
-                        value={dataChangeWorker ? setValue("worker_rut", dataWorkers.find((worker) => worker.id == dataChangeWorker)?.rut) : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+  <label
+    htmlFor="worker_rut"
+    className="text-sm font-semibold text-gray-800 dark:text-white"
+  >
+    Rut cosechero
+  </label>
+  <input
+    type="text"
+    name="worker_rut"
+    id="worker_rut"
+    required={true}
+    {...register("worker_rut")}
+    readOnly={true}
+    className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+  />
+</div>
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="harvest_date"
