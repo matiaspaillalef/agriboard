@@ -266,6 +266,7 @@ const CardTableManualHarvesting = ({
 
   const onUpdateItem = async (data) => {
     try {
+      console.log("data", data);
       if (!data || !data.id) {
         throw new Error(
           "Los datos para actualizar son inválidos o incompletos."
@@ -1393,7 +1394,8 @@ const CardTableManualHarvesting = ({
                         required={true}
                         {...register("worker_rut")}
                         readOnly={true}
-                        value={dataChangeWorker ? dataWorkers.find((worker) => worker.id == dataChangeWorker)?.rut : ""}
+                        setDefaultValue={dataChangeRut ? dataWorkers.find((worker) => worker.id == dataChangeRut)?.rut : ""}
+                        value={dataChangeWorker ? setValue("worker_rut", dataWorkers.find((worker) => worker.id == dataChangeWorker)?.rut) : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
@@ -1773,9 +1775,9 @@ const CardTableManualHarvesting = ({
                     <div className="flex flex-col gap-3">
                       <button
                         type="submit"
-                        className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 disabled:bg-gray-400 cursor-not-allowed"
+                        className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                         //onSubmit={onUpdateItem}
-                        onSubmit={isEdit ? onUpdateItem : onSubmitForm}
+                        onClick={isEdit ? onUpdateItem : onSubmitForm}
                         disabled={disbledButton}
                       >
                         {isEdit ? "Editar" : "Crear"}
