@@ -120,7 +120,7 @@ const CardTableManualHarvesting = ({
 
   const userDataString = sessionStorage.getItem("userData");
   const userData = JSON.parse(userDataString);
-  
+
 
   const [disbledButton, setDisbledButton] = useState(false);
 
@@ -266,12 +266,12 @@ const CardTableManualHarvesting = ({
 
   const onUpdateItem = async (data) => {
     try {
-      console.log("data", data);
-  
+      //console.log("data", data);
+
       /*if (!data || !data.id || isNaN(Number(data.id))) {
         throw new Error("Los datos para actualizar son inválidos o incompletos.");
       }*/
-  
+
       const updateData = {
         id: Number(data.id),
         ground: data.ground || null,
@@ -297,18 +297,18 @@ const CardTableManualHarvesting = ({
         source: 1,
         company_id: Number(companyID),
       };
-  
+
       const updateItemApi = await updateManualHarvesting(updateData);
       const dataNew = await getDataManualHarvesting(companyID);
 
-      console.log("updateItemApi", updateItemApi);
-      console.log("dataNew", dataNew);
-  
+      //console.log("updateItemApi", updateItemApi);
+      //console.log("dataNew", dataNew);
+
       if (updateItemApi === "OK") {
         const updatedList = initialData.map((item) =>
           item.id === Number(data.id) ? { ...item, ...updateData } : item
         );
-  
+
         setInitialData(updatedList);
         setInitialData(dataNew);
         setUpdateMessage("Registro actualizado correctamente");
@@ -321,7 +321,7 @@ const CardTableManualHarvesting = ({
       setUpdateMessage("Error al intentar actualizar el registro.");
     }
   };
-  
+
 
   const handleOpenAlert = (index, id, harvest_date, ground) => {
     setItemToDelete({ index, id, harvest_date, ground });
@@ -921,8 +921,8 @@ const CardTableManualHarvesting = ({
                             key={rowIndex}
                             role="cell"
                             className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
                               } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
@@ -955,8 +955,8 @@ const CardTableManualHarvesting = ({
                         <td
                           colSpan={columnLabels.length}
                           className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
                             }`}
                         >
                           <button
@@ -1075,8 +1075,8 @@ const CardTableManualHarvesting = ({
                       key={page}
                       type="button"
                       className={`${currentPage === page
-                          ? "font-semibold text-navy-500 dark:text-navy-300"
-                          : ""
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
                         }`}
                       onClick={() => handlePageChange(page)}
                     >
@@ -1129,8 +1129,8 @@ const CardTableManualHarvesting = ({
                   />
                   <div
                     className={`mb-3 grid gap-3 ${isEdit
-                        ? "grid-cols-2 lg:grid-cols-2"
-                        : "grid-cols-12 lg:grid-cols-2"
+                      ? "grid-cols-2 lg:grid-cols-2"
+                      : "grid-cols-12 lg:grid-cols-2"
                       } `}
                   ></div>
 
@@ -1148,7 +1148,7 @@ const CardTableManualHarvesting = ({
                       >
                         Campo
                       </label>
-                      
+
                       <select
                         name="ground"
                         id="ground"
@@ -1328,7 +1328,7 @@ const CardTableManualHarvesting = ({
                             setDataChangeRut(e.target.value);
                           }
                         }
-                          // Llama a la función al cambiar de cosechero
+                        // Llama a la función al cambiar de cosechero
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         {dataChangeSquad ? (
@@ -1387,22 +1387,23 @@ const CardTableManualHarvesting = ({
                     </div>
 
                     <div className="flex flex-col gap-3">
-  <label
-    htmlFor="worker_rut"
-    className="text-sm font-semibold text-gray-800 dark:text-white"
-  >
-    Rut cosechero
-  </label>
-  <input
-    type="text"
-    name="worker_rut"
-    id="worker_rut"
-    required={true}
-    {...register("worker_rut")}
-    readOnly={true}
-    className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-  />
-</div>
+                      <label
+                        htmlFor="worker_rut"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Rut cosechero
+                      </label>
+                      <input
+                        type="text"
+                        name="worker_rut"
+                        id="worker_rut"
+                        required={true}
+                        {...register("worker_rut")}
+                        defaultValue={selectedItem ? selectedItem.worker_rut : ""}
+                        readOnly={true}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
                     <div className="flex flex-col gap-3">
                       <label
                         htmlFor="harvest_date"
