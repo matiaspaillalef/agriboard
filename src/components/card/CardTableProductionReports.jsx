@@ -267,14 +267,24 @@ const CardTableManualHarvesting = ({
 
   const formatDate = (isoDate) => {
 
-    let dateTime = new Date(isoDate);
+    let dateTime = new Date(); // Asumimos que tienes un objeto Date
+
+    // Crear un objeto Intl.DateTimeFormat para la zona horaria de Chile
+    let formatter = new Intl.DateTimeFormat('es-CL', { 
+      timeZone: 'America/Santiago' 
+    });
     
-    console.log("fecha antes de formatear : " ,isoDate);
+    let chileDateTime = formatter.format(dateTime); // Esto ajusta la hora a la zona de Chile
+    
+    // Ahora obtenemos el día, mes, año, hora y minutos de la fecha ajustada
     let day = String(dateTime.getDate()).padStart(2, '0');
     let month = String(dateTime.getMonth() + 1).padStart(2, '0');
     let year = dateTime.getFullYear();
     let hours = String(dateTime.getHours()).padStart(2, '0');
     let minutes = String(dateTime.getMinutes()).padStart(2, '0');
+    
+    // Ejemplo de cómo mostrar la fecha completa:
+    console.log(`${day}/${month}/${year} ${hours}:${minutes}`);
 
     let formattedDate = `${day}-${month}-${year}   ${hours}:${minutes}`;
     return formattedDate;
