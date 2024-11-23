@@ -38,6 +38,8 @@ export const getDataKgDay = async (company_id, ground) => {
 
 export const getDataKgDayQlty = async (company_id, ground, quality) => {
   const setQuality = quality && quality === "" ? "" : 1;
+
+  //console.log(company_id, ground, quality);
   try {
     const res = await fetch(
       URLAPI +
@@ -55,6 +57,8 @@ export const getDataKgDayQlty = async (company_id, ground, quality) => {
     if (res.ok) {
       const data = await res.json();
 
+      //console.log(data);
+
       if (data.code === "OK") {
         return data.data;
       } else if (data.code === "ERROR") {
@@ -71,7 +75,7 @@ export const getDataKgSeason = async (company_id, ground) => {
     const res = await fetch(
       `${URLAPI}/api/v1/filter/dashboard/dataKgSeason/${company_id}/${ground}`,
       {
-        method: "POST", // Asegúrate de que el método coincide con tu endpoint
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": token,

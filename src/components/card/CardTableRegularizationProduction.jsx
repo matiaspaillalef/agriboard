@@ -35,7 +35,7 @@ import {
   getDataRegularizationProduction,
   updateRegularizationProduction,
   //createRegularizationProduction,
-  //deleteRegularizationProduction,
+  deleteRegularizationProduction,
 } from "@/app/api/ProductionApi";
 
 import {
@@ -114,6 +114,8 @@ const CardTableRegularizationProduction = ({
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
+  console.log("data", rol);
+
   useEffect(() => {
     const handleNameItems = async () => {
       const ground = await getDataGround(companyID);
@@ -143,6 +145,14 @@ const CardTableRegularizationProduction = ({
       setDataShifts(shifts);
     };
     handleNameItems();
+
+
+    const userDataString = sessionStorage.getItem("userData");
+    const userData = JSON.parse(userDataString);
+    const userRol = userData.rol;
+
+    setRol(userRol);
+
   }, []);
 
   useEffect(() => {
@@ -403,6 +413,8 @@ const CardTableRegularizationProduction = ({
       //if (userConfirmed) {
       const deleteItem = await deleteRegularizationProduction(id);
 
+      console.log(deleteItem);
+
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
         const updatedData = [...initialData];
@@ -507,15 +519,15 @@ const CardTableRegularizationProduction = ({
         source: 1,
         company_id: Number(data.company_id) || null,
       };
-  
-  
+
+
       // Enviar datos al servidor
       const createItem = await createRegularizationProduction(transformedData);
       const dataNew = await getDataRegularizationProduction(companyID);
-  
+
       if (createItem === "OK") {
         const updatedData = [...initialData, transformedData];
-        
+
         setInitialData(updatedData);
         setInitialData(dataNew);
         setOpen(false);
@@ -529,7 +541,7 @@ const CardTableRegularizationProduction = ({
       setUpdateMessage("Error al intentar crear el registro");
     }
   };
-  
+
 
   useEffect(() => {
     if (updateMessage) {
@@ -620,7 +632,7 @@ const CardTableRegularizationProduction = ({
   const formatDate = (isoDate) => {
 
     let dateTime = new Date(isoDate);
-    
+
 
     let day = String(dateTime.getUTCDate()).padStart(2, '0');
     let month = String(dateTime.getUTCMonth() + 1).padStart(2, '0');
@@ -637,7 +649,7 @@ const CardTableRegularizationProduction = ({
   };
 
   function formatDateForInput(dateString) {
-    
+
     const date = new Date(dateString);
     // Extrae la fecha en formato "YYYY-MM-DDTHH:MM"
     const year = date.getFullYear();
@@ -645,7 +657,7 @@ const CardTableRegularizationProduction = ({
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-  
+
     return `${year}-${month}-${day}T${hours}:${minutes}`;
     // console.log(dateString);
     // if (!dateString) return "";
@@ -690,12 +702,12 @@ const CardTableRegularizationProduction = ({
         setDataSpecies(fetchedDataSpecies);
         setDataQuality(fetchedDataQuality);
         setDataHarvestFormat(fetchedDataHarvestFormat);
-        if (fetchedDataGround == 'OK'){
+        if (fetchedDataGround == 'OK') {
           setDataGround(fetchedDataGround.grounds);
-        }else{
+        } else {
           setDataGround([]);
         }
-console.log(fetchedDataGround);
+        console.log(fetchedDataGround);
         setDataSeasons(fetchedDataSeasons);
         setDataContractors(fetchedDataContractors);
 
@@ -718,7 +730,7 @@ console.log(fetchedDataGround);
                 )?.name,
                 Lote: item.batch,
                 Cosechero:
-                fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
+                  fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
                     ?.name +
                   " " +
                   fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
@@ -772,9 +784,8 @@ console.log(fetchedDataGround);
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -791,9 +802,8 @@ console.log(fetchedDataGround);
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -849,9 +859,8 @@ console.log(fetchedDataGround);
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -888,11 +897,10 @@ console.log(fetchedDataGround);
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                              index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
@@ -918,12 +926,12 @@ console.log(fetchedDataGround);
                       {actions && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
-                            index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
-                          }`}
+                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
+                            }`}
                         >
+
                           <button
                             type="button"
                             className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
@@ -931,33 +939,39 @@ console.log(fetchedDataGround);
                           >
                             <EyeIcon className="w-6 h-6" />
                           </button>
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            //onClick={() => handleOpen(row)}
-                            onClick={() => handleOpenEditUser(row)}
-                          >
-                            <PencilSquareIcon className="w-6 h-6" />
-                          </button>
 
-                          <button
-                            id="remove"
-                            type="button"
-                            onClick={() => {
-                              handleOpenAlert(
-                                index,
-                                row.id,
-                                row.harvest_date
-                                  ? formatDate(row.harvest_date)
-                                  : "",
-                                row.ground
-                                  ? getNameByKey("groud", row.ground)
-                                  : ""
-                              );
-                            }}
-                          >
-                            <TrashIcon className="w-6 h-6" />
-                          </button>
+                          {(rol == 1 || rol == 2) && (
+                            <>
+                              <button
+                                type="button"
+                                className="text-sm font-semibold text-gray-800 dark:text-white"
+                                //onClick={() => handleOpen(row)}
+                                onClick={() => handleOpenEditUser(row)}
+                              >
+                                <PencilSquareIcon className="w-6 h-6" />
+                              </button>
+
+
+                              <button
+                                id="remove"
+                                type="button"
+                                onClick={() => {
+                                  handleOpenAlert(
+                                    index,
+                                    row.id,
+                                    row.harvest_date
+                                      ? formatDate(row.harvest_date)
+                                      : "",
+                                    row.ground
+                                      ? getNameByKey("groud", row.ground)
+                                      : ""
+                                  );
+                                }}
+                              >
+                                <TrashIcon className="w-6 h-6" />
+                              </button>
+                            </>
+                          )}
                         </td>
                       )}
                     </tr>
@@ -987,9 +1001,8 @@ console.log(fetchedDataGround);
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -999,11 +1012,10 @@ console.log(fetchedDataGround);
                     <button
                       key={page}
                       type="button"
-                      className={`${
-                        currentPage === page
-                          ? "font-semibold text-navy-500 dark:text-navy-300"
-                          : ""
-                      }`}
+                      className={`${currentPage === page
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
+                        }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -1038,8 +1050,8 @@ console.log(fetchedDataGround);
               {openShowUser
                 ? "Datos de la cosecha"
                 : isEdit
-                ? "Editar cosecha"
-                : "Nueva cosecha"}
+                  ? "Editar cosecha"
+                  : "Nueva cosecha"}
             </DialogHeader>
             <DialogBody>
               {!openShowUser ? (
@@ -1054,11 +1066,10 @@ console.log(fetchedDataGround);
                     defaultValue={selectedItem ? selectedItem.id : ""}
                   />
                   <div
-                    className={`mb-3 grid gap-3 ${
-                      isEdit
-                        ? "grid-cols-2 lg:grid-cols-2"
-                        : "grid-cols-12 lg:grid-cols-2"
-                    } `}
+                    className={`mb-3 grid gap-3 ${isEdit
+                      ? "grid-cols-2 lg:grid-cols-2"
+                      : "grid-cols-12 lg:grid-cols-2"
+                      } `}
                   ></div>
 
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
@@ -1335,12 +1346,12 @@ console.log(fetchedDataGround);
                           selectedItem
                             ? selectedItem.worker_rut
                             : dataChangeWorker.length > 0
-                            ? dataWorkers
+                              ? dataWorkers
                                 .filter(
                                   (worker) => worker.id == dataChangeWorker
                                 )
                                 .map((worker) => worker.rut)
-                            : ""
+                              : ""
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
@@ -1388,7 +1399,7 @@ console.log(fetchedDataGround);
                       >
                         <option value="">Elige una especie</option>
                         {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
+                          dataSpecies.length > 0 ? (
                           dataSpecies.map(
                             (specie) =>
                               specie.status != 0 && (
@@ -1421,12 +1432,12 @@ console.log(fetchedDataGround);
                         <>
                           <option key="empty" value="">Elige una variedad</option>
                           {Array.isArray(dataSpecies) &&
-                          dataSpecies.length > 0 ? (
+                            dataSpecies.length > 0 ? (
                             dataSpecies
                               .filter((specie) => specie.id == dataChangeSpecie)
                               .map((specie) =>
                                 Array.isArray(specie.varieties) &&
-                                specie.varieties.length > 0 ? (
+                                  specie.varieties.length > 0 ? (
                                   <>
                                     <option key="empty" value="">
                                       Elige una variedad
@@ -1514,7 +1525,7 @@ console.log(fetchedDataGround);
                         <>
                           <option value="">Elige una calidad</option>
                           {Array.isArray(dataQuality) &&
-                          dataQuality.length > 0 ? (
+                            dataQuality.length > 0 ? (
                             dataQuality.map(
                               (quality) =>
                                 quality.status != 0 && (
@@ -1568,7 +1579,7 @@ console.log(fetchedDataGround);
                         <>
                           <option value="">Elige un formato de cosecha</option>
                           {Array.isArray(dataHarvestFormat) &&
-                          dataHarvestFormat.length > 0 ? (
+                            dataHarvestFormat.length > 0 ? (
                             dataHarvestFormat.map(
                               (harvest_format) =>
                                 harvest_format.status != 0 && (
@@ -1660,7 +1671,7 @@ console.log(fetchedDataGround);
                       >
                         <option value="">Elige una temporada</option>
                         {Array.isArray(dataSeasons) &&
-                        dataSeasons.length > 0 ? (
+                          dataSeasons.length > 0 ? (
                           dataSeasons.map((season) => (
                             <option key={season.id} value={season.id}>
                               {season.name}
@@ -1720,7 +1731,7 @@ console.log(fetchedDataGround);
                       >
                         <option value="">Elige un contratista</option>
                         {Array.isArray(dataContractors) &&
-                        dataContractors.length > 0 ? (
+                          dataContractors.length > 0 ? (
                           dataContractors.map(
                             (contractor) =>
                               contractor.status != 0 && (
@@ -1774,7 +1785,7 @@ console.log(fetchedDataGround);
                       />
                     </div>
                   </div>
-                  
+
 
                   <input
                     type="hidden"
@@ -1967,9 +1978,8 @@ console.log(fetchedDataGround);
               <button
                 type="button"
                 onClick={openAlert ? handlerRemove : handlerClone}
-                className={`${
-                  openAlert ? "bg-red-500" : "bg-blueTertiary"
-                } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
+                className={`${openAlert ? "bg-red-500" : "bg-blueTertiary"
+                  } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
               >
                 {openAlert ? (
                   <>
