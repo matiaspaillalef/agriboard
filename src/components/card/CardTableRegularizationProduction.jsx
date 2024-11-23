@@ -114,7 +114,6 @@ const CardTableRegularizationProduction = ({
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
-  console.log("data", rol);
 
   useEffect(() => {
     const handleNameItems = async () => {
@@ -153,7 +152,7 @@ const CardTableRegularizationProduction = ({
 
     setRol(userRol);
 
-  }, []);
+  }, [initialData]);
 
   useEffect(() => {
     if (selectedItem) {
@@ -412,14 +411,17 @@ const CardTableRegularizationProduction = ({
     try {
       //if (userConfirmed) {
       const deleteItem = await deleteRegularizationProduction(id);
-
-      console.log(deleteItem);
+      
+      //console.log(deleteItem);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteItem === "OK") {
+        const dataNew = await getDataRegularizationProduction(companyID);
+        //console.log(dataNew);
         const updatedData = [...initialData];
         updatedData.splice(index, 1);
         setInitialData(updatedData);
+        setInitialData(dataNew);
         setOpenAlert(false);
         setUpdateMessage("Registro eliminado correctamente");
       } else {
