@@ -239,10 +239,16 @@ const CardTableWorkers = ({
       );
     };
 
+    
+    
+
     const transformKeys = (data) => {
       return data.map((item) => {
-        const bornDate = excelDateToJSDate(item["Fecha de nacimiento"]);
-        const admissionDate = excelDateToJSDate(item["Fecha de ingreso"]);
+
+        const bornDate = excelSerialDateToDate(item["Fecha de nacimiento"]);
+        const admissionDate = excelSerialDateToDate(item["Fecha de ingreso"]);
+        console.log(bornDate);
+        console.log(admissionDate);
 
         return {
           rut: item.Rut,
@@ -250,9 +256,9 @@ const CardTableWorkers = ({
           lastname: item["Apellido"],
           lastname2: item["Apellido materno"],
           address: item["Dirección"],
-          born_date: item["Fecha de nacimiento"],
+          born_date: bornDate,
           city: item.Ciudad,
-          date_admission: item["Fecha de ingreso"],
+          date_admission: admissionDate,
           gender: item.Género,
           phone: item["Teléfono"],
           email: item.Correo,
@@ -294,7 +300,7 @@ const CardTableWorkers = ({
 
     const transformedData = transformKeys(jsonData);
 
-    //console.log(transformedData);
+    console.log(transformedData);
     let success = true;
     const duplicatedRuts = [];
     // Obtenemos el número de filas (sin contar la cabecera)
@@ -303,7 +309,7 @@ const CardTableWorkers = ({
     for (let i = 0; i < numberOfWorkers; i++) {
       const worker = transformedData[i];
       try {
-        //console.log("Creando trabajador:", worker);
+        console.log("Creando trabajador:", worker);
         const createWorkerResult = await createWorker(worker);
 
         if (createWorkerResult.code !== "OK") {
@@ -399,7 +405,7 @@ const CardTableWorkers = ({
         company_id: isNaN(Number(data.company_id)) ? null : Number(data.company_id),
         is_weigher: data.is_weigher == false ? 0 : 1, // Convertimos `is_weigher` a 1 o 0
       };
-  
+      console.log("update" , transformedData);
       // Llamada a la API para actualizar el trabajador
       const updateWorkerApi = await updateWorker(transformedData);
 
@@ -692,6 +698,21 @@ const CardTableWorkers = ({
       e.target.value = "";
     }
   };*/
+
+  function excelSerialDateToDate(serial) {
+
+    const excelBaseDate = new Date(1900, 0, 1); // 1 de enero de 1900
+
+    // Restar 2 días para corregir el error de año bisiesto inexistente
+    const adjustedDate = new Date(excelBaseDate.getTime() + (serial - 2) * 24 * 60 * 60 * 1000);
+
+    const year = adjustedDate.getFullYear();
+    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(adjustedDate.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  
+  };
 
   const getCurrentDate = () => {
     const today = new Date();

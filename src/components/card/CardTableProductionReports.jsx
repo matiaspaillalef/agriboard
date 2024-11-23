@@ -266,22 +266,18 @@ const CardTableManualHarvesting = ({
   };
 
   const formatDate = (isoDate) => {
-    // Crear un objeto Date a partir del string ISO (que es UTC)
+    console.log(isoDate);
+    // Crear el objeto Date a partir de la fecha UTC recibida
     let dateTime = new Date(isoDate);
 
-    // Usar el objeto Intl.DateTimeFormat para formatear automáticamente la fecha en la zona horaria de Chile
-    let options = {
-        timeZone: 'America/Santiago', // Zona horaria de Chile
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false // Para usar el formato 24 horas
-    };
-
-    // Aplicar el formato
-    let formattedDate = new Intl.DateTimeFormat('es-CL', options).format(dateTime);
+    // Formatear la fecha en el formato deseado: DD-MM-YYYY, HH:mm
+    let day = String(dateTime.getDate()).padStart(2, '0');
+    let month = String(dateTime.getMonth() + 1).padStart(2, '0');
+    let year = dateTime.getFullYear();
+    let hours = String(dateTime.getHours()).padStart(2, '0');
+    let minutes = String(dateTime.getMinutes()).padStart(2, '0');
+    let formattedDate = `${day}-${month}-${year}, ${hours}:${minutes}`;
+    console.log(formattedDate);
 
     return formattedDate;
 };
