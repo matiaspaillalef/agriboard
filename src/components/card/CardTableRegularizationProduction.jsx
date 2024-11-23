@@ -1,1993 +1,3227 @@
-"use client";
+import { Router } from 'express'
+const router = Router()
+//import Usuario from '../models/usuario.model.js'
+import validateToken from '../middleware/validateToken.js'
+import mysql from 'mysql';
+import bcrypt from 'bcrypt';
 
-import { useState, useEffect, useRef } from "react";
-import { formatNumber } from "@/functions/functions";
-import ExportarExcel from "@/components/button/ButtonExportExcel";
-import { get, set, useForm } from "react-hook-form";
-import "@/assets/css/Table.css";
-import {
-  PlusIcon,
-  XMarkIcon,
-  PencilSquareIcon,
-  TrashIcon,
-  ChevronRightIcon,
-  ChevronLeftIcon,
-  EyeIcon,
-  DocumentDuplicateIcon,
-} from "@heroicons/react/24/outline";
-import Rut from "@/components/validateRUT";
-import {
-  Button,
-  Dialog,
-  DialogHeader,
-  DialogBody,
-  DialogFooter,
-} from "@material-tailwind/react";
-import {
-  getDataGround,
-  getDataSectorBarracks,
-  getDataVarieties,
-  getDataSpecies,
-  getDataScale,
-  getDataQuality,
-  getDataSeasons,
-  getDataHarvestFormat,
-  getDataRegularizationProduction,
-  updateRegularizationProduction,
-  //createRegularizationProduction,
-  //deleteRegularizationProduction,
-} from "@/app/api/ProductionApi";
+//Management People - Positions
 
-import {
-  getDataWorkers,
-  getDataSquads,
-  getDataShifts,
-  getDataContractors,
-} from "@/app/api/ManagementPeople";
-import { sync } from "framer-motion";
+router.get('/management-people/positions/getPositions/:companyID', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Positions']
 
-const CardTableRegularizationProduction = ({
-  data,
-  thead,
-  columnsClasses = [],
-  omitirColumns = [],
-  title,
-  actions,
-  tableId,
-  companyID,
-  downloadBtn,
-  SearchInput,
-  datosCompanies,
-}) => {
-  const columnLabels = thead
-    ? thead.split(",").map((label) => label.trim())
-    : "";
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
-
-  const [initialData, setInitialData] = useState(data);
-  const [formatInitialData, setFormatInitialData] = useState([]);
-
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
-
-  const [selectedItem, setSelectedItem] = useState(null); // Estado para almacenar los datos del item seleccionado para editar
-  const [updateMessage, setUpdateMessage] = useState(null); // Estado para manejar el mensaje de actualización
-
-  //Estado para la paginación
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const [isEdit, setIsEdit] = useState(false);
-  const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
-
-  const [rut, setRut] = useState("");
-  const [rutValido, setRutValido] = useState(false);
-
-  const [rol, setRol] = useState("");
-
-  const [dataChangeZone, setDataChangeZone] = useState("");
-  const [dataChangeGround, setDataChangeGround] = useState("");
-  const [dataChangeSector, setDataChangeSector] = useState("");
-  const [dataChangeSquad, setDataChangeSquad] = useState("");
-  const [dataChangeWorker, setDataChangeWorker] = useState("");
-  const [dataChangeSpecie, setDataChangeSpecie] = useState("");
-
-  const [dataGround, setDataGround] = useState([]);
-  const [dataSector, setDataSector] = useState([]);
-  const [dataWorkers, setDataWorkers] = useState([]);
-  const [dataSqaads, setDataSquads] = useState([]);
-  const [dataSpecies, setDataSpecies] = useState([]);
-  const [dataVarieties, setDataVarieties] = useState([]);
-  const [dataQuality, setDataQuality] = useState([]);
-  const [dataSeasons, setDataSeasons] = useState([]);
-  const [dataScale, setDataScale] = useState([]);
-  const [selectedVarieties, setSelectedVarieties] = useState([]);
-  const [dataHarvestFormat, setDataHarvestFormat] = useState([]);
-  const [dataContractors, setDataContractors] = useState([]);
-  const [dataShifts, setDataShifts] = useState([]);
-
-  const [openShowUser, setOpenShowUser] = useState(false);
-
-  useEffect(() => {
-    const handleNameItems = async () => {
-      const ground = await getDataGround(companyID);
-      const sector = await getDataSectorBarracks(companyID);
-      const workers = await getDataWorkers(companyID);
-      const squad = await getDataSquads(companyID);
-      const varieties = await getDataVarieties(companyID);
-      const species = await getDataSpecies(companyID);
-      const quality = await getDataQuality(companyID);
-      const seasons = await getDataSeasons(companyID);
-      const scales = await getDataScale(companyID);
-      const harvestFormat = await getDataHarvestFormat(companyID);
-      const contractors = await getDataContractors(companyID);
-      const shifts = await getDataShifts(companyID);
-
-      setDataGround(ground.grounds);
-      setDataSector(sector);
-      setDataWorkers(workers);
-      setDataSquads(squad.squads);
-      setDataVarieties(varieties);
-      setDataSpecies(species);
-      setDataQuality(quality);
-      setDataSeasons(seasons);
-      setDataScale(scales);
-      setDataHarvestFormat(harvestFormat);
-      setDataContractors(contractors);
-      setDataShifts(shifts);
-    };
-    handleNameItems();
-  }, []);
-
-  useEffect(() => {
-    if (selectedItem) {
-      setSelectedVarieties(selectedItem.varieties || []); // Asegúrate de que sea un arreglo
-      //setValue('varieties', selectedItem.varieties || []); // Actualiza el valor del formulario
-    }
-  }, [selectedItem]);
-
-  const handleCheckboxChange = (id) => {
-    setSelectedVarieties((prevSelected) =>
-      prevSelected.includes(id)
-        ? prevSelected.filter((varietyId) => varietyId !== id)
-        : [...prevSelected, id]
-    );
-  };
-
-  const [openAlert, setOpenAlert] = useState(false);
-  const [openAlertClone, setOpenAlertClone] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState({
-    index: null,
-    id: null,
-    name_item: "",
-  });
-
-  const [itemToClone, setItemToClone] = useState({
-    index: null,
-    id: null,
-    zone: "",
-    ground: "",
-    sector: "",
-    squad: "",
-    squad_leader: "",
-    batch: "",
-    worker: "",
-    worker_rut: "",
-    harvest_date: "",
-    specie: "",
-    variety: "",
-    boxes: "",
-    kg_boxes: "",
-    quality: "",
-    hilera: "",
-    harvest_format: "",
-    weigher_rut: "",
-    sync: "",
-    sync_date: "",
-    season: "",
-    turns: "",
-    date_register: "",
-    temp: "",
-    wet: "",
-    contractor: "",
-    company_id: "",
-  });
-
-  const handleNameItems = (ids) => {
-    if (!Array.isArray(ids)) {
-      console.error("El argumento proporcionado no es un array.");
-      return "";
-    }
-
-    // Filtrar nombres vacíos y unirlos con comas si hay más de uno
-    const filteredNames = names.filter((name) => name !== "");
-    return filteredNames.join(filteredNames.length > 1 ? ", " : "");
-  };
-
-  const handleOpenShowUser = (user) => {
-    setRutValido(true);
-    setSelectedItem(user);
-    setOpenShowUser(true);
-    setFormData(user);
-    handleOpen(user);
-    setIsEdit(false);
-  };
-
-  const handleOpenNewUser = () => {
-    setIsEdit(false);
-    setOpenShowUser(false);
-    handleOpen();
-  };
-
-  const handleOpenEditUser = (user) => {
-    setRutValido(true);
-    setIsEdit(true);
-    setOpenShowUser(false);
-    setFormData(user);
-    setSelectedItem(user);
-    handleOpen(user);
-
-    // Setear los valores de los campos en el formulario al momento de levntar el modal de editar y se setean los valores en los campos select
-    setDataChangeZone(user.zone);
-    setDataChangeGround(user.ground);
-    setDataChangeSector(user.sector);
-    setDataChangeSquad(user.squad);
-
-    setDataChangeWorker(user.worker);
-    setDataChangeSpecie(user.specie);
-
-    //Cuando se habra el modal de edición valida si es un usuario con rol de administrador (1)
-    const userDataString = sessionStorage.getItem("userData");
-    const userData = JSON.parse(userDataString);
-    const userRol = userData.rol;
-
-    setRol(userRol);
-  };
-
-  const handleOpen = (user) => {
-    reset();
-    setSelectedItem(user); // Actualiza el estado con los datos del usuario seleccionado
-    setOpen(!open);
-  };
-
-  const onUpdateItem = async (data) => {
-    try {
-      if (!data || !data.id) {
-        throw new Error(
-          "Los datos para actualizar son inválidos o incompletos."
-        );
-      }
-
-      const updateData = {
-        id: Number(data.id) || null,
-        zone: data.zone,
-        ground: data.ground,
-        sector: data.sector,
-        squad: data.squad ? data.squad : null,
-        squad_leader: data.squad_leader ? data.squad_leader : null,
-        batch: data.batch ? data.batch : null,
-        worker: data.worker ? data.worker : null,
-        worker_rut: data.worker_rut ? data.worker_rut : null,
-        harvest_date: data.harvest_date,
-        specie: data.specie,
-        variety: data.variety,
-        boxes: data.boxes ? Number(data.boxes) : null,
-        kg_boxes: data.kg_boxes ? Number(data.kg_boxes) : null,
-        quality: data.quality ? data.quality : null,
-        hilera: data.hilera ? Number(data.hilera) : null,
-        harvest_format: data.harvest_format,
-        weigher_rut: data.weigher_rut ? data.weigher_rut : null,
-        sync: data.sync ? data.sync : null,
-        sync_date: data.sync_date ? data.sync_date : null,
-        season: data.season ? data.season : null,
-        turns: data.turns ? data.turns : null,
-        date_register: data.date_register ? data.date_register : null,
-        temp: data.temp ? data.temp : null,
-        wet: data.wet ? data.wet : null,
-        contractor: data.contractor ? data.contractor : null,
-        source: 1,
-        company_id: Number(companyID),
-      };
-
-      const updateItemApi = await updateRegularizationProduction(updateData);
-      const dataNew = await getDataRegularizationProduction(companyID);
-
-      if (updateItemApi === "OK") {
-        const updatedList = initialData.map((item) =>
-          item.id === Number(data.id) ? { ...item, ...updateData } : item
-        );
-
-        setInitialData(updatedList);
-        setInitialData(dataNew);
-        setUpdateMessage("Registro actualizado correctamente");
-        setOpen(false);
-      } else {
-        setUpdateMessage("No se pudo actualizar el registro.");
-      }
-    } catch (error) {
-      console.error(error);
-      setUpdateMessage("Error al intentar actualizar el registro.");
-    }
-  };
-
-  const handleOpenAlert = (index, id, harvest_date, ground) => {
-    setItemToDelete({ index, id, harvest_date, ground });
-    setOpenAlert(true);
-    setOpenAlertClone(false);
-  };
-
-  const handleCloneAlert = (
-    index,
-    zone,
-    ground,
-    sector,
-    squad,
-    squad_leader,
-    batch,
-    worker,
-    worker_rut,
-    harvest_date,
-    specie,
-    variety,
-    boxes,
-    kg_boxes,
-    quality,
-    hilera,
-    harvest_format,
-    weigher_rut,
-    sync,
-    sync_date,
-    season,
-    turns,
-    date_register,
-    temp,
-    wet,
-    contractor,
-    source,
-    company_id
-  ) => {
-    setItemToClone({
-      zone,
-      ground,
-      sector,
-      squad,
-      squad_leader,
-      batch,
-      worker,
-      worker_rut,
-      harvest_date,
-      specie,
-      variety,
-      boxes,
-      kg_boxes,
-      quality,
-      hilera,
-      harvest_format,
-      weigher_rut,
-      sync,
-      sync_date,
-      season,
-      turns,
-      date_register,
-      temp,
-      wet,
-      contractor,
-      source,
-      company_id,
-    });
-    setOpenAlertClone(true);
-    setOpenAlert(false);
-  };
-
-  const handleCloseAlert = () => {
-    setOpenAlert(false);
-    setOpenAlertClone(false);
-    setItemToDelete({ index: null, id: null, name_item: "" });
-  };
-
-  const handleCloseAlertClone = () => {
-    setOpenAlertClone(false);
-    setOpenAlert(false);
-    setItemToDelete({ index: null, name: "", varieties: "", status: "" });
-  };
-
-  const handlerRemove = async () => {
-    const { index, id } = itemToDelete;
-    try {
-      //if (userConfirmed) {
-      const deleteItem = await deleteRegularizationProduction(id);
-
-      // Elimina la fila del front-end si la eliminación fue exitosa
-      if (deleteItem === "OK") {
-        const updatedData = [...initialData];
-        updatedData.splice(index, 1);
-        setInitialData(updatedData);
-        setOpenAlert(false);
-        setUpdateMessage("Registro eliminado correctamente");
-      } else {
-        setUpdateMessage(
-          "Error al eliminar el registro. Inténtalo nuevamente."
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      // Manejo de errores
-      setUpdateMessage("Ocurrió un error al intentar eliminar el registro.");
-    }
-  };
-
-  const handlerClone = async () => {
-    const {
-      zone,
-      ground,
-      sector,
-      squad,
-      squad_leader,
-      batch,
-      worker,
-      worker_rut,
-      harvest_date,
-      specie,
-      variety,
-      boxes,
-      kg_boxes,
-      quality,
-      hilera,
-      harvest_format,
-      weigher_rut,
-      sync,
-      sync_date,
-      season,
-      turns,
-      date_register,
-      temp,
-      wet,
-      contractor,
-      source,
-      company_id,
-    } = itemToClone;
-
-    try {
-      const cloneItem = await createRegularizationProduction(itemToClone);
-      const dataNew = await getDataRegularizationProduction(companyID);
-
-      if (cloneItem === "OK") {
-        const updatedData = [...initialData, itemToClone];
-
-        setInitialData(updatedData);
-        setInitialData(dataNew);
-        setOpenAlertClone(false);
-        setUpdateMessage("Registro clonado correctamente");
-      } else {
-        setUpdateMessage(cloneItem || "No se pudo clonar el registro");
-      }
-    } catch (error) {
-      console.error("Error al clonar el registro:", error);
-      setUpdateMessage("Error al intentar clonar el registro");
-    }
-  };
-
-  // Creación
-  const onSubmitForm = async (data) => {
-    console.log(data);
-    try {
-      // Preparar los datos transformados
-      const transformedData = {
-        zone: data.zone || null,
-        ground: Number(data.ground) || null,
-        sector: Number(data.sector) || null,
-        squad: data.squad ? Number(data.squad) : null,
-        squad_leader: data.squad_leader || null,
-        batch: data.batch ? Number(data.batch) : null,
-        worker: data.worker ? Number(data.worker) : null,
-        worker_rut: data.worker_rut || null,
-        harvest_date: data.harvest_date || null,
-        specie: data.specie || null,
-        variety: data.variety || null,
-        boxes: data.boxes ? Number(data.boxes) : null,
-        kg_boxes: data.kg_boxes ? Number(data.kg_boxes) : null,
-        quality: data.quality || null,
-        hilera: data.hilera ? Number(data.hilera) : null,
-        harvest_format: data.harvest_format || null,
-        weigher_rut: data.weigher_rut || null,
-        sync: data.sync || null,
-        sync_date: data.sync_date || null,
-        season: data.season ? Number(data.season) : null,
-        turns: data.turns ? Number(data.turns) : null,
-        date_register: data.date_register || null,
-        temp: data.temp || null,
-        wet: data.wet || null,
-        contractor: data.contractor ? Number(data.contractor) : null,
-        source: 1,
-        company_id: Number(data.company_id) || null,
-      };
-  
-  
-      // Enviar datos al servidor
-      const createItem = await createRegularizationProduction(transformedData);
-      const dataNew = await getDataRegularizationProduction(companyID);
-  
-      if (createItem === "OK") {
-        const updatedData = [...initialData, transformedData];
+        #swagger.parameters['companyID'] = {
+            in: 'path',
+            required: true,
+            type: "integer",
+        } 
         
-        setInitialData(updatedData);
-        setInitialData(dataNew);
-        setOpen(false);
-        setSelectedVarieties([]);
-        setUpdateMessage("Registro creado correctamente");
-      } else {
-        setUpdateMessage(createItem || "No se pudo crear el registro");
-      }
-    } catch (error) {
-      console.error("Error al crear el registro:", error);
-      setUpdateMessage("Error al intentar crear el registro");
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "id": 1,
+                "name": "Harvesters",
+                "status": 1
+            }
+        } 
+    */
+    try {
+
+        var positions = [];
+        let { companyID } = req.params;
+        //console.log("aqui", companyID);
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            }
+            else {
+
+                var queryString = "SELECT * FROM positions where id_company = " + companyID;
+
+                ////console.log(queryString);
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+
+                        res.json(jsonResult);
+
+                    } else {
+
+                        if (results && results.length > 0) {
+
+                            results.forEach(element => {
+
+                                const jsonResult = {
+                                    "id": element.id,
+                                    "name": element.name,
+                                    "status": element.status,
+                                };
+
+                                positions.push(jsonResult);
+
+                            });
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "positions": positions
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "No se encontraron registros"
+                            }
+
+                            res.json(jsonResult);
+
+                        }
+                    }
+                });
+
+                mysqlConn.end();
+
+            }
+        });
+
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e })
     }
-  };
-  
+});
 
-  useEffect(() => {
-    if (updateMessage) {
-      const timer = setTimeout(() => {
-        setUpdateMessage(null);
-        reset();
-      }, 4000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [updateMessage]);
-
-  useEffect(() => {
-    if (data && Object.keys(data).length > 0) {
-      setLoading(false);
-    }
-  }, [data]);
-
-  //Buscador especial para la tabla de cosecha manueales
-  const handlerSearch = (e) => {
-    const value = e.target.value.toLowerCase();
-
-    const filteredData = data
-      .map((item) => ({
-        ...item,
-        ground: getNameByKey("ground", item.ground),
-        sector: getNameByKey("sector", item.sector),
-        harvest_date: formatDateSearch(item.harvest_date),
-        specie: getNameByKey("specie", item.specie),
-        variety: getNameByKey("variety", item.variety),
-        harvest_format: getNameByKey("harvest_format", item.harvest_format),
-      }))
-      .filter((item) => {
-        return Object.values(item).some((val) =>
-          String(val).toLowerCase().includes(value)
-        );
-      });
-
-    setInitialData(filteredData); // Actualiza initialData con los resultados filtrados
-    setCurrentPage(1); // Resetear a la primera página después de la búsqueda
-  };
-
-  //const totalPages = Math.ceil(initialData.length / itemsPerPage);
-  const totalPages = Math.ceil(
-    (initialData ? initialData.length : 0) / itemsPerPage
-  );
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-
-  const currentItems = Array.isArray(initialData) ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
-
-  const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-  //Mapero de datos para la tabla
-  const dataMap = {
-    ground: dataGround,
-    sector: dataSector,
-    worker: dataWorkers,
-    squad_leader: dataWorkers,
-    squad: dataSqaads,
-    variety: dataVarieties,
-    specie: dataSpecies,
-    quality: dataQuality,
-    scale: dataScale,
-    season: dataSeasons,
-    harvest_format: dataHarvestFormat,
-    contractor: dataContractors,
-    turns: dataShifts,
-  };
-
-  const getNameByKey = (key, value) => {
-    const data = dataMap[key];
-    if (key === "worker" || key === "squad_leader") {
-      const worker = data?.find((item) => item.id === value);
-      return worker ? `${worker.name} ${worker.lastname}` : value;
-    } else {
-      return Array.isArray(data) && data?.find((item) => item.id === value)?.name || value;
-    }
-  };
-
-  const today = new Date().toISOString().split('T')[0]
-
-  const formatDate = (isoDate) => {
-
-    let dateTime = new Date(isoDate);
-    
-
-    let day = String(dateTime.getUTCDate()).padStart(2, '0');
-    let month = String(dateTime.getUTCMonth() + 1).padStart(2, '0');
-    let year = dateTime.getUTCFullYear();
-
-    let formattedDate = `${day}-${month}-${year}`;
-
-    return `${formattedDate}`;
-  };
-
-  const formatDateSearch = (dateString) => {
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? "Invalid Date" : date.toISOString(); // Devuelve una cadena de fecha ISO o 'Invalid Date'
-  };
-
-  function formatDateForInput(dateString) {
-    
-    const date = new Date(dateString);
-    // Extrae la fecha en formato "YYYY-MM-DDTHH:MM"
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-  
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-    // console.log(dateString);
-    // if (!dateString) return "";
-    // console.log("dateString" , dateString);
-    // return dateString.substring(0, 10);
-  }
-
-  //Exportar Excel datas de front
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Aquí llamamos a cada función solo una vez
-        const [
-          fetchedDataSector,
-          fetchedDataSquads,
-          fetchedDataWorkers,
-          fetchedDataVarieties,
-          fetchedDataSpecies,
-          fetchedDataQuality,
-          fetchedDataHarvestFormat,
-          fetchedDataGround,
-          fetchedDataSeasons,
-          fetchedDataContractors,
-        ] = await Promise.all([
-          getDataSectorBarracks(companyID),
-          getDataSquads(companyID),
-          getDataWorkers(companyID),
-          getDataVarieties(companyID),
-          getDataSpecies(companyID),
-          getDataQuality(companyID),
-          getDataHarvestFormat(companyID), // Asegúrate de que esta función esté definida y retorne los datos correctos
-          getDataGround(companyID),
-          getDataSeasons(companyID),
-          getDataContractors(companyID),
-        ]);
-
-        // Aquí puedes guardar los datos en el estado si es necesario
-        setDataSector(fetchedDataSector);
-        setDataSquads(fetchedDataSquads);
-        setDataWorkers(fetchedDataWorkers);
-        setDataVarieties(fetchedDataVarieties);
-        setDataSpecies(fetchedDataSpecies);
-        setDataQuality(fetchedDataQuality);
-        setDataHarvestFormat(fetchedDataHarvestFormat);
-        if (fetchedDataGround == 'OK'){
-          setDataGround(fetchedDataGround.grounds);
-        }else{
-          setDataGround([]);
+router.post('/management-people/positions/createPosition', validateToken, (req, res) => {
+    /*
+        #swagger.tags = ['Management People - Positions']
+        #swagger.security = [{
+            "apiKeyAuth": []
+        }]
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Create Position',
+            required: true,
+            schema: {name: "Harvesters", status: 1, company_id: 1}
         }
-console.log(fetchedDataGround);
-        setDataSeasons(fetchedDataSeasons);
-        setDataContractors(fetchedDataContractors);
-
-        if (initialData) {
-          const formatData = await Promise.all(
-            initialData.map(async (item) => {
-              return {
-                Zona: item.zone,
-                Campo: fetchedDataGround.grounds.find(
-                  (ground) => ground.id === item.ground
-                )?.name,
-                Sector: fetchedDataSector.find(
-                  (sector) => sector.id === item.sector
-                )?.name,
-                Cuadrilla: fetchedDataSquads.squads.find(
-                  (squad) => squad.id === item.squad
-                )?.name,
-                "Jefe cuadrilla": fetchedDataWorkers.find(
-                  (worker) => worker.id === item.squad_leader
-                )?.name,
-                Lote: item.batch,
-                Cosechero:
-                fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.name +
-                  " " +
-                  fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.lastname,
-                "RUT Cosechero": item.worker_rut,
-                "Fecha cosecha": formatDate(item.harvest_date),
-                Especie: fetchedDataSpecies.find(
-                  (specie) => specie.id === item.specie
-                )?.name,
-                Variedad: fetchedDataVarieties.find(
-                  (variety) => variety.id === item.variety
-                )?.name,
-                Cajas: item.boxes,
-                "Kilos Caja": item.kg_boxes,
-                Calidad: fetchedDataQuality.find(
-                  (quality) => quality.id === item.quality
-                )?.name,
-                Hilera: item.hilera,
-                "Formato cosecha": fetchedDataHarvestFormat.find(
-                  (format) => format.id === item.harvest_format
-                )?.name,
-                "RUT Pesador": item.weigher_rut,
-                Sincronizado: item.sync,
-                "Fecha sincronización": item.sync_date,
-                Temporada: fetchedDataSeasons.find(
-                  (season) => season.id === item.season
-                )?.name,
-                Turnos: item.turns,
-                "Fecha registro": item.date_register,
-                Temp: item.temp,
-                Humedad: item.wet,
-                Contratista: fetchedDataContractors.find(
-                  (contractor) => contractor.id === item.contractor
-                )?.name,
-              };
-            })
-          );
-
-          //console.log("formatData", formatData);
-          setFormatInitialData(formatData);
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro creado"
+            }
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+    */
+    const { name, status, company_id } = req.body;
 
-    fetchData();
-  }, [initialData, companyID]);
+    if (!name || !status || !company_id) {
+        return res.status(400).json({
+            code: "ERROR",
+            mensaje: "Faltan datos requeridos"
+        });
+    }
 
-  return (
-    <>
-      {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
-        <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
-          style={{ zIndex: 999999 }}
-        >
-          {updateMessage}
-        </div>
-      )}
+    // Conectar a la base de datos
+    const mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
 
-      {loading ? (
-        <div role="status" className="max-w-full animate-pulse p-0">
-          {/* Titulo */}
-          <div
-            className={`h-[22px] dark:bg-gray-200 bg-gray-400 w-1/2 rounded-sm pb-[10px] mb-5`}
-          ></div>
-        </div>
-      ) : (
-        <>
-          <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
-          >
-            {title && (
-              <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
-                {title}
-              </h4>
-            )}
+    mysqlConn.connect(function (err) {
+        if (err) {
+            console.error('Error connecting: ' + err.message);
+            return res.status(500).json({
+                code: "ERROR",
+                mensaje: err.message
+            });
+        }
 
-            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
-              {Array.isArray(initialData) &&
-                initialData.length > 0 &&
-                downloadBtn && (
-                  <ExportarExcel
-                    data={formatInitialData}
-                    filename="Tipos de recolección"
-                    sheetname="Tipos de recolección"
-                    titlebutton="Exportar a excel"
-                  />
-                )}
+        // Verificar si ya existe una posición con el mismo nombre para la misma compañía
+        const checkNameQuery = "SELECT id FROM positions WHERE name = ? AND id_company = ?";
+        mysqlConn.query(checkNameQuery, [name, company_id], (error, results) => {
+            if (error) {
+                console.error('Error checking name: ' + error.message);
+                mysqlConn.end();
+                return res.status(500).json({
+                    code: 'ERROR',
+                    mensaje: 'Error al verificar el nombre: ' + error.message
+                });
+            }
 
-              {SearchInput && (
-                <input
-                  type="search"
-                  placeholder="Buscar"
-                  className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
-                  onKeyUp={handlerSearch}
-                />
-              )}
-            </div>
-          </div>
+            if (results.length > 0) {
+                mysqlConn.end();
+                return res.status(400).json({
+                    code: 'ERROR',
+                    mensaje: 'El nombre de la posición ya existe para esta compañía.'
+                });
+            }
 
-          <div className="h-full overflow-x-scroll max-h-dvh">
-            <table
-              role="table"
-              className="mt-8 h-max w-full"
-              variant="simple"
-              color="gray-500"
-              mb="24px"
-              id="tablaEmpresas"
-            >
-              {thead && (
-                <thead>
-                  <tr role="row">
-                    {columnLabels &&
-                      columnLabels.map((label, index) => {
-                        if (omitirColumns.includes(label)) {
-                          return null; // Omitir la columna si está en omitirColumns
+            // Insertar la nueva posición
+            const insertQuery = "INSERT INTO positions (name, status, id_company) VALUES (?, ?, ?)";
+            mysqlConn.query(insertQuery, [name, status, company_id], (insertError, insertResults) => {
+                mysqlConn.end();
+
+                if (insertError) {
+                    console.error('Error executing insert query: ' + insertError.message);
+                    return res.status(500).json({
+                        code: 'ERROR',
+                        mensaje: 'Error al crear la posición: ' + insertError.message
+                    });
+                }
+
+                if (insertResults.insertId) {
+                    return res.status(200).json({
+                        code: 'OK',
+                        mensaje: 'Registro creado correctamente.'
+                    });
+                } else {
+                    return res.status(500).json({
+                        code: 'ERROR',
+                        mensaje: 'No se pudo crear el registro.'
+                    });
+                }
+            });
+        });
+    });
+});
+
+router.post('/management-people/positions/updatePosition', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Positions']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Update Position',
+            required: true,
+            schema: {id: 1, name: "Harvesters", status: 1}
+        }
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro actualizado correctamente."
+            }
+        } 
+    */
+    try {
+
+        const { id, name, status } = req.body;
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+
+                res.json(jsonResult);
+
+            } else {
+
+                var queryString = "UPDATE positions SET name = '" + name + "', status = " + status + " WHERE id = " + id;
+
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
                         }
-                        return (
-                          <th
-                            key={index}
-                            colSpan={1}
-                            role="columnheader"
-                            className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                          >
-                            <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
-                            >
-                              {label}
-                            </p>
-                          </th>
-                        );
-                      })}
-                    {/* Aquí se renderiza la columna Actions si actions es true */}
-                    {actions && (
-                      <th
-                        colSpan={1}
-                        role="columnheader"
-                        className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                      >
-                        <p className="text-xs tracking-wide text-gray-600">
-                          Actions
-                        </p>
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-              )}
 
-              <tbody role="rowgroup">
-                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no, el currentItems es de la paginación */}
-                {Array.isArray(initialData) && initialData.length > 0 ? (
-                  currentItems.map((row, index) => (
-                    <tr key={index} role="row">
-                      {Object.keys(row).map((key, rowIndex) => {
-                        if (omitirColumns.includes(key)) {
-                          return null; // Omitir la columna si está en omitirColumns
+                        res.json(jsonResult);
+
+                    } else {
+
+                        if (results && results.affectedRows != 0) {
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "mensaje": "Registro actualizado correctamente."
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "No se pudo actualizar el registro."
+                            }
+
+                            res.json(jsonResult);
                         }
 
-                        return (
-                          <td
-                            key={rowIndex}
-                            role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                              index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
-                          >
-                            <div className="text-base font-medium text-navy-700 dark:text-white">
-                              {key === "status" ? (
-                                row[key] == 1 ? (
-                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                    Activo
-                                  </p>
-                                ) : (
-                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                    Inactivo
-                                  </p>
-                                )
-                              ) : key === "harvest_date" ? (
-                                formatDate(row[key]) // Formatea la fecha aquí
-                              ) : (
-                                getNameByKey(key, row[key]) ||
-                                formatNumber(row[key])
-                              )}
-                            </div>
-                          </td>
-                        );
-                      })}
-                      {actions && (
-                        <td
-                          colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
-                            index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                            onClick={() => handleOpenShowUser(row)}
-                          >
-                            <EyeIcon className="w-6 h-6" />
-                          </button>
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            //onClick={() => handleOpen(row)}
-                            onClick={() => handleOpenEditUser(row)}
-                          >
-                            <PencilSquareIcon className="w-6 h-6" />
-                          </button>
+                    }
+                });
 
-                          <button
-                            id="remove"
-                            type="button"
-                            onClick={() => {
-                              handleOpenAlert(
-                                index,
-                                row.id,
-                                row.harvest_date
-                                  ? formatDate(row.harvest_date)
-                                  : "",
-                                row.ground
-                                  ? getNameByKey("groud", row.ground)
-                                  : ""
-                              );
-                            }}
-                          >
-                            <TrashIcon className="w-6 h-6" />
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="py-4">No se encontraron registros.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                mysqlConn.end();
 
-          {Array.isArray(initialData) &&
-            initialData.length > 0 &&
-            pagination.length > 1 && (
-              <div className="flex items-center justify-between mt-5">
-                <div className="flex items-center gap-5">
-                  <p className="text-sm text-gray-800 dark:text-white">
-                    Mostrando {indexOfFirstItem + 1} a{" "}
-                    {indexOfLastItem > initialData.length
-                      ? initialData.length
-                      : indexOfLastItem}{" "}
-                    de {initialData.length} registros
-                  </p>
-                </div>
-                <div className="flex items-center gap-5">
-                  <button
-                    type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeftIcon className="w-5 h-5" />
-                  </button>
-                  {pagination.map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      className={`${
-                        currentPage === page
-                          ? "font-semibold text-navy-500 dark:text-navy-300"
-                          : ""
-                      }`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    <ChevronRightIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            )}
+            }
+        });
 
-          <Dialog
-            open={open}
-            handler={handleOpen}
-            size="sm"
-            className="p-5 lg:max-w-[40%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
-          >
-            <button
-              type="button"
-              onClick={handleOpen}
-              className="absolute right-[15px] top-[15px] flex items-center justify-center w-10 h-10 bg-lightPrimary dark:bg-navy-800 dark:text-white rounded-md"
-            >
-              <XMarkIcon className="w-6 h-6" />
-            </button>
-            <DialogHeader className="dark:text-white">
-              {openShowUser
-                ? "Datos de la cosecha"
-                : isEdit
-                ? "Editar cosecha"
-                : "Nueva cosecha"}
-            </DialogHeader>
-            <DialogBody>
-              {!openShowUser ? (
-                <form
-                  onSubmit={handleSubmit(isEdit ? onUpdateItem : onSubmitForm)}
-                  method="POST"
-                >
-                  <input
-                    type="hidden"
-                    name="id"
-                    {...register("id")}
-                    defaultValue={selectedItem ? selectedItem.id : ""}
-                  />
-                  <div
-                    className={`mb-3 grid gap-3 ${
-                      isEdit
-                        ? "grid-cols-2 lg:grid-cols-2"
-                        : "grid-cols-12 lg:grid-cols-2"
-                    } `}
-                  ></div>
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e })
+    }
+});
 
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
-                    {" "}
-                    Ubicación
-                  </h3>
+router.post('/management-people/positions/deletePosition', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Positions']
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="ground"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Campo
-                      </label>
-                      <select
-                        name="ground"
-                        id="ground"
-                        required={true}
-                        {...register("ground")}
-                        value={dataChangeGround} // Usar value en lugar de defaultValue
-                        onChange={(e) => {
-                          setDataChangeGround(e.target.value);
-                          setDataChangeSector(""); // Resetear sector cuando cambia el campo
-                        }}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option key="0" value="">
-                          Elige un campo
-                        </option>
-                        {Array.isArray(dataGround) && dataGround.length > 0 ? (
-                          dataGround.filter(
-                            (ground) =>
-                              ground.status != 0 &&
-                              ground.zone == dataChangeZone
-                          ).length > 0 ? (
-                            dataGround
-                              .filter(
-                                (ground) =>
-                                  ground.status != 0 &&
-                                  ground.zone == dataChangeZone
-                              )
-                              .map((ground) => (
-                                <option key={ground.id} value={ground.id}>
-                                  {ground.name}
-                                </option>
-                              ))
-                          ) : (
-                            <option key="no-fields" value="">
-                              No hay campos
-                            </option>
-                          )
-                        ) : (
-                          <option key="no-fields" value="">
-                            No hay campos
-                          </option>
-                        )}
-                      </select>
-                    </div>
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+       #swagger.parameters['obj'] = {
+            in: 'body',
+            schema: {
+                id: 1,
+            }
+        }  
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro eliminado"
+            }
+        } 
+    */
+    try {
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="sector"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Sector
-                      </label>
-                      <select
-                        name="sector"
-                        id="sector"
-                        required={true}
-                        {...register("sector")}
-                        value={dataChangeSector} // Usar value en lugar de defaultValue
-                        onChange={(e) => {
-                          setDataChangeSector(e.target.value);
-                        }}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option key="0" value="">
-                          Elige un sector
-                        </option>
-                        {Array.isArray(dataSector) && dataSector.length > 0 ? (
-                          dataSector.filter(
-                            (sector) =>
-                              sector.status != 0 &&
-                              sector.ground == dataChangeGround
-                          ).length > 0 ? (
-                            dataSector
-                              .filter(
-                                (sector) =>
-                                  sector.status != 0 &&
-                                  sector.ground == dataChangeGround
-                              )
-                              .map((sector) => (
-                                <option key={sector.id} value={sector.id}>
-                                  {sector.name}
-                                </option>
-                              ))
-                          ) : (
-                            <option key="no-fields" value="">
-                              No hay sectores
-                            </option>
-                          )
-                        ) : (
-                          <option value="">No hay sectores</option>
-                        )}
-                      </select>
-                    </div>
+        let { id } = req.body;
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="squad"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Cuadrillas
-                      </label>
-                      <select
-                        name="squad"
-                        id="squad"
-                        required={true}
-                        {...register("squad")}
-                        defaultValue={selectedItem ? selectedItem.squad : ""}
-                        onChange={(e) => {
-                          setDataChangeSquad(e.target.value);
-                        }}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="">Elige una cuadrilla</option>
-                        {Array.isArray(dataSqaads) && dataSqaads.length > 0 ? (
-                          dataSqaads.map(
-                            (squad) =>
-                              squad.status != 0 && (
-                                <option key={squad.id} value={squad.id}>
-                                  {squad.name}
-                                </option>
-                              )
-                          )
-                        ) : (
-                          <option value="">No hay cuadrillas</option>
-                        )}
-                      </select>
-                    </div>
+        console.log(id);
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="squad_leader"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Jefe de cuadrilla
-                      </label>
-                      <input
-                        name="squad_leader"
-                        id="squad_leader"
-                        required={true}
-                        {...register("squad_leader")}
-                        readOnly={true}
-                        defaultValue={
-                          selectedItem ? selectedItem.squad_leader : ""
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            }
+            else {
+
+                var queryString = "DELETE FROM positions WHERE id = " + id;
+
+                ////console.log(queryString);
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
                         }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+                        res.json(jsonResult);
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="batch"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Lote
-                      </label>
-                      <select
-                        name="batch"
-                        id="batch"
-                        required={true}
-                        {...register("batch")}
-                        defaultValue={selectedItem ? selectedItem.batch : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="">Elige un lote</option>
+                    }
+                    else {
 
-                        {Array.from({ length: 50 }, (_, i) => i + 1).map(
-                          (lote) => (
-                            <option key={lote} value={lote}>
-                              {lote}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    </div>
-                  </div>
+                        if (results && results.affectedRows == 1) {
 
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white mt-[50px] mb-3">
-                    {" "}
-                    Datos cosecha
-                  </h3>
+                            const jsonResult = {
+                                "code": "OK",
+                                "companies": "Registro eliminado."
+                            }
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="worker"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Cosechero
-                      </label>
-                      <select
-                        name="worker"
-                        id="worker"
-                        required={true}
-                        {...register("worker")}
-                        onChange={(e) => {
-                          setDataChangeWorker(e.target.value);
-                        }}
-                        defaultValue={selectedItem ? selectedItem.worker : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        {dataChangeSquad ? (
-                          dataSqaads.length > 0 ? (
-                            <>
-                              <option value="">Elige cosechero</option>
-                              {dataSqaads
-                                .filter((squad) => squad.id == dataChangeSquad)
-                                .map((squad) =>
-                                  JSON.parse(squad.workers).length > 0 ? (
-                                    JSON.parse(squad.workers).map(
-                                      (worker) =>
-                                        worker.status != 0 &&
-                                        dataWorkers
-                                          .filter(
-                                            (workerSelect) =>
-                                              workerSelect.id == worker
-                                          )
-                                          .map((workerSelect) => (
-                                            <option
-                                              key={workerSelect.id}
-                                              value={workerSelect.id}
-                                            >
-                                              {workerSelect.name +
-                                                " " +
-                                                workerSelect.lastname}
-                                            </option>
-                                          ))
-                                    )
-                                  ) : (
-                                    <option value="">
-                                      No hay trabajadores
-                                    </option>
-                                  )
-                                )}
-                            </>
-                          ) : (
-                            <option value="">No hay trabajadores</option>
-                          )
-                        ) : (
-                          <option value="">No hay trabajadores</option>
-                        )}
-                      </select>
-                    </div>
+                            res.json(jsonResult);
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="worker_rut"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Rut cosechero
-                      </label>
-                      <input
-                        type="text"
-                        name="worker_rut"
-                        id="worker_rut"
-                        required={true}
-                        {...register("worker_rut")}
-                        readOnly={true}
-                        defaultValue={
-                          selectedItem
-                            ? selectedItem.worker_rut
-                            : dataChangeWorker.length > 0
-                            ? dataWorkers
-                                .filter(
-                                  (worker) => worker.id == dataChangeWorker
-                                )
-                                .map((worker) => worker.rut)
-                            : ""
+                        } else {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "No se pudo eliminar el registro ."
+                            }
+
+                            res.json(jsonResult);
+
                         }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+                    }
+                });
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="harvest_date"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Fecha cosecha
-                      </label>
-                      <input
-                        type="datetime-local"
-                        name="harvest_date"
-                        id="harvest_date"
-                        required={true}
-                        {...register("harvest_date")}
-                        defaultValue={
-                          selectedItem
-                            ? formatDateForInput(selectedItem.harvest_date)
-                            : ""
+                mysqlConn.end();
+
+            }
+        });
+
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e })
+    }
+});
+
+
+//Management People - Contractors
+router.get('/management-people/contractors/getContractors/:companyID', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Contractors']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+
+        #swagger.parameters['companyID'] = {
+            in: 'path',
+            required: true,
+            type: "integer",
+        }  
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "id": 1,
+                "rut": "12345678-9",
+                "name": "Juan",
+                "lastname": "Perez",
+                "giro": "Agricultura",
+                "phone": "12345678",
+                "email": "mail@mail.com",
+                "state": "Maule",
+                "city": "Talca",
+                "status": 1
+            }
+        } 
+    */
+    try {
+
+        let { companyID } = req.params;
+        var contractors = [];
+        //console.log("aqui", companyID);
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            }
+            else {
+
+                var queryString = "SELECT * FROM contractors where id_company = " + companyID;
+
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        };
+
+                        res.json(jsonResult);
+
+                    } else {
+
+                        if (results && results.length > 0) {
+                            //console.log("1");
+                            results.forEach(element => {
+                                const jsonResult = {
+                                    "id": element.id,
+                                    "rut": element.rut,
+                                    "name": element.name,
+                                    "lastname": element.lastname,
+                                    "giro": element.giro,
+                                    "phone": element.phone,
+                                    "email": element.email,
+                                    "state": element.state,
+                                    "city": element.city,
+                                    "status": element.status,
+                                };
+                                contractors.push(jsonResult);
+                            });
+                            //console.log("2");
+                            const jsonResult = {
+                                "code": "OK",
+                                "contractors": contractors
+                            }
+                            //console.log(jsonResult);
+                            res.json(jsonResult);
+
                         }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+                        else {
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "No se encontraron registros"
+                            }
+                            res.json(jsonResult);
+                        }
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="specie"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Especie
-                      </label>
-                      <select
-                        name="specie"
-                        id="specie"
-                        required={true}
-                        {...register("specie")}
-                        onChange={(e) => {
-                          setDataChangeSpecie(e.target.value);
-                        }}
-                        defaultValue={selectedItem ? selectedItem.specie : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="">Elige una especie</option>
-                        {Array.isArray(dataSpecies) &&
-                        dataSpecies.length > 0 ? (
-                          dataSpecies.map(
-                            (specie) =>
-                              specie.status != 0 && (
-                                <option key={specie.id} value={specie.id}>
-                                  {specie.name}
-                                </option>
-                              )
-                          )
-                        ) : (
-                          <option value="">No hay especies</option>
-                        )}
-                      </select>
-                    </div>
+                    }
+                });
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="variety"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Variedad
-                      </label>
-                      <select
-                        name="variety"
-                        id="variety"
-                        required={true}
-                        {...register("variety")}
-                        defaultValue={selectedItem ? selectedItem.variety : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <>
-                          <option key="empty" value="">Elige una variedad</option>
-                          {Array.isArray(dataSpecies) &&
-                          dataSpecies.length > 0 ? (
-                            dataSpecies
-                              .filter((specie) => specie.id == dataChangeSpecie)
-                              .map((specie) =>
-                                Array.isArray(specie.varieties) &&
-                                specie.varieties.length > 0 ? (
-                                  <>
-                                    <option key="empty" value="">
-                                      Elige una variedad
-                                    </option>
-                                    {specie.varieties.map((variety) =>
-                                      dataVarieties
-                                        .filter(
-                                          (varietySelect) =>
-                                            varietySelect.id == variety
-                                        )
-                                        .map((varietySelect) => (
-                                          <option
-                                            key={varietySelect.id}
-                                            value={varietySelect.id}
-                                          >
-                                            {varietySelect.name}
-                                          </option>
-                                        ))
-                                    )}
-                                  </>
-                                ) : (
-                                  <option value="">No hay variedades</option>
-                                )
-                              )
-                          ) : (
-                            <option value="">No hay variedades</option>
-                          )}
-                        </>
-                      </select>
-                    </div>
+                mysqlConn.end();
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="boxes"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        N. de Cajas
-                      </label>
-                      <input
-                        type="number"
-                        name="boxes"
-                        id="boxes"
-                        step="0.01"
-                        required={true}
-                        {...register("boxes")}
-                        defaultValue={selectedItem ? selectedItem.boxes : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+            }
+        });
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="kg_boxes"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Kg Cajas
-                      </label>
-                      <input
-                        type="number"
-                        name="kg_boxes"
-                        id="kg_boxes"
-                        required={true}
-                        step="0.01"
-                        {...register("kg_boxes")}
-                        defaultValue={selectedItem ? selectedItem.kg_boxes : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e })
+    }
+}
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="quality"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Calidad
-                      </label>
-                      <select
-                        name="quality"
-                        id="quality"
-                        required={true}
-                        {...register("quality")}
-                        defaultValue={selectedItem ? selectedItem.quality : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <>
-                          <option value="">Elige una calidad</option>
-                          {Array.isArray(dataQuality) &&
-                          dataQuality.length > 0 ? (
-                            dataQuality.map(
-                              (quality) =>
-                                quality.status != 0 && (
-                                  <option key={quality.id} value={quality.id}>
-                                    {quality.name}
-                                  </option>
-                                )
+);
+
+router.post('/management-people/contractors/createContractor', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Contractors']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Create Contractor',
+            required: true,
+            schema: {rut: "12345678-9", name: "Juan", lastname: "Perez", giro: "Agricultura", phone: "12345678", email: "contacto@mail.com", state: "Maule", city: "Talca", status: 1, idCompany: 1}
+        }
+
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Contratista creado correctamente."
+            }
+        }
+    */
+
+    try {
+
+        const { rut, name, lastname, giro, phone, email, state, city, status, idCompany } = req.body;
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            }
+            else {
+
+                //valido que contratista no exista
+
+                var queryString = "select * from contractors u where rut='" + rut + "' and id_company = " + idCompany;
+
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+                        res.json(jsonResult);
+
+                    }
+                    else {
+
+                        if (results && results.length > 0) {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "El contratista " + rut + " ya existe en el sistema."
+                            }
+
+                            res.json(jsonResult);
+
+                        }
+                        else {
+
+                            var queryString = "INSERT INTO contractors (rut, name, lastname, giro, phone, email, state, city, status , id_company) VALUES ('" + rut + "', '" + name + "', '" + lastname + "', '" + giro + "', '" + phone + "', '" + email + "', '" + state + "', '" + city + "', " + status + "," + idCompany + ")";
+
+                            mysqlConn.query(queryString, function (error, resultsInsert, fields) {
+
+                                if (error) {
+
+                                    console.error('error ejecutando query: ' + error.sqlMessage);
+                                    const jsonResult = {
+                                        "code": "ERROR",
+                                        "mensaje": error.sqlMessage
+                                    }
+                                    res.json(jsonResult);
+
+                                }
+                                else {
+
+                                    if (resultsInsert.insertId != 0) {
+
+                                        const jsonResult = {
+                                            "code": "OK",
+                                            "usuarios": "Contratista creado correctamente."
+                                        }
+                                        res.json(jsonResult);
+
+                                    } else {
+
+                                        const jsonResult = {
+                                            "code": "ERROR",
+                                            "mensaje": "no se pudo crear el Contratista seleccionado."
+                                        }
+                                        res.json(jsonResult);
+
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+            }
+        });
+
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e })
+    }
+});
+
+router.post('/management-people/contractors/updateContractor', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Contractors']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Update Contractor',
+            required: true,
+            schema: {id: 1, rut: "12345678-9", name: "Juan", lastname: "Perez", giro: "Agricultura", phone: "12345678", email: "contacto@mail.com", state: "Maule", city: "Talca", status: 1}
+        }
+
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro actualizado"
+            }
+        }
+    */
+
+    try {
+
+        const { id, rut, name, lastname, giro, phone, email, state, city, status } = req.body;
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            }
+            else {
+
+                var queryString = "UPDATE contractors SET rut = '" + rut + "', name = '" + name + "', lastname = '" + lastname + "', giro = '" + giro + "', phone = '" + phone + "', email = '" + email + "', state = '" + state + "', city = '" + city + "', status = " + status + " WHERE id = " + id;
+
+                ////console.log(queryString);
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+                        res.json(jsonResult);
+
+                    }
+                    else {
+
+                        if (results && results.affectedRows != 0) {
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "mensaje": "contratista actualizado correctamente."
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "No se pudo actualizar contratista seleccionado."
+                            }
+
+                            res.json(jsonResult);
+                        }
+                    }
+                });
+
+                mysqlConn.end();
+
+            }
+        });
+
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e })
+    }
+});
+
+router.post('/management-people/contractors/deleteContractor', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Contractors']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+       #swagger.parameters['obj'] = {
+            in: 'body',
+            schema: {
+                id: 1
+            }
+        }  
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro eliminado"
+            }
+        } 
+    */
+    try {
+
+        let { id } = req.body;
+
+        console.log(id);
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            } else {
+
+                var queryString = "DELETE FROM contractors WHERE id = " + id;
+
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+                        res.json(jsonResult);
+
+                    }
+                    else {
+
+                        if (results && results.affectedRows == 1) {
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "companies": "contratista eliminada correctamente."
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "no se pudo eliminar al contratista seleccionado."
+                            }
+
+                            res.json(jsonResult);
+
+                        }
+                    }
+                });
+
+                mysqlConn.end();
+
+            }
+        });
+
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e })
+    }
+});
+
+
+//Management People - Groups
+
+//Alert , la palabra groups, est una palabra reservada de MYSQL, por lo que se debe usar comillas invertidas para que no de error
+
+router.get('/management-people/groups/getGroups/:companyID', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Groups']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+
+        #swagger.parameters['companyID'] = {
+            in: 'path',
+            required: true,
+            type: "integer",
+        }  
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "id": 1,
+                "name": "Grupo 1",
+                "status": 1
+            }
+        } 
+    */
+    try {
+
+        var groups = [];
+        let { companyID } = req.params;
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            } else {
+
+                var queryString = "SELECT * FROM `groups` g where id_company = " + companyID;
+                //console.log(queryString);
+
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+
+                    mysqlConn.end((err) => {
+                        if (err) {
+                            console.error('Error al cerrar la conexión:', err);
+                        } else {
+                            console.log('Conexión cerrada correctamente.');
+                        }
+                    });
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+                        res.json(jsonResult);
+
+                        //console.log(jsonResult);
+
+                    } else {
+
+                        if (results && results.length > 0) {
+
+                            results.forEach(element => {
+                                const jsonResult = {
+                                    "id": element.id,
+                                    "name": element.name,
+                                    "status": element.status,
+                                };
+
+                                groups.push(jsonResult);
+
+                            });
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "groups": groups
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "No se encontraron registros"
+                            }
+
+                            res.json(jsonResult);
+                        }
+                    }
+                });
+            }
+        });
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+router.post('/management-people/groups/createGroup', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Groups']
+        #swagger.security = [{
+            "apiKeyAuth": []
+        }]
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Create Group',
+            required: true,
+            schema: {name: "Grupo 1", status: 1, idCompany: 1}
+        }
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro creado"
+            }
+        } 
+    */
+    try {
+        const { name, status, id_company } = req.body;
+
+        // Verifica si los parámetros están presentes
+        if (!name || !status || !id_company) {
+
+            const jsonResult = {
+                "code": "ERROR",
+                "mensaje": "Faltan parámetros requeridos"
+            }
+
+            res.json(jsonResult);
+        }
+
+        // Convierte los valores a enteros
+        const numericStatus = parseInt(status, 10);
+        const numericIdCompany = parseInt(id_company, 10);
+
+        if (isNaN(numericStatus) || isNaN(numericIdCompany)) {
+
+            const jsonResult = {
+                "code": "ERROR",
+                "mensaje": "El status o id_company no son números válidos"
+            }
+            res.json(jsonResult);
+
+        }
+
+        // Crea la conexión a la base de datos
+        const mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            }
+            else {
+
+                // Verifica si ya existe un grupo con el mismo nombre y id_company
+                const checkQueryString = "SELECT * FROM `groups` WHERE name = ? AND id_company = ?";
+
+                mysqlConn.query(checkQueryString, [name, numericIdCompany], (checkError, checkResults) => {
+
+                    if (checkError) {
+
+                        console.error('Error executing check query: ' + checkError.message);
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": checkError.sqlMessage
+                        }
+
+                        mysqlConn.end((err) => {
+
+                            if (err) {
+                                console.error('Error al cerrar la conexión:', err);
+                            } else {
+                                console.log('Conexión cerrada correctamente.');
+                            }
+
+                        });
+
+                        res.json(jsonResult);
+
+                    } else {
+
+
+                        // Si ya existe, retorna un mensaje de error
+                        if (checkResults.length > 0) {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "Ya existe un grupo con ese nombre para esta compañía."
+                            }
+
+                            mysqlConn.end((err) => {
+                                if (err) {
+                                    console.error('Error al cerrar la conexión:', err);
+                                } else {
+                                    console.log('Conexión cerrada correctamente.');
+                                }
+                            });
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            // Define la consulta SQL para crear el grupo
+                            const queryString = "INSERT INTO `groups` (name, status, id_company) VALUES (?, ?, ?)";
+                            const queryParams = [name, numericStatus, numericIdCompany];
+
+                            // Ejecuta la consulta para crear el grupo
+                            mysqlConn.query(queryString, queryParams, (error, resultsInsert) => {
+
+                                mysqlConn.end((err) => {
+
+                                    if (err) {
+                                        console.error('Error al cerrar la conexión:', err);
+                                    } else {
+                                        console.log('Conexión cerrada correctamente.');
+                                    }
+
+                                });
+
+                                if (error) {
+
+                                    console.error('error ejecutando query: ' + error.sqlMessage);
+                                    const jsonResult = {
+                                        "code": "ERROR",
+                                        "mensaje": error.sqlMessage
+                                    }
+                                    res.json(jsonResult);
+
+                                } else {
+
+                                    if (resultsInsert.insertId != 0) {
+
+                                        const jsonResult = {
+                                            "code": "OK",
+                                            "mensaje": "Registro creado correctamente."
+                                        }
+                                        res.json(jsonResult);
+
+                                    } else {
+
+                                        const jsonResult = {
+                                            "code": "ERROR",
+                                            "mensaje": "No se pudo crear el Registro seleccionado."
+                                        }
+                                        res.json(jsonResult);
+
+                                    }
+
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+router.post('/management-people/groups/updateGroup', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Groups']
+        #swagger.security = [{
+            "apiKeyAuth": []
+        }]
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Update Group',
+            required: true,
+            schema: {id: 1, name: "Grupo 1", status: 1, company_id: 1}
+        }
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro actualizado"
+            }
+        } 
+    */
+    try {
+        const { id, name, status, id_company } = req.body;
+
+        // Verifica si los parámetros necesarios están presentes
+        if (!id || !name || status === undefined || !id_company) {
+
+            console.error('error connecting: ' + err.sqlMessage);
+            const jsonResult = {
+                "code": "ERROR",
+                "mensaje": "Faltan parámetros requeridos"
+            }
+            res.json(jsonResult);
+        }
+
+        // Convierte el `status` a un entero
+        const numericStatus = parseInt(status, 10);
+
+        if (isNaN(numericStatus)) {
+
+            const jsonResult = {
+                "code": "ERROR",
+                "mensaje": "El status no es un número válido"
+            }
+            res.json(jsonResult);
+
+        }
+
+        // Crea la conexión a la base de datos
+        const mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+
+                res.json(jsonResult);
+
+            }
+
+            // Verifica si ya existe un grupo con el mismo nombre y id_company, excluyendo el grupo que se está editando
+            const checkQueryString = "SELECT * FROM `groups` WHERE name = ? AND id_company = ? AND id != ?";
+            mysqlConn.query(checkQueryString, [name, id_company, id], (checkError, checkResults) => {
+
+                if (checkError) {
+
+                    console.error('error ejecutando query: ' + checkError.sqlMessage);
+                    const jsonResult = {
+                        "code": "ERROR",
+                        "mensaje": checkError.sqlMessage
+                    }
+
+                    mysqlConn.end((err) => {
+                        if (err) {
+                            console.error('Error al cerrar la conexión:', err);
+                        } else {
+                            console.log('Conexión cerrada correctamente.');
+                        }
+                    });
+
+                    res.json(jsonResult);
+
+                } else {
+
+                    // Si ya existe, retorna un mensaje de error
+                    if (checkResults.length > 0) {
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": "Ya existe un grupo con ese nombre para esta compañía."
+                        }
+
+                        mysqlConn.end((err) => {
+                            if (err) {
+                                console.error('Error al cerrar la conexión:', err);
+                            } else {
+                                console.log('Conexión cerrada correctamente.');
+                            }
+                        });
+
+                        res.json(jsonResult);
+
+                    } else {
+
+                        // Define la consulta SQL para actualizar el grupo
+                        const queryString = "UPDATE `groups` SET name = ?, status = ?, id_company = ? WHERE id = ?";
+                        const queryParams = [name, numericStatus, id_company, id];
+
+                        // Ejecuta la consulta para actualizar el grupo
+                        mysqlConn.query(queryString, queryParams, (error, resultsInsert) => {
+
+                            mysqlConn.end((err) => {
+                                if (err) {
+                                    console.error('Error al cerrar la conexión:', err);
+                                } else {
+                                    console.log('Conexión cerrada correctamente.');
+                                }
+                            });
+
+
+                            if (error) {
+
+                                console.error('error ejecutando query: ' + error.sqlMessage);
+                                const jsonResult = {
+                                    "code": "ERROR",
+                                    "mensaje": error.sqlMessage
+                                }
+                                res.json(jsonResult);
+
+                            }
+                            else {
+
+                                if (resultsInsert.affectedRows != 0) {
+
+                                    const jsonResult = {
+                                        "code": "OK",
+                                        "mensaje": "Registro actualizar correctamente."
+                                    }
+                                    res.json(jsonResult);
+
+                                } else {
+
+                                    const jsonResult = {
+                                        "code": "ERROR",
+                                        "mensaje": "No se pudo actualizar el Registro seleccionado."
+                                    }
+                                    res.json(jsonResult);
+
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+
+router.post('/management-people/groups/deleteGroup', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Groups']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+       #swagger.parameters['obj'] = {
+            in: 'body',
+            schema: {
+                id: 1,
+            }
+        }  
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro eliminado"
+            }
+        } 
+    */
+    try {
+        const { id } = req.body;
+
+        // Asegúrate de que `id` es un número
+        const groupId = parseInt(id, 10);
+
+        if (isNaN(groupId)) {
+
+            const jsonResult = {
+                "code": "ERROR",
+                "mensaje": "ID inválido"
+            }
+
+            res.json(jsonResult);
+        }
+
+        //console.log(`Deleting group with ID: ${groupId}`);
+
+        const mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(err => {
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            } else {
+
+                const queryString = "DELETE FROM `groups` WHERE id = ?";
+                mysqlConn.query(queryString, [groupId], (error, results) => {
+
+                    mysqlConn.end((err) => {
+
+                        if (err) {
+                            console.error('Error al cerrar la conexión:', err);
+                        } else {
+                            console.log('Conexión cerrada correctamente.');
+                        }
+
+                    });
+
+                    if (error) {
+
+                        console.error('Error executing query: ' + error.message);
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+                        res.json(jsonResult);
+
+                    } else {
+
+                        if (results.affectedRows > 0) {
+                            const jsonResult = {
+                                "code": "OK",
+                                "mensaje": "Registro Eliminado correctamente."
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "mensaje": "No se pudo eliminar el registro selecionado."
+                            }
+
+                            res.json(jsonResult);
+                        }
+                    }
+                });
+            }
+        });
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+
+//Management People - Squads
+router.get('/management-people/squads/getSquads/:companyID', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Squads']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+
+        #swagger.parameters['companyID'] = {
+            in: 'path',
+            required: true,
+            type: "integer",
+        } 
+        
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "id": 1,
+                "name": "cuadrilla 1",
+                "group": 1,
+                "status": 1
+            }
+        } 
+    */
+    try {
+        let squads = [];
+        let { companyID } = req.params;
+
+        let mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            } else {
+
+                let queryString = "SELECT * FROM squads where id_company = " + companyID;
+
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+                    mysqlConn.end((err) => {
+                        if (err) {
+                            console.error('Error al cerrar la conexión:', err);
+                        } else {
+                            console.log('Conexión cerrada correctamente.');
+                        }
+                    });
+
+                    if (error) {
+
+                        console.error('error ejecutando query: ' + error.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+                        res.json(jsonResult);
+
+                    } else {
+
+                        if (results && results.length > 0) {
+
+                            results.forEach(element => {
+
+                                const jsonResult = {
+                                    "id": element.id,
+                                    "name": element.name,
+                                    "group": element.id_group,
+                                    "workers": element.workers,
+                                    "status": element.status,
+                                };
+
+                                squads.push(jsonResult);
+
+                            });
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "squads": squads
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "No se encontraron registros"
+                            }
+
+                            res.json(jsonResult);
+                        }
+
+                    }
+                });
+            }
+        });
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+router.post('/management-people/squads/createSquad', validateToken, (req, res) => {
+    /*
+        #swagger.tags = ['Management People - Squads']
+        #swagger.security = [{
+            "apiKeyAuth": []
+        }]
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            schema: {
+                name: "cuadrilla 1",
+                group: 1,
+                status: 1,
+                idCompany: 1
+            }
+        }
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro creado"
+            }
+        }
+    */
+
+    try {
+        const { name, group, status, idCompany } = req.body;
+
+        //console.log('req.body:', req.body);
+
+        // Crear conexión a la base de datos
+        const mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+            }
+            else {
+
+                // Paso 1: Verificar si ya existe un squad con el mismo nombre y company_id
+                const checkQuery = `
+                    SELECT COUNT(*) as count 
+                    FROM squads 
+                    WHERE LOWER(name) = LOWER(?) 
+                    AND id_company = ?
+                `;
+
+                mysqlConn.query(checkQuery, [name, idCompany], function (checkError, checkResults) {
+
+                    if (checkError) {
+
+                        console.error('Error executing check query: ' + checkError.message);
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": checkError.sqlMessage
+                        }
+
+                        mysqlConn.end((err) => {
+
+                            if (err) {
+                                console.error('Error al cerrar la conexión:', err);
+                            } else {
+                                console.log('Conexión cerrada correctamente.');
+                            }
+
+                        });
+
+                        res.json(jsonResult);
+
+                    } else {
+
+                        // Si ya existe, respondemos con un error
+                        if (checkResults[0].count > 0) {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "Ya existe un cuadrilla con ese nombre para esta compañía."
+                            }
+
+                            mysqlConn.end((err) => {
+
+                                if (err) {
+                                    console.error('Error al cerrar la conexión:', err);
+                                } else {
+                                    console.log('Conexión cerrada correctamente.');
+                                }
+
+                            });
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            // Paso 2: Si no hay duplicados, proceder con la inserción
+                            const queryString = `
+                                INSERT INTO squads (name, id_group, status, workers, id_company)
+                                VALUES (?, ?, ?, '[]', ?)
+                            `;
+
+                            const groupValue = group ? group : null;
+
+                            mysqlConn.query(queryString, [name, groupValue, status, idCompany], function (error, results) {
+
+                                mysqlConn.end((err) => {
+
+                                    if (err) {
+                                        console.error('Error al cerrar la conexión:', err);
+                                    } else {
+                                        console.log('Conexión cerrada correctamente.');
+                                    }
+
+                                });
+
+                                if (error) {
+
+                                    console.error('error ejecutando query: ' + error.sqlMessage);
+                                    const jsonResult = {
+                                        "code": "ERROR",
+                                        "mensaje": error.sqlMessage
+                                    }
+                                    res.json(jsonResult);
+
+                                } else {
+
+                                    if (results.insertId != 0) {
+
+                                        const jsonResult = {
+                                            "code": "OK",
+                                            "mensaje": "Registro creado correctamente."
+                                        }
+                                        res.json(jsonResult);
+
+                                    } else {
+
+                                        const jsonResult = {
+                                            "code": "ERROR",
+                                            "mensaje": "No se pudo crear el Registro."
+                                        }
+                                        res.json(jsonResult);
+
+                                    }
+
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+
+router.post('/management-people/squads/updateSquad', validateToken, (req, res) => {
+    /*
+        #swagger.tags = ['Management People - Squads']
+        #swagger.security = [{ "apiKeyAuth": [] }]
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            schema: {
+                id: 3,
+                name: 'a',
+                group: '3',
+                status: 1,
+                workers: [2, 3, 49],
+                company_id: 1
+            }
+        }
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro actualizado correctamente."
+            }
+        }
+    */
+
+    try {
+        const { id, name, group, status, workers, company_id } = req.body;
+
+        //console.log('req.body:', req.body);
+
+        // Convertir workers a una cadena JSON
+        const workersJson = JSON.stringify(workers);
+
+        if ((group === undefined || group === '' || group === null)) {
+
+            const jsonResult = {
+                "code": "ERROR",
+                "mensaje": "Faltan parámetros requeridos"
+            }
+            res.json(jsonResult);
+
+        }
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+
+                res.json(jsonResult);
+
+            }
+            else {
+
+                // Primero verificar si ya existe otro registro con el mismo nombre y company_id
+                const checkQuery = `
+                SELECT id FROM squads 
+                WHERE name = ? AND id_company = ? AND id != ?`;
+
+                mysqlConn.query(checkQuery, [name, company_id, id], function (checkError, checkResults) {
+
+                    if (checkError) {
+
+                        console.error('error ejecutando query: ' + checkError.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": checkError.sqlMessage
+                        }
+
+                        mysqlConn.end((err) => {
+                            if (err) {
+                                console.error('Error al cerrar la conexión:', err);
+                            } else {
+                                console.log('Conexión cerrada correctamente.');
+                            }
+                        });
+
+                        res.json(jsonResult);
+                    }
+                    else {
+
+                        if (checkResults.length > 0) {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "Ya existe un registro con ese nombre para esta compañía."
+                            }
+
+                            mysqlConn.end((err) => {
+                                if (err) {
+                                    console.error('Error al cerrar la conexión:', err);
+                                } else {
+                                    console.log('Conexión cerrada correctamente.');
+                                }
+                            });
+
+                            res.json(jsonResult);
+                        }
+                        else {
+
+                            // Si no existe, proceder a actualizar el registro
+                            var queryString = `
+                            UPDATE squads 
+                            SET 
+                                name = ?, 
+                                id_group = ?, 
+                                status = ?, 
+                                workers = ? 
+                            WHERE 
+                                id = ?`;
+
+                            mysqlConn.query(queryString, [name, group, status, workersJson, id], function (updateError, results) {
+
+                                mysqlConn.end((err) => {
+                                    if (err) {
+                                        console.error('Error al cerrar la conexión:', err);
+                                    } else {
+                                        console.log('Conexión cerrada correctamente.');
+                                    }
+                                });
+
+                                if (updateError) {
+
+                                    console.error('error ejecutando query: ' + updateError.sqlMessage);
+                                    const jsonResult = {
+                                        "code": "ERROR",
+                                        "mensaje": updateError.sqlMessage
+                                    }
+                                    res.json(jsonResult);
+
+                                }
+                                else {
+
+                                    if (results.affectedRows != 0) {
+
+                                        const jsonResult = {
+                                            "code": "OK",
+                                            "mensaje": "Registro actualizar correctamente."
+                                        }
+                                        res.json(jsonResult);
+
+                                    } else {
+
+                                        const jsonResult = {
+                                            "code": "ERROR",
+                                            "mensaje": "No se pudo actualizar el Registro seleccionado."
+                                        }
+                                        res.json(jsonResult);
+
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+
+
+router.post('/management-people/squads/deleteSquad', validateToken, (req, res) => {
+
+    /*
+        #swagger.tags = ['Management People - Squads']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            schema: {
+                id: 1,
+            }
+        }
+
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro eliminado"
+            }
+        }
+    */
+
+    try {
+        let { id } = req.body;
+
+        //console.log(id);
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+            }
+            else {
+
+                let queryString = "DELETE FROM squads WHERE id = ?";
+                //console.log(queryString);
+
+                mysqlConn.query(queryString, [id], function (error, results, fields) {
+
+                    mysqlConn.end((err) => {
+
+                        if (err) {
+                            console.error('Error al cerrar la conexión:', err);
+                        } else {
+                            console.log('Conexión cerrada correctamente.');
+                        }
+
+                    });
+
+                    if (error) {
+
+                        console.error('Error executing query: ' + error.message);
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+                        res.json(jsonResult);
+
+                    } else {
+
+                        if (results.affectedRows > 0) {
+                            const jsonResult = {
+                                "code": "OK",
+                                "mensaje": "Registro Eliminado correctamente."
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "mensaje": "No se pudo eliminar el registro selecionado."
+                            }
+
+                            res.json(jsonResult);
+                        }
+                    }
+                });
+            }
+        });
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+}
+
+);
+
+
+
+// Management People - Shifts
+
+router.get('/management-people/shifts/getShifts/:companyID', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Shifts']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+
+        
+        #swagger.parameters['companyID'] = {
+            in: 'path',
+            required: true,
+            type: "integer",
+        }  
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "shifts": [
+                    {
+                        "id": 1,
+                        "name": "Mañana",
+                        "monday_opening_time": "10:00:00",
+                        "monday_closing_time": "12:00:00",
+                        "tuesday_opening_time": "10:00:00",
+                        "tuesday_closing_time": "12:00:00",
+                        "wednesday_opening_time": "10:00:00",
+                        "wednesday_closing_time": "12:00:00",
+                        "thursday_opening_time": "10:00:00",
+                        "thursday_closing_time": "12:00:00",
+                        "friday_opening_time": "10:00:00",
+                        "friday_closing_time": "12:00:00",
+                        "saturday_opening_time": "10:00:00",
+                        "saturday_closing_time": "12:00:00",
+                        "sunday_opening_time": "10:00:00",
+                        "sunday_closing_time": "12:00:00",
+                        "status": 1
+                    },
+                    {
+                        "id": 2,
+                        "name": "Tarde",
+                        "monday_opening_time": "14:00:00",
+                        "monday_closing_time": "18:00:00",
+                        "tuesday_opening_time": "14:00:00",
+                        "tuesday_closing_time": "18:00:00",
+                        "wednesday_opening_time": "14:00:00",
+                        "wednesday_closing_time": "18:00:00",
+                        "thursday_opening_time": "14:00:00",
+                        "thursday_closing_time": "18:00:00",
+                        "friday_opening_time": "14:00:00",
+                        "friday_closing_time": "18:00:00",
+                        "saturday_opening_time": "14:00:00",
+                        "saturday_closing_time": "18:00:00",
+                        "sunday_opening_time": "14:00:00",
+                        "sunday_closing_time": "18:00:00",
+                        "status": 1
+                        },
+                ]
+            }
+        } 
+    */
+    try {
+        var shifts = [];
+        let { companyID } = req.params;
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            } else {
+
+                var queryString = "SELECT id, name, monday_opening_time, monday_closing_time, tuesday_opening_time, tuesday_closing_time, wednesday_opening_time, wednesday_closing_time, thursday_opening_time, thursday_closing_time, friday_opening_time, friday_closing_time, saturday_opening_time, saturday_closing_time, sunday_opening_time, sunday_closing_time, status FROM shifts where id_company = " + companyID;
+                //console.log(queryString);
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+                    mysqlConn.end((err) => {
+                        if (err) {
+                            console.error('Error al cerrar la conexión:', err);
+                        } else {
+                            console.log('Conexión cerrada correctamente.');
+                        }
+                    });
+
+                    if (error) {
+
+                        console.error('Error ejecutando query: ' + error.sqlMessage);
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+
+                        res.json(jsonResult);
+
+                    } else {
+
+                        if (results && results.length > 0) {
+
+                            results.forEach(element => {
+                                const shift = {
+                                    "id": element.id,
+                                    "name": element.name,
+                                    "monday_opening_time": element.monday_opening_time,
+                                    "monday_closing_time": element.monday_closing_time,
+                                    "tuesday_opening_time": element.tuesday_opening_time,
+                                    "tuesday_closing_time": element.tuesday_closing_time,
+                                    "wednesday_opening_time": element.wednesday_opening_time,
+                                    "wednesday_closing_time": element.wednesday_closing_time,
+                                    "thursday_opening_time": element.thursday_opening_time,
+                                    "thursday_closing_time": element.thursday_closing_time,
+                                    "friday_opening_time": element.friday_opening_time,
+                                    "friday_closing_time": element.friday_closing_time,
+                                    "saturday_opening_time": element.saturday_opening_time,
+                                    "saturday_closing_time": element.saturday_closing_time,
+                                    "sunday_opening_time": element.sunday_opening_time,
+                                    "sunday_closing_time": element.sunday_closing_time,
+                                    "status": element.status
+                                };
+                                shifts.push(shift);
+                            });
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "shifts": shifts
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "No se encontraron registros"
+                            }
+
+                            res.json(jsonResult);
+                        }
+                    }
+                });
+            }
+        });
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+router.post('/management-people/shifts/createShift', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Shifts']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Crear Turno',
+            required: true,
+            schema: {
+                name: "Mañana", 
+                monday_opening_time: "08:00:00",
+                monday_closing_time: "12:00:00",
+                tuesday_opening_time: "08:00:00",
+                tuesday_closing_time: "12:00:00",
+                wednesday_opening_time: "08:00:00",
+                wednesday_closing_time: "12:00:00",
+                thursday_opening_time: "08:00:00",
+                thursday_closing_time: "12:00:00",
+                friday_opening_time: "08:00:00",
+                friday_closing_time: "12:00:00",
+                saturday_opening_time: "08:00:00",
+                saturday_closing_time: "12:00:00",
+                sunday_opening_time: "08:00:00",
+                sunday_closing_time: "12:00:00",
+                status: 1,
+                id_company: 1
+            }
+        }
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro creado"
+            }
+        } 
+    */
+    try {
+        const {
+            name,
+            monday_opening_time,
+            monday_closing_time,
+            tuesday_opening_time,
+            tuesday_closing_time,
+            wednesday_opening_time,
+            wednesday_closing_time,
+            thursday_opening_time,
+            thursday_closing_time,
+            friday_opening_time,
+            friday_closing_time,
+            saturday_opening_time,
+            saturday_closing_time,
+            sunday_opening_time,
+            sunday_closing_time,
+            status,
+            id_company
+        } = req.body;
+
+        // Convertir valores vacíos a null
+        const formatTime = (time) => time === "" ? null : time;
+
+        const queryValues = [
+            name,
+            formatTime(monday_opening_time),
+            formatTime(monday_closing_time),
+            formatTime(tuesday_opening_time),
+            formatTime(tuesday_closing_time),
+            formatTime(wednesday_opening_time),
+            formatTime(wednesday_closing_time),
+            formatTime(thursday_opening_time),
+            formatTime(thursday_closing_time),
+            formatTime(friday_opening_time),
+            formatTime(friday_closing_time),
+            formatTime(saturday_opening_time),
+            formatTime(saturday_closing_time),
+            formatTime(sunday_opening_time),
+            formatTime(sunday_closing_time),
+            status,
+            id_company
+        ];
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+            }
+            else {
+
+                // Verifica si ya existe un turnos con el mismo nombre y id_company
+                const checkQueryString = "SELECT * FROM `shifts` WHERE name = ? AND id_company = ?";
+
+                mysqlConn.query(checkQueryString, [name, id_company], (checkError, checkResults) => {
+
+                    if (checkError) {
+
+                        console.error('Error executing check query: ' + checkError.message);
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": checkError.sqlMessage
+                        }
+
+                        mysqlConn.end((err) => {
+
+                            if (err) {
+                                console.error('Error al cerrar la conexión:', err);
+                            } else {
+                                console.log('Conexión cerrada correctamente.');
+                            }
+
+                        });
+
+                        res.json(jsonResult);
+
+                    } else {
+
+                        // Si ya existe, retorna un mensaje de error
+                        if (checkResults.length > 0) {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "Ya existe un registro con ese nombre para esta compañía."
+                            }
+
+                            mysqlConn.end((err) => {
+                                if (err) {
+                                    console.error('Error al cerrar la conexión:', err);
+                                } else {
+                                    console.log('Conexión cerrada correctamente.');
+                                }
+                            });
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            var queryString = `
+                            INSERT INTO shifts (
+                                name,
+                                monday_opening_time,
+                                monday_closing_time,
+                                tuesday_opening_time,
+                                tuesday_closing_time,
+                                wednesday_opening_time,
+                                wednesday_closing_time,
+                                thursday_opening_time,
+                                thursday_closing_time,
+                                friday_opening_time,
+                                friday_closing_time,
+                                saturday_opening_time,
+                                saturday_closing_time,
+                                sunday_opening_time,
+                                sunday_closing_time,
+                                status,
+                                id_company
                             )
-                          ) : (
-                            <option value="">No hay calidades</option>
-                          )}
-                        </>
-                      </select>
-                    </div>
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="hilera"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Hilera
-                      </label>
-                      <input
-                        type="number"
-                        name="hilera"
-                        id="hilera"
-                        step="0.01"
-                        {...register("hilera")}
-                        defaultValue={selectedItem ? selectedItem.hilera : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+                            mysqlConn.query(queryString, queryValues, function (error, resultsInsert) {
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="harvest_format"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Formato cosecha
-                      </label>
-                      <select
-                        name="harvest_format"
-                        id="harvest_format"
-                        required={true}
-                        {...register("harvest_format")}
-                        defaultValue={
-                          selectedItem ? selectedItem.harvest_format : ""
+                                mysqlConn.end((err) => {
+
+                                    if (err) {
+                                        console.error('Error al cerrar la conexión:', err);
+                                    } else {
+                                        console.log('Conexión cerrada correctamente.');
+                                    }
+
+                                });
+
+                                if (error) {
+
+                                    console.error('error ejecutando query: ' + error.sqlMessage);
+                                    const jsonResult = {
+                                        "code": "ERROR",
+                                        "mensaje": error.sqlMessage
+                                    }
+                                    res.json(jsonResult);
+
+                                } else {
+
+                                    if (resultsInsert.insertId != 0) {
+
+                                        const jsonResult = {
+                                            "code": "OK",
+                                            "mensaje": "Registro creado correctamente."
+                                        }
+                                        res.json(jsonResult);
+
+                                    } else {
+
+                                        const jsonResult = {
+                                            "code": "ERROR",
+                                            "mensaje": "No se pudo crear el Registro seleccionado."
+                                        }
+                                        res.json(jsonResult);
+
+                                    }
+
+                                }
+                            });
                         }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <>
-                          <option value="">Elige un formato de cosecha</option>
-                          {Array.isArray(dataHarvestFormat) &&
-                          dataHarvestFormat.length > 0 ? (
-                            dataHarvestFormat.map(
-                              (harvest_format) =>
-                                harvest_format.status != 0 && (
-                                  <option
-                                    key={harvest_format.id}
-                                    value={harvest_format.id}
-                                  >
-                                    {harvest_format.name}
-                                  </option>
-                                )
-                            )
-                          ) : (
-                            <option value="">No hay formatos de cosecha</option>
-                          )}
-                        </>
-                      </select>
-                    </div>
+                    }
+                });
+            }
+        });
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="weigher_rut"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Pesador
-                      </label>
-                      <select
-                        name="weigher_rut"
-                        id="weigher_rut"
-                        {...register("weigher_rut")}
-                        defaultValue={
-                          selectedItem ? selectedItem.weigher_rut : ""
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+router.post('/management-people/shifts/updateShift', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Shifts']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Actualizar Turno',
+            required: true,
+            schema: {
+                id: 1, 
+                name: "Mañana",
+                monday_opening_time: "08:00:00",
+                monday_closing_time: "12:00:00",
+                tuesday_opening_time: "08:00:00",
+                tuesday_closing_time: "12:00:00",
+                wednesday_opening_time: "08:00:00",
+                wednesday_closing_time: "12:00:00",
+                thursday_opening_time: "08:00:00",
+                thursday_closing_time: "12:00:00",
+                friday_opening_time: "08:00:00",
+                friday_closing_time: "12:00:00",
+                saturday_opening_time: "08:00:00",
+                saturday_closing_time: "12:00:00",
+                sunday_opening_time: "08:00:00",
+                sunday_closing_time: "12:00:00",
+                status: 1,
+                id_company: 1
+            }
+        }
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro actualizado"
+            }
+        } 
+    */
+    try {
+        const {
+            id,
+            name,
+            monday_opening_time,
+            monday_closing_time,
+            tuesday_opening_time,
+            tuesday_closing_time,
+            wednesday_opening_time,
+            wednesday_closing_time,
+            thursday_opening_time,
+            thursday_closing_time,
+            friday_opening_time,
+            friday_closing_time,
+            saturday_opening_time,
+            saturday_closing_time,
+            sunday_opening_time,
+            sunday_closing_time,
+            status,
+            id_company
+        } = req.body;
+
+        console.log('req.body:', req.body);
+
+        // Convertir valores vacíos a null
+        const formatTime = (time) => time === "" ? null : time;
+
+        const queryValues = [
+            name,
+            formatTime(monday_opening_time),
+            formatTime(monday_closing_time),
+            formatTime(tuesday_opening_time),
+            formatTime(tuesday_closing_time),
+            formatTime(wednesday_opening_time),
+            formatTime(wednesday_closing_time),
+            formatTime(thursday_opening_time),
+            formatTime(thursday_closing_time),
+            formatTime(friday_opening_time),
+            formatTime(friday_closing_time),
+            formatTime(saturday_opening_time),
+            formatTime(saturday_closing_time),
+            formatTime(sunday_opening_time),
+            formatTime(sunday_closing_time),
+            status,
+            id_company,
+            id
+        ];
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect((err) => {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+
+                res.json(jsonResult);
+
+            }
+            else {
+
+                // Verifica si ya existe un grupo con el mismo nombre y id_company, excluyendo el grupo que se está editando
+                const checkQueryString = "SELECT * FROM `shifts` WHERE name = ? AND id_company = ? AND id != ?";
+                mysqlConn.query(checkQueryString, [name, id_company, id], (checkError, checkResults) => {
+
+                    if (checkError) {
+
+                        console.error('error ejecutando query: ' + checkError.sqlMessage);
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": checkError.sqlMessage
                         }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        {dataChangeSquad ? (
-                          dataSqaads.length > 0 ? (
-                            <>
-                              <option value="">Elige pesador</option>
-                              {dataSqaads
-                                .filter((squad) => squad.id == dataChangeSquad)
-                                .map((squad) =>
-                                  JSON.parse(squad.workers).length > 0 ? (
-                                    JSON.parse(squad.workers).map(
-                                      (worker) =>
-                                        worker.status != 0 &&
-                                        dataWorkers
-                                          .filter(
-                                            (workerSelect) =>
-                                              workerSelect.id == worker
-                                          )
-                                          .map((workerSelect) => (
-                                            <option
-                                              key={workerSelect.id}
-                                              value={workerSelect.rut}
-                                            >
-                                              {workerSelect.name +
-                                                " " +
-                                                workerSelect.lastname}
-                                            </option>
-                                          ))
-                                    )
-                                  ) : (
-                                    <option value="">No hay pesadores</option>
-                                  )
-                                )}
-                            </>
-                          ) : (
-                            <option value="">No hay pesadores</option>
-                          )
-                        ) : (
-                          <option value="">No hay pesadores</option>
-                        )}
-                      </select>
-                    </div>
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="season"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Temporada
-                      </label>
-                      <select
-                        name="season"
-                        id="season"
-                        {...register("season")}
-                        defaultValue={selectedItem ? selectedItem.season : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="">Elige una temporada</option>
-                        {Array.isArray(dataSeasons) &&
-                        dataSeasons.length > 0 ? (
-                          dataSeasons.map((season) => (
-                            <option key={season.id} value={season.id}>
-                              {season.name}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="">No hay temporadas</option>
-                        )}
-                      </select>
-                    </div>
+                        mysqlConn.end((err) => {
+                            if (err) {
+                                console.error('Error al cerrar la conexión:', err);
+                            } else {
+                                console.log('Conexión cerrada correctamente.');
+                            }
+                        });
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="turns"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Turno
-                      </label>
-                      <select
-                        name="turns"
-                        id="turns"
-                        {...register("turns")}
-                        defaultValue={selectedItem ? selectedItem.turns : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="">Elige un turno</option>
-                        {Array.isArray(dataShifts) && dataShifts.length > 0 ? (
-                          dataShifts.map(
-                            (turn) =>
-                              turn.status != 0 && (
-                                <option key={turn.id} value={turn.id}>
-                                  {turn.name}
-                                </option>
-                              )
-                          )
-                        ) : (
-                          <option value="">No hay turnos</option>
-                        )}
-                      </select>
-                    </div>
+                        res.json(jsonResult);
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="contractor"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Contratista
-                      </label>
-                      <select
-                        name="contractor"
-                        id="contractor"
-                        {...register("contractor")}
-                        defaultValue={
-                          selectedItem ? selectedItem.contractor : ""
+                    } else {
+
+                        if (checkResults.length > 0) {
+
+                            const jsonResult = {
+                                "code": "ERROR",
+                                "mensaje": "Ya existe un horario con ese nombre para esta compañía."
+                            }
+
+                            mysqlConn.end((err) => {
+                                if (err) {
+                                    console.error('Error al cerrar la conexión:', err);
+                                } else {
+                                    console.log('Conexión cerrada correctamente.');
+                                }
+                            });
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            var queryString = `
+                            UPDATE shifts 
+                            SET 
+                                name = ?, 
+                                monday_opening_time = ?, 
+                                monday_closing_time = ?, 
+                                tuesday_opening_time = ?, 
+                                tuesday_closing_time = ?, 
+                                wednesday_opening_time = ?, 
+                                wednesday_closing_time = ?, 
+                                thursday_opening_time = ?, 
+                                thursday_closing_time = ?, 
+                                friday_opening_time = ?, 
+                                friday_closing_time = ?, 
+                                saturday_opening_time = ?, 
+                                saturday_closing_time = ?, 
+                                sunday_opening_time = ?, 
+                                sunday_closing_time = ?, 
+                                status = ?,
+                                id_company = ?
+                            WHERE id = ?`;
+
+                            //console.log('queryString:', queryString);
+                            //console.log('queryValues:', queryValues);
+
+                            mysqlConn.query(queryString, queryValues, (error, results) => {
+
+                                mysqlConn.end((err) => {
+                                    if (err) {
+                                        console.error('Error al cerrar la conexión:', err);
+                                    } else {
+                                        console.log('Conexión cerrada correctamente.');
+                                    }
+                                });
+
+
+                                if (error) {
+
+                                    console.error('error ejecutando query: ' + error.sqlMessage);
+                                    const jsonResult = {
+                                        "code": "ERROR",
+                                        "mensaje": error.sqlMessage
+                                    }
+                                    res.json(jsonResult);
+
+                                }
+                                else {
+
+                                    if (results.affectedRows != 0) {
+
+                                        const jsonResult = {
+                                            "code": "OK",
+                                            "mensaje": "Registro actualizar correctamente."
+                                        }
+                                        res.json(jsonResult);
+
+                                    } else {
+
+                                        const jsonResult = {
+                                            "code": "ERROR",
+                                            "mensaje": "No se pudo actualizar el Registro seleccionado."
+                                        }
+                                        res.json(jsonResult);
+
+                                    }
+                                }
+                            });
                         }
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="">Elige un contratista</option>
-                        {Array.isArray(dataContractors) &&
-                        dataContractors.length > 0 ? (
-                          dataContractors.map(
-                            (contractor) =>
-                              contractor.status != 0 && (
-                                <option
-                                  key={contractor.id}
-                                  value={contractor.id}
-                                >
-                                  {contractor.name}
-                                </option>
-                              )
-                          )
-                        ) : (
-                          <option value="">No hay contratistas</option>
-                        )}
-                      </select>
-                    </div>
+                    }
+                });
+            }
+        });
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="temp"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Temperatura
-                      </label>
-                      <input
-                        type="number"
-                        name="temp"
-                        id="temp"
-                        step="0.01"
-                        {...register("temp")}
-                        defaultValue={selectedItem ? selectedItem.temp : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
+    } catch (e) {
 
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="wet"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Humedad
-                      </label>
-                      <input
-                        type="number"
-                        name="wet"
-                        id="wet"
-                        step="0.01"
-                        {...register("wet")}
-                        defaultValue={selectedItem ? selectedItem.wet : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                  
+        console.log(e);
+        res.json({ error: e })
 
-                  <input
-                    type="hidden"
-                    name="date_register"
-                    {...register("date_register")}
-                    defaultValue={today}
-                  />
+        if (mysqlConn) {
 
-                  <input
-                    type="hidden"
-                    name="company_id"
-                    {...register("company_id")}
-                    defaultValue={companyID}
-                  />
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
 
-                  <input
-                    type="hidden"
-                    name="source"
-                    {...register("source")}
-                    defaultValue={1}
-                  />
 
-                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                    <div className="flex flex-col gap-3">
-                      <button
-                        type="submit"
-                        className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                        //onSubmit={onUpdateItem}
-                        onSubmit={isEdit ? onUpdateItem : onSubmitForm}
-                      >
-                        {isEdit ? "Editar" : "Crear"}
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Zona:</strong>{" "}
-                    {getNameByKey("zone", selectedItem.zone, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Campo:</strong>{" "}
-                    {getNameByKey("ground", selectedItem.ground, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Sector:</strong>{" "}
-                    {getNameByKey("sector", selectedItem.sector, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Contratista:</strong>{" "}
-                    {getNameByKey(
-                      "contractor",
-                      selectedItem.contractor,
-                      dataMap
-                    )}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Cuadrilla:</strong>{" "}
-                    {getNameByKey("squad", selectedItem.squad, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Jefe cuadrilla:</strong>{" "}
-                    {getNameByKey(
-                      "squad_leader",
-                      selectedItem.squad_leader,
-                      dataMap
-                    )}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Lote:</strong>{" "}
-                    {getNameByKey("batch", selectedItem.batch, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Cosechero:</strong>{" "}
-                    {getNameByKey("worker", selectedItem.worker, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>RUT cosechero:</strong>{" "}
-                    {getNameByKey(
-                      "worker_rut",
-                      selectedItem.worker_rut,
-                      dataMap
-                    )}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha cosecha:</strong>{" "}
-                    {formatDate(selectedItem.harvest_date) || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Hora cosecha:</strong>{" "}
-                    {selectedItem.harvest_time || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Especie:</strong>{" "}
-                    {getNameByKey("specie", selectedItem.specie, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Variedad:</strong>{" "}
-                    {getNameByKey("variety", selectedItem.variety, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>N. de Cajas:</strong> {selectedItem.boxes || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Kg Cajas:</strong> {selectedItem.kg_boxes || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Calidad:</strong>{" "}
-                    {getNameByKey("quality", selectedItem.quality, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Hilera:</strong> {selectedItem.hilera || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Formato cosecha:</strong>{" "}
-                    {getNameByKey(
-                      "harvest_format",
-                      selectedItem.harvest_format,
-                      dataMap
-                    )}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Pesador:</strong> {selectedItem.weigher_rut || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Temporada:</strong>{" "}
-                    {getNameByKey("season", selectedItem.season, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Turno:</strong>{" "}
-                    {getNameByKey("turns", selectedItem.turns, dataMap)}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Tempratura:</strong> {selectedItem.temp || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Humedad:</strong> {selectedItem.wet || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Sincronización:</strong> {selectedItem.sync || "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha Sincronización:</strong>{" "}
-                    {selectedItem.sync_date
-                      ? formatDate(selectedItem.sync_date)
-                      : "-"}
-                  </p>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha registro:</strong>{" "}
-                    {selectedItem.date_register
-                      ? formatDate(selectedItem.date_register)
-                      : "-"}
-                  </p>
-                </div>
-              )}
-            </DialogBody>
-          </Dialog>
 
-          <Dialog
-            open={openAlert || openAlertClone}
-            handler={handleCloseAlert || handleCloseAlertClone}
-            size="xs"
-            className="p-5 lg:max-w-[40%] dark:bg-navy-900"
-          >
-            <>
-              <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
-                ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} la cosecha
-                del{" "}
-                <strong className="font-bold">
-                  {openAlert
-                    ? itemToDelete.harvest_date
-                    : formatDate(itemToClone.harvest_date)}
-                </strong>{" "}
-                del campo{" "}
-                <strong className="font-bold">
-                  {openAlert
-                    ? getNameByKey("ground", itemToDelete.ground, dataMap)
-                    : getNameByKey("ground", itemToClone.ground, dataMap)}
-                </strong>
-                ?
-              </h2>
-              <button
-                type="button"
-                onClick={handleCloseAlert}
-                className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
-              >
-                <XMarkIcon className="text-white w-5 h-5" />
-              </button>
-              <button
-                type="button"
-                onClick={openAlert ? handlerRemove : handlerClone}
-                className={`${
-                  openAlert ? "bg-red-500" : "bg-blueTertiary"
-                } text-white flex items-center justify-center px-4 py-2 rounded m-auto`}
-              >
-                {openAlert ? (
-                  <>
-                    <XMarkIcon className="text-white w-5 h-5" /> Eliminar
-                  </>
-                ) : (
-                  <>
-                    <DocumentDuplicateIcon className="text-white w-5 h-5" />{" "}
-                    Clonar
-                  </>
-                )}
-              </button>
-            </>
-          </Dialog>
-        </>
-      )}
-    </>
-  );
-};
+router.post('/management-people/shifts/deleteShift', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Shifts']
 
-export default CardTableRegularizationProduction;
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+       #swagger.parameters['obj'] = {
+            in: 'body',
+            schema: {
+                id: 1,
+            }
+        }  
+        
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro eliminado"
+            }
+        } 
+    */
+    try {
+
+        let { id } = req.body;
+
+        //console.log(id);
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect(function (err) {
+
+            if (err) {
+
+                console.error('error connecting: ' + err.sqlMessage);
+                const jsonResult = {
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                }
+                res.json(jsonResult);
+
+            } else {
+
+                var queryString = "DELETE FROM shifts WHERE id = " + id;
+                //console.log(queryString);
+
+                mysqlConn.query(queryString, function (error, results, fields) {
+
+
+                    mysqlConn.end((err) => {
+
+                        if (err) {
+                            console.error('Error al cerrar la conexión:', err);
+                        } else {
+                            console.log('Conexión cerrada correctamente.');
+                        }
+
+                    });
+
+                    if (error) {
+
+                        console.error('Error executing query: ' + error.message);
+
+                        const jsonResult = {
+                            "code": "ERROR",
+                            "mensaje": error.sqlMessage
+                        }
+                        res.json(jsonResult);
+
+                    } else {
+
+                        if (results.affectedRows > 0) {
+                            const jsonResult = {
+                                "code": "OK",
+                                "mensaje": "Registro Eliminado correctamente."
+                            }
+
+                            res.json(jsonResult);
+
+                        } else {
+
+                            const jsonResult = {
+                                "code": "OK",
+                                "mensaje": "No se pudo eliminar el registro selecionado."
+                            }
+
+                            res.json(jsonResult);
+                        }
+                    }
+                });
+            }
+        });
+
+    } catch (e) {
+
+        console.log(e);
+        res.json({ error: e })
+
+        if (mysqlConn) {
+
+            mysqlConn.end((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión:', err);
+                } else {
+                    console.log('Conexión cerrada correctamente.');
+                }
+            });
+        }
+    }
+});
+
+
+//Management People - Workers
+router.get('/management-people/workers/getWorkers/:companyID', validateToken, (req, res) => {
+    const { companyID } = req.params;
+
+    console.log('Request Params:', req.params);
+
+    const mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+    mysqlConn.connect((err) => {
+        if (err) {
+            console.error('Connection error:', err.message);
+            return res.status(500).json({
+                code: "ERROR",
+                mensaje: 'Error de conexión: ' + err.message
+            });
+        }
+
+        const queryString = `
+            SELECT * FROM workers WHERE company_id = ?
+        `;
+
+        mysqlConn.query(queryString, [companyID], (error, results) => {
+            // Terminar la conexión después de manejar los resultados
+            mysqlConn.end();
+
+            if (error) {
+                console.error('Query error:', error.message);
+                return res.status(500).json({
+                    code: "ERROR",
+                    mensaje: 'Error ejecutando query: ' + error.message
+                });
+            }
+
+            if (results.length > 0) {
+                res.json({
+                    code: "OK",
+                    workers: results
+                });
+            } else {
+                res.json({
+                    code: "ERROR",
+                    mensaje: "No se encontraron registros"
+                });
+            }
+        });
+    });
+});
+
+router.post('/management-people/workers/updateWorker', validateToken, (req, res) => {
+    /*
+    #swagger.tags = ['Management People - Workers']
+    #swagger.security = [{
+        "apiKeyAuth": []
+    }]
+    #swagger.parameters['obj'] = {
+        in: 'body',
+        schema: {
+            id: 1,
+            rut: "12345678-9",
+            name: "Juan",
+            lastname: "Pérez",
+            lastname2: "Soto",
+            born_date: "1990-01-01",
+            gender: "M",
+            state_civil: "Soltero",
+            state: "Región Metropolitana",
+            city: "Santiago",
+            address: "Calle 123",
+            phone: "+56912345678",
+            email: "mail@mail.cl",
+            date_admission: "2021-01-01",
+            status: 1,
+            position: "Operador",
+            contractor: "Empresa",
+            squad: 1,
+            leader_squad: 0,
+            shift: 1,
+            wristband: "123456",
+            observation: "Observación",
+            bank: "Banco",
+            account_type: "Cuenta Corriente",
+            account_number: "123456",
+            afp: "AFP",
+            health: "Fonasa",
+            company_id: 1,
+            is_weigher: 0
+        }
+    }
+
+    #swagger.responses[200] = {
+        schema: {
+            "code": "OK",
+            "mensaje": "Registro actualizado"
+        }
+    }
+    */
+
+    try {
+        const {
+            id, rut, name, lastname, lastname2, born_date, gender, state_civil, state,
+            city, address, phone, email, date_admission, status, position, contractor,
+            squad, leader_squad, shift, wristband, observation, bank, account_type,
+            account_number, afp, health, company_id, is_weigher
+        } = req.body;
+
+        // Verificar si el id está presente
+        if (!id) {
+            return res.status(400).json({
+                code: "ERROR",
+                mensaje: "ID es obligatorio"
+            });
+        }
+
+        // Función para procesar valores vacíos
+        const processValue = (value) => {
+            if (value === '') return null;
+            return isNaN(value) ? null : Number(value);
+        };
+
+        // Procesar valores numéricos
+        const processedPosition = processValue(position);
+        const processedContractor = processValue(contractor);
+        const processedSquad = processValue(squad);
+        const processedLeaderSquad = processValue(leader_squad);
+        const processedShift = processValue(shift);
+        const processedWristband = processValue(wristband);
+
+        // Asegurarse de que las fechas estén en el formato correcto (YYYY-MM-DD)
+        const formattedBornDate = new Date(born_date).toISOString().split('T')[0];
+        const formattedDateAdmission = new Date(date_admission).toISOString().split('T')[0];
+
+        // Crear conexión MySQL
+        const mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect((err) => {
+            if (err) {
+                console.error('Error de conexión:', err.message);
+                return res.status(500).json({
+                    code: "ERROR",
+                    mensaje: 'Error de conexión: ' + err.message
+                });
+            }
+
+            // Verificar si el RUT ya existe en la misma company_id, excluyendo el id actual
+            const checkRutQuery = `
+                SELECT id FROM workers 
+                WHERE rut = ? 
+                AND company_id = ? 
+                AND id != ?
+            `;
+            const checkRutValues = [rut, company_id, id];
+
+            mysqlConn.query(checkRutQuery, checkRutValues, (checkError, checkResults) => {
+                if (checkError) {
+                    mysqlConn.end();
+                    console.error('Error al verificar RUT:', checkError.message);
+                    return res.status(500).json({
+                        code: "ERROR",
+                        mensaje: 'Error al verificar RUT: ' + checkError.message
+                    });
+                }
+
+                if (checkResults.length > 0) {
+                    mysqlConn.end();
+                    return res.status(400).json({
+                        code: "ERROR",
+                        mensaje: 'El RUT ya está registrado en esta empresa'
+                    });
+                }
+
+                // Verificar si el ID del trabajador existe
+                const checkExistQuery = 'SELECT id FROM workers WHERE id = ?';
+                mysqlConn.query(checkExistQuery, [id], (checkExistError, checkExistResults) => {
+                    if (checkExistError) {
+                        mysqlConn.end();
+                        console.error('Error al verificar existencia del ID:', checkExistError.message);
+                        return res.status(500).json({
+                            code: "ERROR",
+                            mensaje: 'Error al verificar existencia: ' + checkExistError.message
+                        });
+                    }
+
+                    if (checkExistResults.length === 0) {
+                        mysqlConn.end();
+                        return res.status(404).json({
+                            code: "ERROR",
+                            mensaje: 'Trabajador no encontrado'
+                        });
+                    }
+
+                    // Actualizar trabajador
+                    const updateQuery = `
+                        UPDATE workers 
+                        SET 
+                            rut = ?, name = ?, lastname = ?, lastname2 = ?, born_date = ?,
+                            gender = ?, state_civil = ?, state = ?, city = ?, address = ?,
+                            phone = ?, email = ?, date_admission = ?, position = ?, contractor = ?,
+                            squad = ?, leader_squad = ?, shift = ?, wristband = ?, observation = ?,
+                            bank = ?, account_type = ?, account_number = ?, afp = ?, health = ?,
+                            status = ?, company_id = ?, is_weigher = ?
+                        WHERE id = ?
+                    `;
+
+                    const updateValues = [
+                        rut, name, lastname, lastname2, formattedBornDate, gender, state_civil, state,
+                        city, address, phone, email, formattedDateAdmission, processedPosition, processedContractor,
+                        processedSquad, processedLeaderSquad, processedShift, processedWristband,
+                        observation, bank, account_type, account_number, afp, health, status, company_id, is_weigher, id
+                    ];
+
+                    mysqlConn.query(updateQuery, updateValues, (updateError, updateResults) => {
+                        mysqlConn.end();
+
+                        if (updateError) {
+                            console.error('Error ejecutando query:', updateError.message);
+                            return res.status(500).json({
+                                code: "ERROR",
+                                mensaje: 'Error ejecutando query: ' + updateError.message
+                            });
+                        }
+
+                        // Verificar si alguna fila fue afectada
+                        if (updateResults.affectedRows === 0) {
+                            return res.status(400).json({
+                                code: "ERROR",
+                                mensaje: 'No se actualizó ningún registro'
+                            });
+                        }
+
+                        res.json({
+                            code: "OK",
+                            mensaje: "Registro actualizado"
+                        });
+                    });
+                });
+            });
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/management-people/workers/deleteWorker', validateToken, (req, res) => {
+
+    /*
+        #swagger.tags = ['Management People - Workers']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            schema: {
+                id: 1,
+            }
+        }
+
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro eliminado"
+            }
+        }
+    */
+
+    try {
+        let { id } = req.body;
+
+        //console.log(id);
+
+        var mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect((err) => {
+            if (err) {
+                console.error('Error de conexión: ' + err.sqlMessage);
+                return res.json({
+                    "code": "ERROR",
+                    "mensaje": err.sqlMessage
+                });
+            }
+
+            const queryString = "DELETE FROM workers WHERE id = ?";
+            //console.log(queryString);
+
+            mysqlConn.query(queryString, [id], (error, results) => {
+                if (error) {
+                    console.error('Error ejecutando query: ' + error.sqlMessage);
+                    return res.json({
+                        "code": "ERROR",
+                        "mensaje": error.sqlMessage
+                    });
+                }
+
+                res.json({
+                    "code": "OK",
+                    "mensaje": "Registro eliminado"
+                });
+
+                // Terminar la conexión después de manejar los resultados
+                mysqlConn.end();
+            });
+        });
+    } catch (e) {
+        console.log(e);
+        res.json({ error: e.message });
+    }
+});
+
+router.post('/management-people/workers/createWorker', validateToken, (req, res) => {
+    /*  
+        #swagger.tags = ['Management People - Workers']
+
+        #swagger.security = [{
+               "apiKeyAuth": []
+        }]
+        
+        #swagger.parameters['obj'] = {
+            in: 'body',
+            description: 'Crear Trabajador',
+            required: true,
+            schema: {
+                "rut": "12345678-9",
+                "name": "Juan",
+                "lastname": "Perez",
+                "lastname2": "Perez",
+                "born_date": "1990-01-01",
+                "gender": "Masculino",
+                "state_civil": "Soltero",
+                "state": "Maule",
+                "city": "Talca",
+                "address": "Calle 123",
+                "phone": "12345678",
+                "email": "email@email.com",
+                "date_admission": "2021-01-01",
+                "status": 1,
+                "position": 1,
+                "contractor": 1,
+                "squad": 1,
+                "leader_squad": 1,
+                "shift": 1,
+                "wristband": "12345678",
+                "observation": "Observación",
+                "bank": "Banco",
+                "account_type": "Cuenta Corriente",
+                "account_number": "12345678",
+                "afp": "AFP",
+                "health": "Isapre",
+                "company_id": 1,
+                "is_weigher": 1
+            }
+        }
+
+        #swagger.responses[200] = {
+            schema: {
+                "code": "OK",
+                "mensaje": "Registro creado"
+            }
+        }
+    */
+
+    try {
+        const {
+            rut, name, lastname, lastname2, born_date, gender, state_civil, state, city, address, phone, email,
+            date_admission, status, position, contractor, squad, leader_squad, shift, wristband, observation,
+            bank, account_type, account_number, afp, health, company_id, is_weigher
+        } = req.body;
+
+        //console.log('Received data:', req.body);
+
+        const mysqlConn = mysql.createConnection(JSON.parse(process.env.DBSETTING));
+
+        mysqlConn.connect((err) => {
+            if (err) {
+                console.error('Connection error:', err.message);
+                return res.json({
+                    code: "ERROR",
+                    mensaje: err.message
+                });
+            }
+
+            // Verificar si ya existe un trabajador con el mismo rut y company_id
+            const checkQuery = `
+                SELECT COUNT(*) AS count FROM workers 
+                WHERE rut = ? AND company_id = ?
+            `;
+
+            mysqlConn.query(checkQuery, [rut, company_id], (error, results) => {
+                if (error) {
+                    mysqlConn.end();
+                    console.error('Error checking for duplicate:', error.message);
+                    return res.json({
+                        code: "ERROR",
+                        mensaje: error.message
+                    });
+                }
+
+                if (results[0].count > 0) {
+                    mysqlConn.end();
+                    return res.json({
+                        code: "ERROR",
+                        mensaje: "El rut ya está registrado para esta empresa."
+                    });
+                }
+
+                // Construir la consulta SQL
+                const insertQuery = `
+                    INSERT INTO workers (
+                        rut, name, lastname, lastname2, born_date, gender, state_civil, state, city, address, phone, email,
+                        date_admission, status, position, contractor, squad, leader_squad, shift, wristband, observation,
+                        bank, account_type, account_number, afp, health, company_id, is_weigher
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+
+                const queryValues = [
+                    rut, name, lastname, lastname2 || null, born_date || null, gender || null, state_civil || null, state || null,
+                    city || null, address || null, phone || null, email || null, date_admission || null, status || 1,
+                    position || null, contractor || null, squad || null, leader_squad || null, shift || null, wristband || null,
+                    observation || null, bank || null, account_type || null, account_number || null, afp || null, health || null,
+                    company_id, is_weigher || 0
+                ];
+
+                // Ejecutar la consulta SQL para insertar el nuevo trabajador
+                mysqlConn.query(insertQuery, queryValues, (insertError) => {
+                    mysqlConn.end();
+
+                    if (insertError) {
+                        console.error('Error executing query:', insertError.message);
+                        return res.json({
+                            code: "ERROR",
+                            mensaje: insertError.message
+                        });
+                    }
+
+                    res.json({
+                        code: "OK",
+                        mensaje: "Registro creado"
+                    });
+                });
+            });
+        });
+    } catch (e) {
+        console.error('Caught exception:', e.message);
+        res.json({ code: "ERROR", mensaje: e.message });
+    }
+});
+
+
+export default router
+
+
+
+
+

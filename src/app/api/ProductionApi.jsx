@@ -2138,6 +2138,40 @@ export const updateRegularizationProduction = async (data) => {
   }
 };
 
+export const deleteRegularizationProduction = async (id) => {
+  try {
+    const response = await fetch(
+      URLAPI +
+        "/api/v1/configuracion/production/deleteRegularizationProduction",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({ id: id }),
+        cache: "no-store",
+      }
+    );
+
+    if (response.ok) {
+      const manualHarvestingData = await response.json();
+
+      if (manualHarvestingData.code === "OK") {
+        return manualHarvestingData.code;
+      } else {
+        throw new Error(manualHarvestingData.mensaje);
+      }
+    } else {
+      const errorText = await response.text();
+      throw new Error(`Error en la respuesta del servidor: ${errorText}`);
+    }
+  } catch (err) {
+    console.error("Error en la función deleteRegularizationProduction:", err.message);
+    return `Error: ${err.message}`;
+  }
+}
+
 //Results Filter
 export const filterResults = async (filters, id_company) => {
   try {
