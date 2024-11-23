@@ -239,8 +239,8 @@ const CardTableWorkers = ({
       );
     };
 
-    
-    
+
+
 
     const transformKeys = (data) => {
       return data.map((item) => {
@@ -405,7 +405,7 @@ const CardTableWorkers = ({
         company_id: isNaN(Number(data.company_id)) ? null : Number(data.company_id),
         is_weigher: data.is_weigher == false ? 0 : 1, // Convertimos `is_weigher` a 1 o 0
       };
-      console.log("update" , transformedData);
+      console.log("update", transformedData);
       // Llamada a la API para actualizar el trabajador
       const updateWorkerApi = await updateWorker(transformedData);
 
@@ -413,21 +413,21 @@ const CardTableWorkers = ({
       if (updateWorkerApi.code === "OK") {
         // Recargamos los datos actualizados de los trabajadores
         const newFetchData = await getDataWorkers(companyID);
-  
+
         // Actualizamos la lista de trabajadores en el estado
         const updatedData = initialData.map((item) =>
           item.id == transformedData.id ? { ...transformedData } : item
         );
         setInitialData(updatedData);
         setUpdateMessage("Trabajador actualizado correctamente");
-  
+
         // Si el trabajador es un pesador, creamos un usuario
         if (transformedData.is_weigher == 1) {
           const formatRutPass = (rut) => {
             // Formateamos el RUT para quitar puntos y guiones
             return rut ? rut.replace(/\./g, '').replace('-', '') : '123456'; // Valor por defecto si no hay RUT
           };
-  
+
           const dataWeigher = {
             name: transformedData.name,
             lastname: transformedData.lastname,
@@ -437,22 +437,22 @@ const CardTableWorkers = ({
             id_state: 1, // Estado activo
             id_company: transformedData.company_id,
           };
-  
+
           // Creamos al usuario
           const updateUser = await createUser(dataWeigher);
         } else {
           // Si no es pesador, buscamos al usuario y lo eliminamos
           const getUserData = await getDataUser();
           const userToDelete = getUserData.usuarios.find((user) => user.mail == transformedData.email);
-  
+
           if (userToDelete) {
             const updateDeleteUser = await deleteUser(userToDelete.id); // Eliminamos el usuario si existe
           }
         }
-  
+
         // Cerramos el modal o el formulario de edición
         setOpen(false);
-  
+
       } else {
         // Si no fue posible actualizar, mostramos el mensaje de error
         setUpdateMessage(
@@ -466,7 +466,7 @@ const CardTableWorkers = ({
       setUpdateMessage("Error al intentar actualizar al trabajador");
     }
   };
-  
+
 
   const handleOpenAlert = (index, id, name, lastname, email) => {
     setItemToDelete({ index, id, name, lastname, email });
@@ -493,22 +493,22 @@ const CardTableWorkers = ({
         setInitialData(updatedData);
         setOpenAlert(false);
         setUpdateMessage("Trabajador eliminado correctamente");
-        
 
-        if(userData.code == "OK"){
-                const userToDelete = userData.usuarios.find((user) => user.mail == email);
-        
-                if(userToDelete){
-                  const deleteUserApi = await deleteUser(userToDelete.id);
-                  //console.log(deleteUserApi);
-                  /*if(deleteUserApi.code == "OK"){
-                    console.log("Usuario eliminado correctamente");
-                  }else{
-                    console.log("Error al eliminar usuario");
-                  }*/
+
+        if (userData.code == "OK") {
+          const userToDelete = userData.usuarios.find((user) => user.mail == email);
+
+          if (userToDelete) {
+            const deleteUserApi = await deleteUser(userToDelete.id);
+            //console.log(deleteUserApi);
+            /*if(deleteUserApi.code == "OK"){
+              console.log("Usuario eliminado correctamente");
+            }else{
+              console.log("Error al eliminar usuario");
+            }*/
+          }
+
         }
-
-      }
       } else {
         setUpdateMessage(
           "Error al eliminar al trabajador. Inténtalo nuevamente."
@@ -609,13 +609,16 @@ const CardTableWorkers = ({
       setLoading(false);
     }
   }, [data]);
-
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
     const filteredData = data.filter((item) =>
-      Object.keys(item).some((key) =>
-        item[key].toString().toLowerCase().includes(value)
-      )
+      Object.keys(item).some((key) => {
+        const fieldValue = item[key];
+        return (
+          fieldValue != null && // Asegúrate de que no sea null o undefined
+          fieldValue.toString().toLowerCase().includes(value)
+        );
+      })
     );
     setInitialData(filteredData);
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
@@ -711,7 +714,7 @@ const CardTableWorkers = ({
     const day = String(adjustedDate.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
-  
+
   };
 
   const getCurrentDate = () => {
@@ -900,8 +903,8 @@ const CardTableWorkers = ({
                             key={rowIndex}
                             role="cell"
                             className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
                               } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
@@ -936,8 +939,8 @@ const CardTableWorkers = ({
                         <td
                           colSpan={columnLabels.length}
                           className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
                             }`}
                         >
                           <Tooltip
@@ -1029,8 +1032,8 @@ const CardTableWorkers = ({
                       key={page}
                       type="button"
                       className={`${currentPage === page
-                          ? "font-semibold text-navy-500 dark:text-navy-300"
-                          : ""
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
                         }`}
                       onClick={() => handlePageChange(page)}
                     >
@@ -1516,36 +1519,36 @@ const CardTableWorkers = ({
                     </div>
 
                     {
-                    <div className="flex flex-col gap-3">
-                      <label
-                        htmlFor="squad"
-                        className="text-sm font-semibold text-gray-800 dark:text-white"
-                      >
-                        Cuadrilla
-                      </label>
-                      <select
-                        name="squad"
-                        id="squad"
-                        disabled={openShowUser}
-                        required={true}
-                        {...register("squad")}
-                        defaultValue={selectedItem ? selectedItem.squad : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                      >
-                        <option value="">Selecciona una cuadrilla</option>
-                        {Array.isArray(dataSquad) && dataSquad.length > 0 ? (
-                          dataSquad.map((squad) => (
-                            <option key={squad.id} value={squad.id}>
-                              {squad.name}
+                      <div className="flex flex-col gap-3">
+                        <label
+                          htmlFor="squad"
+                          className="text-sm font-semibold text-gray-800 dark:text-white"
+                        >
+                          Cuadrilla
+                        </label>
+                        <select
+                          name="squad"
+                          id="squad"
+                          disabled={openShowUser}
+                          required={true}
+                          {...register("squad")}
+                          defaultValue={selectedItem ? selectedItem.squad : ""}
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                        >
+                          <option value="">Selecciona una cuadrilla</option>
+                          {Array.isArray(dataSquad) && dataSquad.length > 0 ? (
+                            dataSquad.map((squad) => (
+                              <option key={squad.id} value={squad.id}>
+                                {squad.name}
+                              </option>
+                            ))
+                          ) : (
+                            <option value="">
+                              No hay escuadrones disponibles
                             </option>
-                          ))
-                        ) : (
-                          <option value="">
-                            No hay escuadrones disponibles
-                          </option>
-                        )}
-                      </select>
-                    </div>
+                          )}
+                        </select>
+                      </div>
                     }
 
                     <div className="flex flex-col gap-3">

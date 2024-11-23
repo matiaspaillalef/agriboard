@@ -182,14 +182,14 @@ const CardTableSquads = ({
 
     // Verificar que workers es un array antes de mapear
     const updatedWorkers = Array.isArray(workers) ? workers.map((worker) => ({
-        ...worker,
-        isSelected: workerIds.includes(worker.id),
+      ...worker,
+      isSelected: workerIds.includes(worker.id),
     })) : []; // O puedes definir un array vacío si no es un array
 
     console.log("Updated workers:", updatedWorkers);
 
     setWorkers(updatedWorkers);
-};
+  };
 
 
   const handleOpenEditUser = (user) => {
@@ -222,7 +222,7 @@ const CardTableSquads = ({
     // Actualiza el campo workers en el objeto de datos
     const updatedData = {
       ...data,
-      workers:workersArray,
+      workers: workersArray,
     };
 
     try {
@@ -241,12 +241,12 @@ const CardTableSquads = ({
         setInitialData(newData);
         setInitialData(squadData.squads);
         setUpdateMessage(updateSquadApi.mensaje);
-        
-      }else if (updateSquadApi.code === "ERROR") {
+
+      } else if (updateSquadApi.code === "ERROR") {
 
         setUpdateMessage(setUpdateMessage(updateUserApi.mensaje));
 
-      } 
+      }
 
       setOpen(false);
     } catch (error) {
@@ -286,7 +286,7 @@ const CardTableSquads = ({
 
         setUpdateMessage(deleteSquad.mensaje);
 
-      }else if (deleteSquad.code === "ERROR") {
+      } else if (deleteSquad.code === "ERROR") {
 
         setUpdateMessage(deleteSquad.mensaje);
 
@@ -314,13 +314,13 @@ const CardTableSquads = ({
         setInitialData(updatedData);
 
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
-        const newDataFetch = await getDataSquads(companyID );
+        const newDataFetch = await getDataSquads(companyID);
 
-        if(newDataFetch.code  === "OK"){
+        if (newDataFetch.code === "OK") {
 
           setInitialData(newDataFetch.squads);
 
-        }else if (newDataFetch.code === "ERROR") {
+        } else if (newDataFetch.code === "ERROR") {
 
           setUpdateMessage(newDataFetch.mensaje);
 
@@ -329,9 +329,9 @@ const CardTableSquads = ({
         setUpdateMessage(createSquadapi.mensaje);
 
       } else if (createSquadapi.code === "ERROR") {
-          ;
-          setUpdateMessage(createSquadapi.mensaje);
-        
+        ;
+        setUpdateMessage(createSquadapi.mensaje);
+
       }
 
       setOpen(false)
@@ -424,9 +424,8 @@ const CardTableSquads = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -454,9 +453,8 @@ const CardTableSquads = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -510,9 +508,8 @@ const CardTableSquads = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -550,16 +547,15 @@ const CardTableSquads = ({
                         if (key === "group") {
                           const group = Array.isArray(groups) ? groups.find(
                             (group) => group.id == row[key]
-                          ) : null ;
+                          ) : null;
                           return (
                             <td
                               key={rowIndex}
                               role="cell"
-                              className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                                index % 2 !== 0
+                              className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                                   ? "bg-lightPrimary dark:bg-navy-900"
                                   : ""
-                              } ${columnsClasses[rowIndex] || "text-left"}`}
+                                } ${columnsClasses[rowIndex] || "text-left"}`}
                             >
                               <div className="text-base font-medium text-navy-700 dark:text-white">
                                 {group ? group.name : "-"}
@@ -572,11 +568,10 @@ const CardTableSquads = ({
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                              index % 2 !== 0
+                            className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                                 ? "bg-lightPrimary dark:bg-navy-900"
                                 : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
@@ -601,11 +596,10 @@ const CardTableSquads = ({
                       {actions && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                            index % 2 !== 0
+                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          }`}
+                            }`}
                         >
                           <Tooltip
                             placement="bottom"
@@ -685,9 +679,8 @@ const CardTableSquads = ({
               <div className="flex items-center gap-5">
                 <button
                   type="button"
-                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                    currentPage === 1 && "hidden"
-                  }`}
+                  className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                    }`}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
@@ -697,11 +690,10 @@ const CardTableSquads = ({
                   <button
                     key={page}
                     type="button"
-                    className={`${
-                      currentPage === page
+                    className={`${currentPage === page
                         ? "font-semibold text-navy-500 dark:text-navy-300"
                         : ""
-                    }`}
+                      }`}
                     onClick={() => handlePageChange(page)}
                   >
                     {page}
@@ -924,55 +916,55 @@ const CardTableSquads = ({
                   </button>
                 </div>
               </div>
-
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className="inputcheck border-b-gray-200 border-b dark:text-white"></th>
-                    <th className="text-left border-b-gray-200 border-b dark:text-white">
-                      Nombre
-                    </th>
-                    <th className="text-left border-b-gray-200 border-b dark:text-white">
-                      RUT
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.isArray(filteredWorkers) &&
-                  filteredWorkers.length > 0 ? (
-                    filteredWorkers.map((worker, index) => (
-                      <tr
-                        key={worker.id}
-                        className={`pt-[14px] p-3 text-[14px] px-5 ${
-                          index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                        }`}
-                      >
-                        <td className="py-2">
-                          <input
-                            type="checkbox"
-                            className="!bg-center rounded-sm "
-                            checked={worker.isSelected || false}
-                            onChange={() => {
-                              worker.isSelected = !worker.isSelected;
-                              setWorkers([...workers]);
-                            }}
-                          />
-                        </td>
-                        <td className="dark:text-white">{worker.name + " " + worker.lastname}</td>
-                        <td className="dark:text-white">{worker.rut}</td>
-                      </tr>
-                    ))
-                  ) : (
+              <div className="max-h-[400px] overflow-y-scroll">
+                <table className="w-full">
+                  <thead>
                     <tr>
-                      <td colSpan="4" className="text-center">
-                        No hay trabajadores asignados a esta cuadrilla.
-                      </td>
+                      <th className="inputcheck border-b-gray-200 border-b dark:text-white"></th>
+                      <th className="text-left border-b-gray-200 border-b dark:text-white">
+                        Nombre
+                      </th>
+                      <th className="text-left border-b-gray-200 border-b dark:text-white">
+                        RUT
+                      </th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {Array.isArray(filteredWorkers) &&
+                      filteredWorkers.length > 0 ? (
+                      filteredWorkers.map((worker, index) => (
+                        <tr
+                          key={worker.id}
+                          className={`pt-[14px] p-3 text-[14px] px-5 ${index % 2 !== 0
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
+                            }`}
+                        >
+                          <td className="py-2">
+                            <input
+                              type="checkbox"
+                              className="!bg-center rounded-sm "
+                              checked={worker.isSelected || false}
+                              onChange={() => {
+                                worker.isSelected = !worker.isSelected;
+                                setWorkers([...workers]);
+                              }}
+                            />
+                          </td>
+                          <td className="dark:text-white">{worker.name + " " + worker.lastname}</td>
+                          <td className="dark:text-white">{worker.rut}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="text-center">
+                          No hay trabajadores asignados a esta cuadrilla.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </>
           </Dialog>
         </>
