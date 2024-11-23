@@ -566,8 +566,8 @@ const CardTableShifts = ({
           <Dialog
             open={open}
             handler={handleOpen}
-            size="xs"
-            className="p-5 lg:max-w-[25%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
+            size="sm"
+            className="p-5 lg:max-w-[40%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
           >
             <button
               type="button"
@@ -1088,7 +1088,7 @@ const CardTableShifts = ({
             open={openAlert}
             handler={handleCloseAlert}
             size="xs"
-            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+            className="p-5 lg:max-w-[40%] dark:bg-navy-900"
           >
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">

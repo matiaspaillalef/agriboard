@@ -886,7 +886,7 @@ const handlerRemove = async () => {
             open={open}
             handler={handleOpen}
             size="xs"
-            className="p-5 lg:max-w-[25%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
+            className="p-5 lg:max-w-[40%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
             dismiss={{
               outsidePress: false,
               escapeKey: false,
@@ -1164,7 +1164,7 @@ const handlerRemove = async () => {
             open={openAlert || openAlertClone}
             handler={handleCloseAlert || handleCloseAlertClone}
             size="xs"
-            className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+            className="p-5 lg:max-w-[40%] dark:bg-navy-900"
           >
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">

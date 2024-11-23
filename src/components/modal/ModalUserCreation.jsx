@@ -73,7 +73,7 @@ const ModalUserCreation = (props) => {
         open={open}
         handler={handleOpen}
         size="xs"
-        className="p-5 lg:max-w-[25%] dark:bg-navy-900"
+        className="p-5 lg:max-w-[40%] dark:bg-navy-900"
       >
         <button
           type="button"

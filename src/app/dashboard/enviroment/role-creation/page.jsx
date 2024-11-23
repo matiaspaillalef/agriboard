@@ -47,7 +47,7 @@ const RoleCreationPage = () => {
         open={open}
         handler={handleOpen}
         size="xs"
-        className="p-5 lg:max-w-[25%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
+        className="p-5 lg:max-w-[40%] dark:bg-navy-900 overflow-x-scroll max-h-[650px]"
       >
         <button
           type="button"
