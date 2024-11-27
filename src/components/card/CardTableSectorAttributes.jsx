@@ -871,7 +871,7 @@ const CardTableSectorAttributes = ({
                       >
                         {Array.isArray(dataSpecies) &&
                           dataSpecies.length > 0 ? (
-                          dataVarieties.map(
+                            Array.isArray(dataVarieties) && dataVarieties.map(
                             (variety) =>
                               variety.status != 0 && (
                                 <option key={variety.id} value={variety.id}>

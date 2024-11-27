@@ -411,7 +411,7 @@ const CardTableRegularizationProduction = ({
     try {
       //if (userConfirmed) {
       const deleteItem = await deleteRegularizationProduction(id);
-      
+
       //console.log(deleteItem);
 
       // Elimina la fila del front-end si la eliminación fue exitosa
@@ -1001,6 +1001,7 @@ const CardTableRegularizationProduction = ({
                   </p>
                 </div>
                 <div className="flex items-center gap-5">
+                  {/* Botón de página anterior */}
                   <button
                     type="button"
                     className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
@@ -1010,19 +1011,38 @@ const CardTableRegularizationProduction = ({
                   >
                     <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                  {pagination.map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      className={`${currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
-                        }`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
+
+                  {/* Números de página resumidos */}
+                  {pagination.map((page) => {
+                    const pagesToShow = 5; // Número de páginas a mostrar alrededor de la página actual
+                    const isStart = page <= pagesToShow;
+                    const isEnd = page > totalPages - pagesToShow;
+                    const isAroundCurrent = Math.abs(page - currentPage) <= 2;
+
+                    if (isStart || isEnd || isAroundCurrent) {
+                      return (
+                        <button
+                          key={page}
+                          type="button"
+                          className={`${currentPage === page
+                            ? "font-semibold text-navy-500 dark:text-navy-300"
+                            : ""
+                            }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      (page === currentPage - 3 && currentPage > pagesToShow) ||
+                      (page === currentPage + 3 && currentPage < totalPages - pagesToShow)
+                    ) {
+                      return <span key={page}>...</span>; // Mostrar puntos suspensivos
+                    }
+                    return null;
+                  })}
+
+                  {/* Botón de página siguiente */}
                   <button
                     type="button"
                     className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
@@ -1034,6 +1054,7 @@ const CardTableRegularizationProduction = ({
                 </div>
               </div>
             )}
+
 
           <Dialog
             open={open}
