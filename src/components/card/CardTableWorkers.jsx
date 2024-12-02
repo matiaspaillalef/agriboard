@@ -208,7 +208,7 @@ const CardTableWorkers = ({
       setUpdateMessage("Por favor, selecciona un archivo primero.");
       return;
     }
-    console.log("1");
+    //console.log("1");
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data);
     const worksheetName = workbook.SheetNames[0];
@@ -445,7 +445,7 @@ const CardTableWorkers = ({
             id_company: transformedData.company_id,
           };
 
-          console.log("rutPass", formatRutPass(transformedData.rut));
+          //console.log("rutPass", formatRutPass(transformedData.rut));
 
           // Creamos al usuario
           const updateUser = await createUser(dataWeigher);
