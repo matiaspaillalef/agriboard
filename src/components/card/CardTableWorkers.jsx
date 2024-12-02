@@ -208,7 +208,7 @@ const CardTableWorkers = ({
       setUpdateMessage("Por favor, selecciona un archivo primero.");
       return;
     }
-
+    console.log("1");
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data);
     const worksheetName = workbook.SheetNames[0];
@@ -244,14 +244,15 @@ const CardTableWorkers = ({
 
     const transformKeys = (data) => {
       return data.map((item) => {
-
+        //console.log("primera fecha" , item["Fecha de nacimiento"]);
+        //console.log("segunda fecha " , item["Fecha de ingreso"]);
         const bornDate = excelSerialDateToDate(item["Fecha de nacimiento"]);
         const admissionDate = excelSerialDateToDate(item["Fecha de ingreso"]);
-        console.log(bornDate);
-        console.log(admissionDate);
+        //console.log(bornDate);
+        //console.log(admissionDate);
 
         return {
-          rut: item.Rut,
+          rut: item.Rut + "-" +  item.Dv,
           name: item.Nombre,
           lastname: item["Apellido"],
           lastname2: item["Apellido materno"],
@@ -704,16 +705,23 @@ const CardTableWorkers = ({
 
   function excelSerialDateToDate(serial) {
 
-    const excelBaseDate = new Date(1900, 0, 1); // 1 de enero de 1900
 
-    // Restar 2 días para corregir el error de año bisiesto inexistente
-    const adjustedDate = new Date(excelBaseDate.getTime() + (serial - 2) * 24 * 60 * 60 * 1000);
+    // Dividir la fecha en componentes (Mes, Día, Año)
+    const [day, month, year] = serial.split("-");
 
-    const year = adjustedDate.getFullYear();
-    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-    const day = String(adjustedDate.getDate()).padStart(2, '0');
-
+    // Reorganizar y construir la fecha en formato YYYY-MM-DD
     return `${year}-${month}-${day}`;
+
+    // const excelBaseDate = new Date(1900, 0, 1); // 1 de enero de 1900
+
+    // // Restar 2 días para corregir el error de año bisiesto inexistente
+    // const adjustedDate = new Date(excelBaseDate.getTime() + (serial - 2) * 24 * 60 * 60 * 1000);
+
+    // const year = adjustedDate.getFullYear();
+    // const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+    // const day = String(adjustedDate.getDate()).padStart(2, '0');
+
+    //return `${year}-${month}-${day}`;
 
   };
 
