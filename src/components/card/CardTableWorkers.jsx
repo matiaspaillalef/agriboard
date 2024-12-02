@@ -252,7 +252,7 @@ const CardTableWorkers = ({
         //console.log(admissionDate);
 
         return {
-          rut: item.Rut + "-" +  item.Dv,
+          rut: item.Rut + "-" + item.Dv,
           name: item.Nombre,
           lastname: item["Apellido"],
           lastname2: item["Apellido materno"],
@@ -406,7 +406,7 @@ const CardTableWorkers = ({
         company_id: isNaN(Number(data.company_id)) ? null : Number(data.company_id),
         is_weigher: data.is_weigher == false ? 0 : 1, // Convertimos `is_weigher` a 1 o 0
       };
-      console.log("update", transformedData);
+      //console.log("update", transformedData);
       // Llamada a la API para actualizar el trabajador
       const updateWorkerApi = await updateWorker(transformedData);
 
@@ -425,8 +425,14 @@ const CardTableWorkers = ({
         // Si el trabajador es un pesador, creamos un usuario
         if (transformedData.is_weigher == 1) {
           const formatRutPass = (rut) => {
-            // Formateamos el RUT para quitar puntos y guiones
-            return rut ? rut.replace(/\./g, '').replace('-', '') : '123456'; // Valor por defecto si no hay RUT
+            // Eliminar puntos, guiones y luego tomar solo los primeros 9 dígitos 
+            const cleanedRut = rut ? rut.replace(/\./g, '').replace('-', '') : '';
+
+            // Reemplazar el dígito verificador (K o k) por '0'
+            const rutWithoutDV = cleanedRut.replace(/[Kk]/, '0');
+
+            // Tomar solo los primeros 9 dígitos
+            return rutWithoutDV.slice(0, 9);
           };
 
           const dataWeigher = {
@@ -434,10 +440,12 @@ const CardTableWorkers = ({
             lastname: transformedData.lastname,
             mail: transformedData.email,
             id_rol: 6, // Asignamos el rol de pesador (ID 6)
-            password: formatRutPass(transformedData.rut), // Usamos el RUT como contraseña
+            password: formatRutPass(transformedData.rut), // Usamos los primeros 9 dígitos del RUT como contraseña
             id_state: 1, // Estado activo
             id_company: transformedData.company_id,
           };
+
+          console.log("rutPass", formatRutPass(transformedData.rut));
 
           // Creamos al usuario
           const updateUser = await createUser(dataWeigher);
@@ -1114,7 +1122,7 @@ const CardTableWorkers = ({
                         </label>
                       </div>
                       <p className="text-xs text-white">
-                        {selectedItem && Number(selectedItem.is_weigher) ? "Si desactiva esta opción, el trabajador no podrá realizar pesajes en la pesa." : "Si activa esta opción, el trabajador podrá realizar pesajes en la pesa y con ello ingresar al sistema."}
+                        {selectedItem && Number(selectedItem.is_weigher) ? "Si desactiva esta opción, el trabajador no podrá realizar pesajes en la pesa." : 'Al activar esta opción, el trabajador podrá realizar pesajes y acceder al sistema. El usuario se creará de forma automática utilizando el correo electrónico del trabajador. La contraseña será su RUT, con la excepción de que, si el RUT termina en "K", esta letra será reemplazada por el número "0" en la contraseña.'}
                       </p>
                     </div>
                   </div>
