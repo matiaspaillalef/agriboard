@@ -30,6 +30,9 @@ import {
   filterResults,
 } from "@/app/api/ProductionApi";
 
+
+import { getDataUser } from "@/app/api/ConfiguracionApi";
+
 import {
   getDataWorkers,
   getDataSquads,
@@ -41,7 +44,7 @@ import Switch from "@/components/switch";
 
 import { array } from "zod";
 
-const CardTableManualHarvesting = ({
+const CardTableProductionReports = ({
   data,
   thead,
   columnsClasses = [],
@@ -91,6 +94,7 @@ const CardTableManualHarvesting = ({
   const [dataScale, setDataScale] = useState([]);
   const [dataHarvestFormat, setDataHarvestFormat] = useState([]);
   const [dataContractors, setDataContractors] = useState([]);
+  const [dataUsers, setDataUsers] = useState([]);
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
@@ -133,6 +137,7 @@ const CardTableManualHarvesting = ({
         const fetchedDataHarvestFormat = await getDataHarvestFormat(companyID);
         const fetchedDataScale = await getDataScale(companyID);
         const fetchedDataContractors = await getDataContractors(companyID);
+        const fetchedDataUsers = await getDataUser(companyID);
 
         let filteredWorkers = [];
 
@@ -142,6 +147,8 @@ const CardTableManualHarvesting = ({
             (worker) => worker.rut
           );
         }
+
+        console.log("fetchedDataUsers", fetchedDataUsers);
 
         setOptions({
           ground: fetchedDataGround.grounds,
@@ -156,7 +163,9 @@ const CardTableManualHarvesting = ({
           season: fetchedDataSeasons,
           harvest_format: fetchedDataHarvestFormat,
           contractor: fetchedDataContractors,
-          weigher_rut: filteredWorkers,
+          weigher_rut: fetchedDataUsers.usuarios
+            .filter(user => user.id_rol == 6 && user.id_company == companyID)  // Filtrar por rol 6 y companyID
+            .map(user => ({ id: user.id, name: `${user.name} ${user.lastname}` })),
           batch: Array.from({ length: 50 }, (_, index) => index + 1), // Array de 1 a 50
         });
       } catch (error) {
@@ -229,10 +238,7 @@ const CardTableManualHarvesting = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = (Array.isArray(initialData) ? initialData : []).slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentItems = Array.isArray(initialData) ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -251,22 +257,33 @@ const CardTableManualHarvesting = ({
     harvest_format: dataHarvestFormat,
     turns: dataTurns,
     contractor: dataContractors,
-    weigher_rut: dataWorkers,
+    weigher_rut: dataUsers,
   };
 
   const getNameByKey = (key, value) => {
     const data = dataMap[key];
     const item = data?.find((item) => item.id === value);
 
-    if (item && (key === "worker" || key === "squad_leader")) {
-      return `${item.name} ${item.lastname}`;
+    if (key === 'weigher_rut') {
+      // Buscar el usuario por su id (que es 'value' en este caso)
+      const user = dataUsers.find(u => u.id === Number(value));
+      if (user) {
+        // Si se encuentra, devuelve el nombre completo
+        return `${user.name} ${user.lastname}`;
+      }
+
+      return '-';
+    }
+
+    if ((key === "worker" || key === "squad_leader")) {
+      return `${item?.name} ${item?.lastname}`;
     }
 
     return item?.name || value || "-";
   };
 
   const formatDate = (isoDate) => {
-    console.log(isoDate);
+    //console.log(isoDate);
     // Crear el objeto Date a partir de la fecha UTC recibida
     let dateTime = new Date(isoDate);
 
@@ -277,7 +294,7 @@ const CardTableManualHarvesting = ({
     let hours = String(dateTime.getHours()).padStart(2, '0');
     let minutes = String(dateTime.getMinutes()).padStart(2, '0');
     let formattedDate = `${day}-${month}-${year}, ${hours}:${minutes}`;
-    console.log(formattedDate);
+    //console.log(formattedDate);
 
     return formattedDate;
   };
@@ -314,6 +331,7 @@ const CardTableManualHarvesting = ({
           fetchedDataSeasons,
           fetchedDataTurns,
           fetchedDataContractors,
+          fetchedDataUsers,
         ] = await Promise.all([
           getDataSectorBarracks(companyID),
           getDataSquads(companyID),
@@ -326,6 +344,7 @@ const CardTableManualHarvesting = ({
           getDataSeasons(companyID),
           getDataShifts(companyID),
           getDataContractors(companyID),
+          getDataUser(companyID),
         ]);
 
         // Aquí puedes guardar los datos en el estado si es necesario
@@ -335,10 +354,6 @@ const CardTableManualHarvesting = ({
         setDataSpecies(fetchedDataSpecies);
         setDataQuality(fetchedDataQuality);
         setDataHarvestFormat(fetchedDataHarvestFormat);
-
-        console.log("fetchedDataGround", fetchedDataQuality);
-        console.log("fetchedDataGround", fetchedDataHarvestFormat);
-
 
         if (fetchedDataGround.code === "OK") {
           const groundData = fetchedDataGround.grounds;
@@ -359,13 +374,20 @@ const CardTableManualHarvesting = ({
         setDataTurns(fetchedDataTurns);
         setDataContractors(fetchedDataContractors);
 
-        console.log("fetchedDataGround", fetchedDataSeasons);
+
+        if (fetchedDataUsers.code === "OK") {
+          const Users = fetchedDataUsers.usuarios;
+          setDataUsers(Users);
+        }
+
+        //console.log("fetchedDataGround", fetchedDataSeasons);
 
         if (Array.isArray(initialData) && initialData.length > 0) {
           // Crear mapas para búsquedas rápidas
           let groundMap = new Map();
           let squadMap = new Map();
           let shiftsMap = new Map();
+          let userMap = new Map();
 
           if (fetchedDataGround.code === "OK") {
             const groundData = fetchedDataGround.grounds;
@@ -403,6 +425,17 @@ const CardTableManualHarvesting = ({
           const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
           const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
 
+
+          if (fetchedDataUsers.code === "OK") {
+            const Users = fetchedDataUsers.usuarios;
+            if (Array.isArray(Users)) {
+              userMap = new Map(Users.map(u => [u.id, `${u.name} ${u.lastname}`]));
+            } else {
+              console.error('La propiedad users no es un array:', Users);
+            }
+          }
+
+
           // Función para filtrar valores undefined o null
           const filterUndefinedValues = (obj) => {
             return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
@@ -427,7 +460,7 @@ const CardTableManualHarvesting = ({
                 "Kilos Caja": item.kg_boxes || '',
                 Calidad: qualityMap.get(item.quality) || '',
                 "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
-                Pesador: workerMap.get(item.weigher_rut) || '',
+                Pesador: userMap.get(item.weigher_rut) || '',
                 Temporada: seasonMap.get(item.season) || '',
                 Turno: shiftsMap.get(item.turns) || '',
               };
@@ -554,7 +587,7 @@ const CardTableManualHarvesting = ({
 
   const handleFilterChange = (event) => {
     const { id, value } = event.target;
-    console.log(`Cambiando ${id} a ${value}`); // Verifica el valor capturado
+    //console.log(`Cambiando ${id} a ${value}`); // Verifica el valor capturado
     setFilters((prev) => ({
       ...prev,
       [id]: value,
@@ -583,7 +616,7 @@ const CardTableManualHarvesting = ({
       return acc;
     }, {});
 
-    console.log("Filtros con IDs:", filtrosConIds);
+    //console.log("Filtros con IDs:", filtrosConIds);
 
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
@@ -841,14 +874,14 @@ const CardTableManualHarvesting = ({
                   />
                 )}
 
-              {SearchInput && (
+              {/*SearchInput && (
                 <input
                   type="search"
                   placeholder="Buscar"
                   className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
                   onKeyUp={handlerSearch}
                 />
-              )}
+              )*/}
             </div>
           </div>
 
@@ -919,14 +952,14 @@ const CardTableManualHarvesting = ({
                             key={rowIndex}
                             role="cell"
                             className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
                               } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">
                               {key === "harvest_date"
                                 ? formatDate(row[key]) // Formatea la fecha aquí
-                                : getNameByKey(key, row[key]) ||
+                                : formatNumber(getNameByKey(key, row[key])) ||
                                 formatNumber(row[key]) ||
                                 "-"}
                             </div>
@@ -938,8 +971,8 @@ const CardTableManualHarvesting = ({
                         <td
                           colSpan={columnLabels.length}
                           className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
                             }`}
                         >
                           <button
@@ -964,19 +997,21 @@ const CardTableManualHarvesting = ({
             </table>
           </div>
 
-          {Array.isArray(initialData) && initialData.length > 0 && (
-            <div className="flex items-center justify-between mt-5">
-              <div className="flex items-center gap-5">
-                <p className="text-sm text-gray-800 dark:text-white">
-                  Mostrando {indexOfFirstItem + 1} a{" "}
-                  {indexOfLastItem > initialData.length
-                    ? initialData.length
-                    : indexOfLastItem}{" "}
-                  de {initialData.length} registros
-                </p>
-              </div>
-              {pagination.length > 1 && (
+          {Array.isArray(initialData) &&
+            initialData.length > 0 &&
+            pagination.length > 1 && (
+              <div className="flex items-center justify-between mt-5">
                 <div className="flex items-center gap-5">
+                  <p className="text-sm text-gray-800 dark:text-white">
+                    Mostrando {indexOfFirstItem + 1} a{" "}
+                    {indexOfLastItem > initialData.length
+                      ? initialData.length
+                      : indexOfLastItem}{" "}
+                    de {initialData.length} registros
+                  </p>
+                </div>
+                <div className="flex items-center gap-5">
+                  {/* Botón de página anterior */}
                   <button
                     type="button"
                     className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
@@ -986,19 +1021,38 @@ const CardTableManualHarvesting = ({
                   >
                     <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                  {pagination.map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      className={`${currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
-                        }`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
+
+                  {/* Números de página resumidos */}
+                  {pagination.map((page) => {
+                    const pagesToShow = 5; // Número de páginas a mostrar alrededor de la página actual
+                    const isStart = page <= pagesToShow;
+                    const isEnd = page > totalPages - pagesToShow;
+                    const isAroundCurrent = Math.abs(page - currentPage) <= 2;
+
+                    if (isStart || isEnd || isAroundCurrent) {
+                      return (
+                        <button
+                          key={page}
+                          type="button"
+                          className={`${currentPage === page
+                            ? "font-semibold text-navy-500 dark:text-navy-300"
+                            : ""
+                            }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      (page === currentPage - 3 && currentPage > pagesToShow) ||
+                      (page === currentPage + 3 && currentPage < totalPages - pagesToShow)
+                    ) {
+                      return <span key={page}>...</span>; // Mostrar puntos suspensivos
+                    }
+                    return null;
+                  })}
+
+                  {/* Botón de página siguiente */}
                   <button
                     type="button"
                     className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
@@ -1008,9 +1062,9 @@ const CardTableManualHarvesting = ({
                     <ChevronRightIcon className="w-5 h-5" />
                   </button>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+
 
           <Dialog
             open={open}
@@ -1156,4 +1210,4 @@ const CardTableManualHarvesting = ({
   );
 };
 
-export default CardTableManualHarvesting;
+export default CardTableProductionReports;
