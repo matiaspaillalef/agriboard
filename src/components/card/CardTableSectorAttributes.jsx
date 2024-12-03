@@ -116,6 +116,25 @@ const CardTableSectorAttributes = ({
     }
   }, [selectedItem]);
 
+  const [selectedSpecie, setSelectedSpecie] = useState(selectedItem ? selectedItem.specie : "");
+  // Estado para las variedades filtradas
+  const [filteredVarieties, setFilteredVarieties] = useState([]);
+
+  // Filtrar las variedades cuando cambia la especie seleccionada
+  useEffect(() => {
+    if (selectedSpecie) {
+      const specie = dataSpecies.find((specie) => specie.id === parseInt(selectedSpecie));
+      if (specie) {
+        const varieties = dataVarieties.filter((variety) =>
+          specie.varieties.includes(variety.id)
+        );
+        setFilteredVarieties(varieties);
+      }
+    } else {
+      setFilteredVarieties([]);
+    }
+  }, [selectedSpecie, dataSpecies, dataVarieties]);
+
   const handleCheckboxChange = (id) => {
     setSelectedVarieties((prevSelected) =>
       prevSelected.includes(id)
@@ -594,7 +613,7 @@ const CardTableSectorAttributes = ({
                                     formatDate(row[key])
                                   ) : key === "year_harvest" ? (
                                     extractYear(row[key])
-                                  ): key === "date_register" ? (
+                                  ) : key === "date_register" ? (
                                     formatDate(row[key])
                                   ) : (
                                     getNameByKey(key, row[key]) || formatNumber(row[key])
@@ -691,8 +710,8 @@ const CardTableSectorAttributes = ({
                       key={page}
                       type="button"
                       className={`${currentPage === page
-                          ? "font-semibold text-navy-500 dark:text-navy-300"
-                          : ""
+                        ? "font-semibold text-navy-500 dark:text-navy-300"
+                        : ""
                         }`}
                       onClick={() => handlePageChange(page)}
                     >
@@ -745,8 +764,8 @@ const CardTableSectorAttributes = ({
                   />
                   <div
                     className={`mb-3 grid gap-3 ${isEdit
-                        ? "grid-cols-2 lg:grid-cols-2"
-                        : "grid-cols-12 lg:grid-cols-2"
+                      ? "grid-cols-2 lg:grid-cols-2"
+                      : "grid-cols-12 lg:grid-cols-2"
                       } `}
                   ></div>
                   <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -835,14 +854,15 @@ const CardTableSectorAttributes = ({
                         id="specie"
                         required={true}
                         {...register("specie")}
-                        defaultValue={selectedItem ? selectedItem.specie : ""}
+                        value={selectedSpecie}
+                        onChange={(e) => setSelectedSpecie(e.target.value)} // Actualiza la especie seleccionada
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        {Array.isArray(dataSpecies) &&
-                          dataSpecies.length > 0 ? (
+                        <option value="" disabled>Selecciona una especie</option>
+                        {Array.isArray(dataSpecies) && dataSpecies.length > 0 ? (
                           dataSpecies.map(
                             (specie) =>
-                              specie.status != 0 && (
+                              specie.status !== 0 && (
                                 <option key={specie.id} value={specie.id}>
                                   {specie.name}
                                 </option>
@@ -869,15 +889,13 @@ const CardTableSectorAttributes = ({
                         defaultValue={selectedItem ? selectedItem.variety : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        {Array.isArray(dataSpecies) &&
-                          dataSpecies.length > 0 ? (
-                            Array.isArray(dataVarieties) && dataVarieties.map(
-                            (variety) =>
-                              variety.status != 0 && (
-                                <option key={variety.id} value={variety.id}>
-                                  {variety.name}
-                                </option>
-                              )
+                        {filteredVarieties.length > 0 ? (
+                          filteredVarieties.map((variety) =>
+                            variety.status !== 0 ? (
+                              <option key={variety.id} value={variety.id}>
+                                {variety.name}
+                              </option>
+                            ) : null
                           )
                         ) : (
                           <option value="">No hay variedades</option>

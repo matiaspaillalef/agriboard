@@ -208,7 +208,7 @@ const CardTableWorkers = ({
       setUpdateMessage("Por favor, selecciona un archivo primero.");
       return;
     }
-    //console.log("1");
+    console.log("1");
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data);
     const worksheetName = workbook.SheetNames[0];
@@ -1021,19 +1021,21 @@ const CardTableWorkers = ({
               </tbody>
             </table>
           </div>
-          {Array.isArray(initialData) && initialData.length > 0 && (
-            <div className="flex items-center justify-between mt-5">
-              <div className="flex items-center gap-5">
-                <p className="text-sm text-gray-800 dark:text-white">
-                  Mostrando {indexOfFirstItem + 1} a{" "}
-                  {indexOfLastItem > initialData.length
-                    ? initialData.length
-                    : indexOfLastItem}{" "}
-                  de {initialData.length} registros
-                </p>
-              </div>
-              {pagination.length > 1 && (
+          {Array.isArray(initialData) &&
+            initialData.length > 0 &&
+            pagination.length > 1 && (
+              <div className="flex items-center justify-between mt-5">
                 <div className="flex items-center gap-5">
+                  <p className="text-sm text-gray-800 dark:text-white">
+                    Mostrando {indexOfFirstItem + 1} a{" "}
+                    {indexOfLastItem > initialData.length
+                      ? initialData.length
+                      : indexOfLastItem}{" "}
+                    de {initialData.length} registros
+                  </p>
+                </div>
+                <div className="flex items-center gap-5">
+                  {/* Botón de página anterior */}
                   <button
                     type="button"
                     className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
@@ -1043,19 +1045,38 @@ const CardTableWorkers = ({
                   >
                     <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                  {pagination.map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      className={`${currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
-                        }`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
+
+                  {/* Números de página resumidos */}
+                  {pagination.map((page) => {
+                    const pagesToShow = 5; // Número de páginas a mostrar alrededor de la página actual
+                    const isStart = page <= pagesToShow;
+                    const isEnd = page > totalPages - pagesToShow;
+                    const isAroundCurrent = Math.abs(page - currentPage) <= 2;
+
+                    if (isStart || isEnd || isAroundCurrent) {
+                      return (
+                        <button
+                          key={page}
+                          type="button"
+                          className={`${currentPage === page
+                            ? "font-semibold text-navy-500 dark:text-navy-300"
+                            : ""
+                            }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      (page === currentPage - 3 && currentPage > pagesToShow) ||
+                      (page === currentPage + 3 && currentPage < totalPages - pagesToShow)
+                    ) {
+                      return <span key={page}>...</span>; // Mostrar puntos suspensivos
+                    }
+                    return null;
+                  })}
+
+                  {/* Botón de página siguiente */}
                   <button
                     type="button"
                     className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
@@ -1065,9 +1086,8 @@ const CardTableWorkers = ({
                     <ChevronRightIcon className="w-5 h-5" />
                   </button>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
           <Dialog
             open={open}
