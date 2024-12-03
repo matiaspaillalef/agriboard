@@ -36,6 +36,7 @@ import {
   updateManualHarvesting,
   createManualHarvesting,
   deleteManualHarvesting,
+  getDataAttributesSector,
 } from "@/app/api/ProductionApi";
 
 import {
@@ -115,6 +116,7 @@ const CardTableManualHarvesting = ({
   const [dataHarvestFormat, setDataHarvestFormat] = useState([]);
   const [dataContractors, setDataContractors] = useState([]);
   const [dataShifts, setDataShifts] = useState([]);
+  const [dataAttributesSector, setDataAttributesSector] = useState([]);
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
@@ -123,6 +125,8 @@ const CardTableManualHarvesting = ({
 
 
   const [disbledButton, setDisbledButton] = useState(false);
+
+  const [filteredSpecies, setFilteredSpecies] = useState([]);
 
   useEffect(() => {
     const handleNameItems = async () => {
@@ -138,6 +142,7 @@ const CardTableManualHarvesting = ({
       const harvestFormat = await getDataHarvestFormat(companyID);
       const contractors = await getDataContractors(companyID);
       const shifts = await getDataShifts(companyID);
+      const attributesSector = await getDataAttributesSector(companyID);
 
       setDataGround(ground.grounds);
       setDataSector(sector);
@@ -151,6 +156,7 @@ const CardTableManualHarvesting = ({
       setDataHarvestFormat(harvestFormat);
       setDataContractors(contractors);
       setDataShifts(shifts);
+      setDataAttributesSector(attributesSector);
     };
     handleNameItems();
   }, []);
@@ -1199,9 +1205,25 @@ const CardTableManualHarvesting = ({
                         id="sector"
                         required={true}
                         {...register("sector")}
-                        value={dataChangeSector} // Usar value en lugar de defaultValue
+                        value={dataChangeSector}
                         onChange={(e) => {
-                          setDataChangeSector(e.target.value);
+                          const selectedSector = e.target.value;
+                          setDataChangeSector(selectedSector);
+
+                          // Filtrar las especies basadas en el sector seleccionado
+                          const filteredSpecies = dataAttributesSector
+                            .filter((attr) => attr.sector == selectedSector)
+                            .map((attr) => attr.specie);
+
+                          // Eliminar duplicados
+                          const uniqueSpecies = [...new Set(filteredSpecies)];
+
+                          // Obtener nombres de las especies desde dataSpecies
+                          const speciesToShow = dataSpecies.filter((specie) =>
+                            uniqueSpecies.includes(specie.id)
+                          );
+
+                          setFilteredSpecies(speciesToShow); // Guardar las especies filtradas en el estado
                         }}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
@@ -1210,15 +1232,11 @@ const CardTableManualHarvesting = ({
                         </option>
                         {Array.isArray(dataSector) && dataSector.length > 0 ? (
                           dataSector.filter(
-                            (sector) =>
-                              sector.status != 0 &&
-                              sector.ground == dataChangeGround
+                            (sector) => sector.status != 0 && sector.ground == dataChangeGround
                           ).length > 0 ? (
                             dataSector
                               .filter(
-                                (sector) =>
-                                  sector.status != 0 &&
-                                  sector.ground == dataChangeGround
+                                (sector) => sector.status != 0 && sector.ground == dataChangeGround
                               )
                               .map((sector) => (
                                 <option key={sector.id} value={sector.id}>
@@ -1445,16 +1463,12 @@ const CardTableManualHarvesting = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="">Elige una especie</option>
-                        {Array.isArray(dataSpecies) &&
-                          dataSpecies.length > 0 ? (
-                          dataSpecies.map(
-                            (specie) =>
-                              specie.status != 0 && (
-                                <option key={specie.id} value={specie.id}>
-                                  {specie.name}
-                                </option>
-                              )
-                          )
+                        {Array.isArray(filteredSpecies) && filteredSpecies.length > 0 ? (
+                          filteredSpecies.map((specie) => (
+                            <option key={specie.id} value={specie.id}>
+                              {specie.name}
+                            </option>
+                          ))
                         ) : (
                           <option value="">No hay especies</option>
                         )}
