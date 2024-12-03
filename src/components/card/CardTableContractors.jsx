@@ -13,6 +13,7 @@ import {
   TrashIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -21,6 +22,7 @@ import {
   DialogHeader,
   DialogBody,
   DialogFooter,
+  Tooltip,
 } from "@material-tailwind/react";
 import {
   deleteContractor as deleteContractorApi,
@@ -55,7 +57,7 @@ const CardTableContractors = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState();
+  const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -75,12 +77,7 @@ const CardTableContractors = ({
   const [rut, setRut] = useState("");
   const [rutValido, setRutValido] = useState(false);
 
-  //Para cargar los datos de lado del cliente
-  useEffect(() => {
-    if (data && data.length > 0) {
-      setInitialData(data);
-    }
-  }, [data]);
+  const [filteredData, setFilteredData] = useState(initialData);
 
   const handleRegionChange = (event) => {
     const region = event.target.value;
@@ -252,29 +249,40 @@ const CardTableContractors = ({
     }
   }, [updateMessage]);
 
+
   useEffect(() => {
-    if (data && Object.keys(data).length > 0) {
+    // Verificar si `data` está definido y no es un array vacío ni un objeto vacío
+    if (
+      (data && Array.isArray(data) && data.length > 0) ||
+      (typeof data === "object" && Object.keys(data).length > 0)
+    ) {
+      setLoading(false);
+    } else {
+      // Si `data` es un array vacío o un objeto vacío, manejarlo como no cargado
       setLoading(false);
     }
-  }, [data]);
+  }, []);
 
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
     const filteredData = data.filter((item) =>
-      Object.keys(item).some((key) =>
-        item[key].toString().toLowerCase().includes(value)
-      )
+      Object.keys(item).some((key) => {
+        const fieldValue = item[key];
+        return (
+          fieldValue != null && // Asegúrate de que no sea null o undefined
+          fieldValue.toString().toLowerCase().includes(value)
+        );
+      })
     );
     setInitialData(filteredData);
     setCurrentPage(1); // Resetear a la primera página después de la búsqueda
   };
 
-  let totalPages;
-  if (initialData === undefined) {
-    totalPages = 0; // O cualquier otro valor por defecto que desees asignar
-  } else {
-    totalPages = Math.ceil(initialData.length / itemsPerPage);
-  }
+
+  //const totalPages = Math.ceil(initialData.length / itemsPerPage);
+  const totalPages = Math.ceil(
+    (initialData ? initialData.length : 0) / itemsPerPage
+  );
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -283,21 +291,16 @@ const CardTableContractors = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  /*
-  let currentItems = [];
-  if (Array.isArray(initialData)) {
-    if (initialData.length > 0) {
-      <div>No existen registros</div>;
-    } else {
-      currentItems = initialData.slice(indexOfFirstItem, indexOfLastItem);
-    }
-  }*/
+  const currentItems = (
+    Array.isArray(initialData) && initialData.length > 0 ? initialData : []
+  ).slice(indexOfFirstItem, indexOfLastItem);
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  if (!data || data.length === 0) {
+
+  /*if (!data || data.length === 0) {
     return <div>No hay datos disponibles.</div>;
-  }
+  }*/
 
   return (
     <>
@@ -352,20 +355,20 @@ const CardTableContractors = ({
                   />
                 )}
 
-                {SearchInput && (
-                  <input
-                    type="search"
-                    placeholder="Buscar"
-                    className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
-                    onKeyUp={handlerSearch}
-                  />
-                )}
+{SearchInput && (
+                <input
+                  type="search"
+                  placeholder="Buscar"
+                  className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
+                  onKeyUp={handlerSearch}
+                />
+              )}
               </div>
             )}
           </div>
 
           <div className="h-full overflow-x-scroll max-h-dvh">
-            <table
+          <table
               role="table"
               className="mt-8 h-max w-full"
               variant="simple"
@@ -373,71 +376,66 @@ const CardTableContractors = ({
               mb="24px"
               id="tablaEmpresas"
             >
-              {Array.isArray(initialData) &&
-                initialData.length > 0 &&
-                thead && (
-                  <thead>
-                    <tr role="row">
-                      {columnLabels &&
-                        columnLabels.map((label, index) => {
-                          if (omitirColumns.includes(label)) {
-                            return null; // Omitir la columna si está en omitirColumns
-                          }
-                          return (
-                            <th
-                              key={index}
-                              colSpan={1}
-                              role="columnheader"
-                              className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                            >
-                              <p
-                                className={`text-xs tracking-wide text-gray-600 ${
-                                  columnsClasses[index] || "text-start"
+              {thead && (
+                <thead>
+                  <tr role="row">
+                    {columnLabels &&
+                      columnLabels.map((label, index) => {
+                        if (omitirColumns.includes(label)) {
+                          return null; // Omitir la columna si está en omitirColumns
+                        }
+                        return (
+                          <th
+                            key={index}
+                            colSpan={1}
+                            role="columnheader"
+                            className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
+                          >
+                            <p
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
                                 } `}
-                              >
-                                {label}
-                              </p>
-                            </th>
-                          );
-                        })}
-                      {/* Aquí se renderiza la columna Actions si actions es true */}
-                      {actions && (
-                        <th
-                          colSpan={1}
-                          role="columnheader"
-                          className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
-                        >
-                          <p className="text-xs tracking-wide text-gray-600">
-                            Actions
-                          </p>
-                        </th>
-                      )}
-                    </tr>
-                  </thead>
-                )}
+                            >
+                              {label}
+                            </p>
+                          </th>
+                        );
+                      })}
+                    {/* Aquí se renderiza la columna Actions si actions es true */}
+                    {actions && (
+                      <th
+                        colSpan={1}
+                        role="columnheader"
+                        className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
+                      >
+                        <p className="text-xs tracking-wide text-gray-600">
+                          Actions
+                        </p>
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+              )}
 
               <tbody role="rowgroup">
-                {/* ojo aca Javi, ya que me envias un mensaje de error y nunca llega null o undefined, llega el mensajem, por eso comprueba si es un array o no */}
                 {Array.isArray(initialData) && initialData.length > 0 ? (
-                  initialData.map((row, index) => (
+                  currentItems.map((row, index) => (
                     <tr key={index} role="row">
                       {Object.keys(row).map((key, rowIndex) => {
                         if (omitirColumns.includes(key)) {
                           return null; // Omitir la columna si está en omitirColumns
                         }
-
                         return (
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[150px] ${
-                              index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                            className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
                               {key === "status" ? (
+                                //console.log(key),
                                 row[key] == 1 ? (
                                   <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
                                     Activo
@@ -466,42 +464,68 @@ const CardTableContractors = ({
                       {actions && (
                         <td
                           colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[100px] ${
-                            index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
-                          }`}
+                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
+                            }`}
                         >
-                          <button
-                            type="button"
-                            className="text-sm font-semibold text-gray-800 dark:text-white"
-                            //onClick={() => handleOpen(row)}
-                            onClick={() => handleOpenEditUser(row)}
+                          <Tooltip
+                            placement="bottom"
+                            content="Ver trabajador"
+                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                           >
-                            <PencilSquareIcon className="w-6 h-6" />
-                          </button>
-                          <button
-                            id="remove"
-                            type="button"
-                            onClick={() => {
-                              //console.log(row);
-                              handleOpenAlert(
-                                index,
-                                row.id,
-                                row.name ? row.name : "",
-                                row.lastname ? row.lastname : ""
-                              );
-                            }}
+                            <button
+                              type="button"
+                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                              onClick={() => handleOpenShowUser(row)}
+                            >
+                              <EyeIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip
+                            placement="bottom"
+                            content="Editar trabajador"
+                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                           >
-                            <TrashIcon className="w-6 h-6" />
-                          </button>
+                            <button
+                              type="button"
+                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                              onClick={() => handleOpenEditUser(row)}
+                            >
+                              <PencilSquareIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip
+                            placement="bottom"
+                            content="Eliminar trabajdor"
+                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
+                          >
+                            <button
+                              id="remove"
+                              type="button"
+                              onClick={() => {
+                                //console.log(row);
+                                handleOpenAlert(
+                                  index,
+                                  row.id,
+                                  row.name ? row.name : "",
+                                  row.lastname ? row.lastname : "",
+                                  row.email ? row.email : ""
+                                );
+                              }}
+                            >
+                              <TrashIcon className="w-6 h-6" />
+                            </button>
+                          </Tooltip>
                         </td>
                       )}
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td>No se encontraron registros.</td>
+                    <td className="py-4">No se encontraron registros.</td>
                   </tr>
                 )}
               </tbody>
@@ -518,34 +542,52 @@ const CardTableContractors = ({
                     {indexOfLastItem > initialData.length
                       ? initialData.length
                       : indexOfLastItem}{" "}
-                    de {initialData.length} contratistas
+                    de {initialData.length} registros
                   </p>
                 </div>
                 <div className="flex items-center gap-5">
+                  {/* Botón de página anterior */}
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
                     <ChevronLeftIcon className="w-5 h-5" />
                   </button>
-                  {pagination.map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      className={`${
-                        currentPage === page
-                          ? "font-semibold text-navy-500 dark:text-navy-300"
-                          : ""
-                      }`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
+
+                  {/* Números de página resumidos */}
+                  {pagination.map((page) => {
+                    const pagesToShow = 5; // Número de páginas a mostrar alrededor de la página actual
+                    const isStart = page <= pagesToShow;
+                    const isEnd = page > totalPages - pagesToShow;
+                    const isAroundCurrent = Math.abs(page - currentPage) <= 2;
+
+                    if (isStart || isEnd || isAroundCurrent) {
+                      return (
+                        <button
+                          key={page}
+                          type="button"
+                          className={`${currentPage === page
+                            ? "font-semibold text-navy-500 dark:text-navy-300"
+                            : ""
+                            }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      (page === currentPage - 3 && currentPage > pagesToShow) ||
+                      (page === currentPage + 3 && currentPage < totalPages - pagesToShow)
+                    ) {
+                      return <span key={page}>...</span>; // Mostrar puntos suspensivos
+                    }
+                    return null;
+                  })}
+
+                  {/* Botón de página siguiente */}
                   <button
                     type="button"
                     className="p-1 bg-gray-200 dark:bg-navy-900 rounded-md"
