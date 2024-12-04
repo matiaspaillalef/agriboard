@@ -499,7 +499,7 @@ export const createSquad = async (data) => {
 }
 
 export const updateSquad = async (data) => {
-  //console.log(data);
+  console.log('datas', data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/Squads/updateSquad",
