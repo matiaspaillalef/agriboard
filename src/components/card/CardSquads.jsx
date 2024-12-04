@@ -83,6 +83,8 @@ const CardTableSquads = ({
   const [groups, setGroups] = useState([]);
   const [workers, setWorkers] = useState([]);
 
+  const [workersOpen, setWorkersOpen] = useState([]);
+
   const [selectSquad, setSelectSquad] = useState({
     id: null,
     name: "",
@@ -111,6 +113,7 @@ const CardTableSquads = ({
     setShowSelectedWorkers(event.target.checked);
     if (event.target.checked) {
       // Mostrar solo los trabajadores seleccionados en la cuadrilla
+      //console.log("Trabajadores seleccionados:", selectSquad.workers);
       if (selectSquad.workers && selectSquad.workers.length > 0) {
         const selectedWorkers = workers.filter((worker) =>
           selectSquad.workers.includes(worker.id)
@@ -145,8 +148,9 @@ const CardTableSquads = ({
 
       //Esto lo hago para cuando se reabra el modal quede con la data actualizada
       const squadData = await getDataSquads(companyID);
-      setInitialData(squadData);
+      setInitialData(squadData.squads);
 
+      setSelectSquad(squadData.squads.find((squad) => squad.id === selectSquad.id));
       setTimeout(() => {
         setOpenAddWorkers(!openAddWorkers);
         set;
@@ -154,7 +158,14 @@ const CardTableSquads = ({
       console.log("Trabajadores asignados correctamente.");
     } else {
       // Manejar error
-      setUpdateMessage("Error al asignar trabajadores.");
+      setUpdateMessage(responseCode.mensaje);
+
+      //Cerramos el modal para que el usuario pueda volver a intentar
+      setShowSelectedWorkers(false);
+      setOpenAddWorkers(false);
+      const squadData = await getDataSquads(companyID);
+      setInitialData(squadData.squads);
+      //console.log('squadData:', squadData)
       console.error("Error al asignar trabajadores.");
     }
   };
@@ -174,6 +185,8 @@ const CardTableSquads = ({
   };
 
   const handleAddWorkers = (squad) => {
+
+    setWorkersOpen(squad);
     setSelectSquad(squad);
     setOpenAddWorkers(!openAddWorkers);
 
@@ -186,7 +199,7 @@ const CardTableSquads = ({
       isSelected: workerIds.includes(worker.id),
     })) : []; // O puedes definir un array vacío si no es un array
 
-    console.log("Updated workers:", updatedWorkers);
+    //console.log("Updated workers:", updatedWorkers);
 
     setWorkers(updatedWorkers);
   };
@@ -229,7 +242,7 @@ const CardTableSquads = ({
 
       const updateSquadApi = await updateSquad(updatedData);
       const squadData = await getDataSquads(companyID);
-      console.log(squadData);
+      //console.log(squadData);
 
       if (updateSquadApi.code === "OK") {
 
@@ -307,7 +320,7 @@ const CardTableSquads = ({
 
       // Agrega la fila del front-end
 
-      console.log(createSquadapi);
+      //console.log(createSquadapi);
       if (createSquadapi.code == "OK") {
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
 
@@ -553,8 +566,8 @@ const CardTableSquads = ({
                               key={rowIndex}
                               role="cell"
                               className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
-                                  ? "bg-lightPrimary dark:bg-navy-900"
-                                  : ""
+                                ? "bg-lightPrimary dark:bg-navy-900"
+                                : ""
                                 } ${columnsClasses[rowIndex] || "text-left"}`}
                             >
                               <div className="text-base font-medium text-navy-700 dark:text-white">
@@ -569,8 +582,8 @@ const CardTableSquads = ({
                             key={rowIndex}
                             role="cell"
                             className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
+                              ? "bg-lightPrimary dark:bg-navy-900"
+                              : ""
                               } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white">
@@ -597,8 +610,8 @@ const CardTableSquads = ({
                         <td
                           colSpan={columnLabels.length}
                           className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
+                            ? "bg-lightPrimary dark:bg-navy-900"
+                            : ""
                             }`}
                         >
                           <Tooltip
@@ -691,8 +704,8 @@ const CardTableSquads = ({
                     key={page}
                     type="button"
                     className={`${currentPage === page
-                        ? "font-semibold text-navy-500 dark:text-navy-300"
-                        : ""
+                      ? "font-semibold text-navy-500 dark:text-navy-300"
+                      : ""
                       }`}
                     onClick={() => handlePageChange(page)}
                   >
@@ -930,31 +943,34 @@ const CardTableSquads = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {Array.isArray(filteredWorkers) &&
-                      filteredWorkers.length > 0 ? (
-                      filteredWorkers.map((worker, index) => (
-                        <tr
-                          key={worker.id}
-                          className={`pt-[14px] p-3 text-[14px] px-5 ${index % 2 !== 0
-                              ? "bg-lightPrimary dark:bg-navy-900"
-                              : ""
-                            }`}
-                        >
-                          <td className="py-2">
-                            <input
-                              type="checkbox"
-                              className="!bg-center rounded-sm "
-                              checked={worker.isSelected || false}
-                              onChange={() => {
-                                worker.isSelected = !worker.isSelected;
-                                setWorkers([...workers]);
-                              }}
-                            />
-                          </td>
-                          <td className="dark:text-white">{worker.name + " " + worker.lastname}</td>
-                          <td className="dark:text-white">{worker.rut}</td>
-                        </tr>
-                      ))
+
+                    {Array.isArray(filteredWorkers) && filteredWorkers.length > 0 ? (
+                      filteredWorkers.map((worker, index) => {
+
+
+                        return (
+                          <tr
+                            key={worker.id}
+                            className={`pt-[14px] p-3 text-[14px] px-5 ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""}`}
+                          >
+                            <td className="py-2">
+                              <input
+                                type="checkbox"
+                                className="!bg-center rounded-sm"
+                                checked={worker.isSelected || false}
+                                onChange={() => {
+                                  worker.isSelected = !worker.isSelected;
+                                  setWorkers([...workers]); // Actualiza el estado de los trabajadores
+                                }}
+                              />
+                            </td>
+                            <td className="dark:text-white">
+                              {worker.name + " " + worker.lastname}
+                            </td>
+                            <td className="dark:text-white">{worker.rut}</td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan="4" className="text-center">
@@ -963,6 +979,7 @@ const CardTableSquads = ({
                       </tr>
                     )}
                   </tbody>
+
                 </table>
               </div>
             </>
