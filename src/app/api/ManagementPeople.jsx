@@ -861,3 +861,25 @@ export const deleteWorker = async (id) => {
     console.error(err);
   }
 }
+
+
+//Delete AllBand
+export const deleteAllBand = async (data) => {
+  try {
+    const res = await fetch(URLAPI + "/api/v1/management-people/workers/deleteAllBand", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData.code;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
