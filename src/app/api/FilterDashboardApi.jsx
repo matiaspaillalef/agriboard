@@ -187,6 +187,7 @@ export const getdataWorkersWeek = async (company_id, ground) => {
     if (res.ok) {
       const data = await res.json();
 
+      console.log(data);
       if (data.code === "OK") {
         return data.data;
       } else if (data.code === "ERROR") {
@@ -334,3 +335,73 @@ export const getDataHumidityTemperatureSeason = async (company_id, ground) => {
     return {};
   }
 };
+
+
+export const getDataCalcKgAvg = async (company_id, ground) => {
+  try {
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/avgKgBoxes/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.data;
+      } else if (data.code === "ERROR") {
+        console.error(data.message);
+        return {};
+      }
+    } else {
+      console.error("Network response was not ok:", res.statusText);
+      return {};
+    }
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
+
+export const getDataDaysOfHarvest = async (company_id, ground) => {
+  console.log(company_id, ground);
+  try {
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/daysOfHarvest/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    console.log(res);
+    if (res.ok) {
+      const data = await res.json();
+
+      console.log(data);
+      if (data.code === "OK") {
+        return data.data;
+      } else if (data.code === "ERROR") {
+        console.error(data.message);
+        return {};
+      }
+    } else {
+      console.error("Network response was not ok:", res.statusText);
+      return {};
+    }
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}

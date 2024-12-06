@@ -74,7 +74,7 @@ const CardTable = ({
           <div className="h-full overflow-x-scroll">
             <table
               role="table"
-              className="mt-8 h-max w-full"
+              className="mt-8 h-max w-full overflow-scroll"
               variant="simple"
               color="gray-500"
               mb="24px"
@@ -92,7 +92,7 @@ const CardTable = ({
                           key={index}
                           colSpan={1}
                           role="columnheader"
-                          className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
+                          className="border-b border-gray-200 px-2 pb-[10px] text-start dark:!border-navy-700"
                         >
                           <p
                             className={`text-xs tracking-wide text-gray-600 ${
@@ -130,13 +130,13 @@ const CardTable = ({
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 text-[14px] px-5 ${
+                            className={`pt-[14px] pb-3 px-2 ${
                               index % 2 !== 0
                                 ? "bg-lightPrimary dark:bg-navy-900"
                                 : ""
                             } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
-                            <p className="text-base font-medium text-navy-700 dark:text-white">
+                            <p className="text-base font-medium text-navy-700 dark:text-white text-[12px]">
                               {formatNumber(row[key])}
                             </p>
                           </td>

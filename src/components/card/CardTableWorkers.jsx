@@ -18,6 +18,8 @@ import {
   ArrowUpOnSquareIcon,
   PhoneIcon,
   ChatBubbleLeftRightIcon,
+  SparklesIcon,
+  ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -35,6 +37,7 @@ import {
   getDataContractors,
   getDataSquads,
   getDataShifts,
+  deleteAllBand,
 } from "@/app/api/ManagementPeople";
 
 import {
@@ -81,6 +84,7 @@ const CardTableWorkers = ({
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [idRole, setIdRole] = useState("");
 
   const [selectedItem, setSelectedItem] = useState(null); // Estado para almacenar los datos del item seleccionado para editar
   const [updateMessage, setUpdateMessage] = useState(null); // Estado para manejar el mensaje de actualización
@@ -101,9 +105,14 @@ const CardTableWorkers = ({
   const [rutValido, setRutValido] = useState(false);
 
   const [openImport, setOpenImport] = useState(false);
+  const [openCleanBand, setOpenCleanBand] = useState(false);
 
   const handleOpenImport = () => {
     setOpenImport(!openImport);
+  };
+
+  const handleOpenCleanBand = () => {
+    setOpenCleanBand(!openCleanBand);
   };
 
   const handleRegionChange = (event) => {
@@ -191,6 +200,12 @@ const CardTableWorkers = ({
         setDataShift([]);
       }
     };
+
+    //RolId sesion storage userData
+    const userData = JSON.parse(sessionStorage.getItem("userData"));
+    setIdRole(userData?.rol);
+
+
     handleNameItems();
   }, []);
 
@@ -208,7 +223,7 @@ const CardTableWorkers = ({
       setUpdateMessage("Por favor, selecciona un archivo primero.");
       return;
     }
-    console.log("1");
+
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data);
     const worksheetName = workbook.SheetNames[0];
@@ -238,9 +253,6 @@ const CardTableWorkers = ({
         )
       );
     };
-
-
-
 
     const transformKeys = (data) => {
       return data.map((item) => {
@@ -592,6 +604,36 @@ const CardTableWorkers = ({
     }
   };
 
+  //Remove All Bands
+  const handleRemoveAllBand = async () => {
+    try {
+      const data = {
+        company_id: companyID,
+      };
+
+      // Hacer la llamada a la API
+      const removeBand = await deleteAllBand(data);
+
+      // Verifica si la respuesta es válida antes de acceder a las propiedades
+      if (removeBand === "OK") {
+        setUpdateMessage("Pulseras eliminadas correctamente");
+
+        // Obtén los datos de los trabajadores de nuevo
+        const newDataFetch = await getDataWorkers(companyID);
+        setInitialData(newDataFetch);
+        setOpenCleanBand(false);
+      } else {
+        // Si la respuesta no es válida o no tiene el código esperado
+        console.error("Respuesta inesperada de la API:", removeBand);
+        setUpdateMessage("Error al eliminar las pulseras");
+      }
+    } catch (error) {
+      console.error("Error al eliminar las pulseras:", error);
+      setUpdateMessage("Error al eliminar las pulseras");
+    }
+  };
+
+
   useEffect(() => {
     if (updateMessage) {
       const duration = updateMessage.includes("algunos trabajadores")
@@ -618,6 +660,8 @@ const CardTableWorkers = ({
       setLoading(false);
     }
   }, [data]);
+
+
   const handlerSearch = (e) => {
     const value = e.target.value.toLowerCase();
     const filteredData = data.filter((item) =>
@@ -806,9 +850,18 @@ const CardTableWorkers = ({
           Nuevo trabajador
         </Button>
         <div className="mb-3 flex gap-5 ">
+          {(idRole == 1 || idRole == 2) && (
+            <button
+              onClick={handleOpenCleanBand}
+              className="import-button linear mt-2 w-auto rounded-xl bg-red-500 py-[12px] px-[25px] text-base font-medium text-white transition duration-200 hover:bg-red-700 active:bg-red-700 items-center justify-center flex gap-2 normal-case"
+            >
+              <SparklesIcon className="w-5 h-5" />
+              Eliminar pulseras
+            </button>
+          )}
           <button
             onClick={handleOpenImport}
-            className="import-button linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] px-[25px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
+            className="import-button linear mt-2 w-auto rounded-xl bg-brand-500 py-[12px] px-[25px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case"
           >
             <ArrowUpOnSquareIcon className="w-5 h-5" />
             Importar trabajadores
@@ -2166,6 +2219,32 @@ const CardTableWorkers = ({
                   {updateMessage}
                 </p>
               )*/}
+            </>
+          </Dialog>
+
+          <Dialog
+            open={openCleanBand}
+            handler={handleOpenCleanBand}
+            size="xs"
+            className="p-5 bg-red-500 lg:max-w-[40%] dark:bg-navy-900"
+          >
+            <>
+              <h2 className="text-center mb-5 text-xl mt-5 text-white font-bold">
+                <strong className="flex gap-3 justify-center align-middle items-center"><ExclamationTriangleIcon className="text-white w-5 h-5" /> Eliminación masiva de pulseras</strong>
+              </h2>
+              <p className="text-center mb-5 text-white text-m">
+                Recuerda, si autorizas esta eliminación masiva, los datos ya no se podrán recuperar. Si estas seguro de seguir, da click en continuar.
+              </p>
+              <button
+                type="button"
+                onClick={handleOpenCleanBand}
+                className="bg-white text-blueTertiary px-1 py-1 rounded mr-2 absolute right-1 top-2"
+              >
+                <XMarkIcon className="text-blueTertiary w-5 h-5" />
+              </button>
+              <button type="button" onClick={handleRemoveAllBand} className="bg-blueTertiary text-white flex items-center justify-center px-4 py-2 rounded m-auto gap-2 font-semibold hover:bg-blueQuaternary">
+                <SparklesIcon className="text-white w-5 h-5" /> Continuar
+              </button>
             </>
           </Dialog>
         </>

@@ -16,6 +16,8 @@ import {
   getDataDispatchDay,
   getDataVarietiesSeasonPercentage,
   getDataHumidityTemperatureSeason,
+  getDataCalcKgAvg,
+  getDataDaysOfHarvest,
 } from "@/app/api/FilterDashboardApi";
 import { getDataGround } from "../api/ProductionApi";
 import MiniCard from "@/components/card/MiniCard";
@@ -33,6 +35,7 @@ import {
   lineChartOptionsTotalSpent,
 } from "../data/dataGraphics";
 import { dataMiniCardDashboard } from "../data/dataMiniCard";
+import { data } from "autoprefixer";
 
 const fechaActual = new Date();
 
@@ -48,6 +51,8 @@ const Dashboard = () => {
     useState([]);
   const [dataHumidityTemperatureSeason, setDataHumidityTemperatureSeason] =
     useState([]);
+  const [dataKgAvg, setDataKgAvg] = useState([]);
+  const [dataDaysOfHarvest, setDataDaysOfHarvest] = useState([]);
   const [dataDispatchGuideDay, setDataDispatchGuideDay] = useState([]);
   const [selectedGround, setSelectedGround] = useState("");
   const [companyId, setCompanyId] = useState("");
@@ -126,6 +131,8 @@ const Dashboard = () => {
         const dataDispatchGuideDay = await getDataDispatchDay(companyId, groundId);
         const dataVarietiesSeasonPercentage = await getDataVarietiesSeasonPercentage(companyId, groundId);
         const dataHumidityTemperatureSeason = await getDataHumidityTemperatureSeason(companyId, groundId);
+        const dataKgAvg = await getDataCalcKgAvg(companyId, groundId);
+        const dataDaysOfHarvest = await getDataDaysOfHarvest(companyId, groundId);
 
         setDataKgDay(dataDay);
         setDataKgSeason(dataSeason);
@@ -135,7 +142,8 @@ const Dashboard = () => {
         setDataDispatchGuideDay(dataDispatchGuideDay);
         setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
         setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
-        console.log(dataVaritiesDay);
+        setDataKgAvg(dataKgAvg);
+        setDataDaysOfHarvest(dataDaysOfHarvest);
       } else {
         const grounds = await getDataGround(companyId);
 
@@ -153,6 +161,8 @@ const Dashboard = () => {
             const dataDispatchGuideDay = await getDataDispatchDay(companyId, firstGroundId);
             const dataVarietiesSeasonPercentage = await getDataVarietiesSeasonPercentage(companyId, firstGroundId);
             const dataHumidityTemperatureSeason = await getDataHumidityTemperatureSeason(companyId, firstGroundId);
+            const dataKgAvg = await getDataCalcKgAvg(companyId, firstGroundId);
+            const dataDaysOfHarvest = await getDataDaysOfHarvest(companyId, firstGroundId);
 
             setDataKgDay(dataDay);
             setDataKgSeason(dataSeason);
@@ -162,6 +172,8 @@ const Dashboard = () => {
             setDataDispatchGuideDay(dataDispatchGuideDay);
             setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
             setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
+            setDataKgAvg(dataKgAvg);
+            setDataDaysOfHarvest(dataDaysOfHarvest);
           } else {
             setError("No grounds found for the company.");
           }
@@ -358,19 +370,26 @@ useEffect(() => {
             },
             {
               id: 2,
-              name: "Cant. Rgistros",
+              name: "Registros",
               value: dataWorkersWeek?.workersWeek || 0,
             },
+            {
+              id: 3,
+              name: "Kg. Prom.",
+              value: dataKgAvg?.avgKgBoxes || 0,
+            }
           ]}
           isLoading={isLoading}
         />
       </div>
       <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+  
           <CardTable
             data={dataVaritiesDay}
-            thead="Variedad,Especie, Cantidad, Cajas"
+            thead="Variedad, Especie, Sector, Cantidad, Cajas"
             columnsClasses={[
+              "text-left",
               "text-left",
               "text-left",
               "text-right",
@@ -382,10 +401,10 @@ useEffect(() => {
 
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
           <CardTable
-            data={dataDispatchGuideDay}
-            thead="Guía, Exportadora, Cajas, Kilos, Abbreviación"
+            data={dataDaysOfHarvest}
+            thead="Especie, Variedad, Días de cosecha"
             omitirColumns={["id"]}
-            title="Despachos del día"
+            title="Días de cosecha"
           />
         </div>
       </div>
