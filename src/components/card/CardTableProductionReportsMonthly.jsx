@@ -372,7 +372,8 @@ const CardTableProductionReports = ({
         // Procesamos los datos de cosecha
         const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
         const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
-        const harvestData = initialData || [];
+        const harvestData = Array.isArray(initialData) ? initialData : [];
+
   
         // Formateamos los datos de cosecha
         const formattedData = harvestData.reduce((acc, item) => {
@@ -433,11 +434,6 @@ const CardTableProductionReports = ({
   
     fetchData();
   }, [companyID, initialData]); // Dependencia de companyID y initialData
-  
-  
-  
-  
-  
   
   /*useEffect(() => {
     if (!companyID) {
@@ -654,46 +650,53 @@ const CardTableProductionReports = ({
   });
 
 
+    const handleCheck = (event) => {
+      const { id, checked } = event.target;
+    
+      // Crea una copia del objeto fields
+      setFields((prevFields) => {
+        const newFields = { ...prevFields };
+  
 
-  const handleCheck = (event) => {
-    const { id, checked } = event.target;
-
-    //console.log("ID:", id, "Checked:", checked);
-
-    // Crea una copia del objeto fields
-    setFields((prevFields) => {
-      const newFields = { ...prevFields };
-
-      // Desmarcar `worker` cuando se marca `worker_rut`, y viceversa
-      if (id === 'worker_rut' && checked) {
-        newFields.worker.checked = false;  // Desmarcar `worker`
-      }
-
-      if (id === 'worker' && checked) {
-        newFields.worker_rut.checked = false;  // Desmarcar `worker_rut`
-      }
-
-      // Actualizar el estado del checkbox específico
-      newFields[id].checked = checked;
-
-      return newFields;  // Devuelve el nuevo objeto fields
-    });
-
-    // Actualiza los IDs chequeados
-    setCheckedIds((prevCheckedIds) => {
-      if (id === "selectAll") {
-        // Marca todos los checkboxes si "selectAll" está marcado
-        return checked ? Object.keys(fields) : [];
-      } else {
-        // Marca o desmarca el checkbox específico
-        if (checked) {
-          return [...prevCheckedIds, id];
-        } else {
-          return prevCheckedIds.filter((checkedId) => checkedId !== id);
+        if (id === 'worker_rut' && checked) {
+          newFields.worker.checked = false;  // Desmarcar `worker`
+          /*setFilters((prev) => {
+            const { worker, ...rest } = prev; // Elimina la propiedad `worker` completamente
+            return rest;
+          });*/
         }
-      }
-    });
-  };
+    
+        if (id === 'worker' && checked) {
+          newFields.worker_rut.checked = false;  // Desmarcar `worker_rut`
+          /*setFilters((prev) => {
+            const { worker_rut, ...rest } = prev; // Elimina la propiedad `worker` completamente
+            return rest;
+        });*/
+        }
+    
+        // Actualizar el estado del checkbox específico
+        newFields[id].checked = checked;
+    
+        return newFields;  // Devuelve el nuevo objeto fields
+      });
+    
+      // Actualiza los IDs chequeados
+      setCheckedIds((prevCheckedIds) => {
+        if (id === "selectAll") {
+          // Marca todos los checkboxes si "selectAll" está marcado
+          return checked ? Object.keys(fields) : [];
+        } else {
+          // Marca o desmarca el checkbox específico
+          if (checked) {
+            return [...prevCheckedIds, id];
+          } else {
+            // Si se desmarca, elimina el id del estado checkedIds
+            return prevCheckedIds.filter((checkedId) => checkedId !== id);
+          }
+        }
+      });
+    };
+    
 
   const handleFilterChange = (event) => {
     const { id, value } = event.target;
@@ -715,33 +718,30 @@ const CardTableProductionReports = ({
 
   };
 
-  console.log("Switch state:", switchState);
-
-  //console.log("Filtros", filters);
-
   const handleFilterResults = async () => {
-
-    console.log("Filtros:", filters);
-
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
-      if (key === 'totals' || key === 'from' || key == 'to' || checkedIds.includes(key) || key == 'worker_rut') {
+      if (key === 'totals' || key === 'from' || key === 'to' || checkedIds.includes(key) || key === 'worker_rut') {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
-
-    //console.log("Filtros con IDs:", filtrosConIds);
-
+  
     try {
       const results = await filterResultsMonthly(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
-
-      //console.log("Resultados filtrados:", results);
-      setInitialData(results);
-      setDataReport(results);
+  
+      if (Array.isArray(results)) {
+        setInitialData(results);
+        setDataReport(results);
+      } else {
+        setInitialData([]);
+        setDataReport([]);
+        console.error('Los resultados devueltos no son un array:', results);
+      }
     } catch (error) {
-      console.error("Error al filtrar los resultados:", error);
+      console.error('Error al filtrar los resultados:', error);
     }
   };
+
 
   const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
 

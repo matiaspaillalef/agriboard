@@ -709,7 +709,7 @@ const CardTableRegularizationProduction = ({
         } else {
           setDataGround([]);
         }
-        console.log(fetchedDataGround);
+        //console.log(fetchedDataGround);
         setDataSeasons(fetchedDataSeasons);
         setDataContractors(fetchedDataContractors);
 
@@ -1123,18 +1123,11 @@ const CardTableRegularizationProduction = ({
                         <option key="0" value="">
                           Elige un campo
                         </option>
+
                         {Array.isArray(dataGround) && dataGround.length > 0 ? (
-                          dataGround.filter(
-                            (ground) =>
-                              ground.status != 0 &&
-                              ground.zone == dataChangeZone
-                          ).length > 0 ? (
+                          dataGround.filter((ground) => ground.status != '0' && ground.status != 0).length > 0 ? (
                             dataGround
-                              .filter(
-                                (ground) =>
-                                  ground.status != 0 &&
-                                  ground.zone == dataChangeZone
-                              )
+                              .filter((ground) => ground.status != 0)
                               .map((ground) => (
                                 <option key={ground.id} value={ground.id}>
                                   {ground.name}
@@ -1452,44 +1445,36 @@ const CardTableRegularizationProduction = ({
                         defaultValue={selectedItem ? selectedItem.variety : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <>
-                          <option key="empty" value="">Elige una variedad</option>
-                          {Array.isArray(dataSpecies) &&
-                            dataSpecies.length > 0 ? (
-                            dataSpecies
-                              .filter((specie) => specie.id == dataChangeSpecie)
-                              .map((specie) =>
-                                Array.isArray(specie.varieties) &&
-                                  specie.varieties.length > 0 ? (
-                                  <>
-                                    <option key="empty" value="">
-                                      Elige una variedad
-                                    </option>
-                                    {specie.varieties.map((variety) =>
-                                      dataVarieties
-                                        .filter(
-                                          (varietySelect) =>
-                                            varietySelect.id == variety
-                                        )
-                                        .map((varietySelect) => (
-                                          <option
-                                            key={varietySelect.id}
-                                            value={varietySelect.id}
-                                          >
-                                            {varietySelect.name}
-                                          </option>
-                                        ))
-                                    )}
-                                  </>
-                                ) : (
-                                  <option value="">No hay variedades</option>
+                        <option key="empty" value="">
+                          Elige una variedad
+                        </option>
+                        {Array.isArray(dataSpecies) && dataSpecies.length > 0 ? (
+                          dataSpecies
+                            .filter((specie) => specie.id == dataChangeSpecie)
+                            .map((specie) =>
+                              Array.isArray(specie.varieties) && specie.varieties.length > 0 ? (
+                                specie.varieties.map((variety) =>
+                                  dataVarieties
+                                    .filter((varietySelect) => varietySelect.id == variety)
+                                    .map((varietySelect) => (
+                                      <option key={varietySelect.id} value={varietySelect.id}>
+                                        {varietySelect.name}
+                                      </option>
+                                    ))
                                 )
+                              ) : (
+                                <option key={`no-varieties-${specie.id}`} value="">
+                                  No hay variedades
+                                </option>
                               )
-                          ) : (
-                            <option value="">No hay variedades</option>
-                          )}
-                        </>
+                            )
+                        ) : (
+                          <option key="no-species" value="">
+                            No hay variedades
+                          </option>
+                        )}
                       </select>
+
                     </div>
 
                     <div className="flex flex-col gap-3">
