@@ -287,6 +287,7 @@ export const getDataVarietiesSeasonPercentage = async (company_id, ground) => {
     if (res.ok) {
       const data = await res.json();
 
+      //console.log(data);
       if (data.code === "OK") {
         return data.data;
       } else if (data.code === "ERROR") {

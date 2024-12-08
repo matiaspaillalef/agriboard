@@ -62,7 +62,7 @@ const MiniCard = ({ name, icon: Icon, data, featured, isLoading }) => {
                 key={item.id}
                 className="h-50 ml-4 flex w-auto flex-col justify-center"
               >
-                <p className="font-dm text-sm font-medium text-gray-600">
+                <p className="font-dm text-[12px] font-medium text-gray-600">
                   {item.name}
                 </p>
                 <h4

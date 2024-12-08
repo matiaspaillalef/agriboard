@@ -212,7 +212,7 @@ const CardTableWorkers = ({
   //Mapeamos la data para no mostrar en el excel los ID, sino que mostrar el nombre
   const cargoMap = new Map(dataPosition.map((item) => [item.id, item.name]));
   const contractorMap = new Map(
-    dataContractor.map((item) => [item.id, item.name])
+    dataContractor.map((item) => [item.id, `${item.name} ${item.lastname}`])
   );
   const squadMap = new Map(dataSquad.map((item) => [item.id, item.name]));
   const workerMap = new Map(dataSquad.map((item) => [item.id, item.name]));
@@ -795,39 +795,55 @@ const CardTableWorkers = ({
   };
 
   //Mapeamos la data a exportar
-  const exportData = Array.isArray(initialData) && initialData && initialData.map((item) => {
-    return {
-      Rut: item.rut,
-      Nombre: item.name,
-      Apellido: item.lastname,
-      "Apellido materno": item.lastname2,
-      "Pesador": item.weigher == 1 ? "Sí" : "No",
-      "Fecha de nacimiento": formatDateToInput(item.born_date),
-      Género: item.gender,
-      "Estado civil": item.state_civil,
-      Estado: item.state,
-      Ciudad: item.city,
-      Dirección: item.address,
-      Teléfono: item.phone,
-      Correo: item.email,
-      "Teléfono empresa": item.phone_company,
-      "Fecha de ingreso": formatDateToInput(item.date_admission),
-      Cargo: cargoMap.get(item.position) || item.position,
-      Contratista: contractorMap.get(item.contractor) || item.contractor,
-      Cuadrilla: squadMap.get(item.squad) || item.squad,
-      "Líder de Cuadrilla":
-        workerMap.get(item.leader_squad) || item.leader_squad,
-      Turno: shiftMap.get(item.shift) || item.shift,
-      Pulsera: item.wristband,
-      Observación: item.observation,
-      Banco: item.bank,
-      "Tipo de cuenta": item.account_type,
-      "Número de cuenta": item.account_number,
-      AFP: item.afp,
-      Salud: item.health,
-      status: item.status == 1 ? "Activo" : "Inactivo",
-    };
-  });
+const exportData = Array.isArray(initialData) && initialData && initialData.map((item) => {
+  // Función para separar el RUT y el DV
+  const splitRut = (rut) => {
+    // Primero eliminamos puntos y guiones
+    const cleanedRut = rut.replace(/[.\-]/g, '');
+
+    // Separamos el RUT y el dígito verificador
+    const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
+    const dv = cleanedRut.slice(-1); // Último carácter (el dígito verificador)
+
+    return { rutNumber, dv };
+  };
+
+  const { rutNumber, dv } = splitRut(item.rut); // Llamamos a la función con el RUT de cada item
+
+  return {
+    Rut: rutNumber, // Columna para el RUT (sin puntos ni guiones)
+    DV: dv, // Columna para el dígito verificador
+    Nombre: item.name,
+    Apellido: item.lastname,
+    "Apellido materno": item.lastname2,
+    "Pesador": item.weigher == 1 ? "Sí" : "No",
+    "Fecha de nacimiento": formatDateToInput(item.born_date),
+    Género: item.gender,
+    "Estado civil": item.state_civil,
+    Estado: item.state,
+    Ciudad: item.city,
+    Dirección: item.address,
+    Teléfono: item.phone,
+    Correo: item.email,
+    "Teléfono empresa": item.phone_company,
+    "Fecha de ingreso": formatDateToInput(item.date_admission),
+    Cargo: cargoMap.get(item.position) || item.position,
+    Contratista: contractorMap.get(item.contractor) || item.contractor,
+    Cuadrilla: squadMap.get(item.squad) || item.squad,
+    "Líder de Cuadrilla":
+      workerMap.get(item.leader_squad) || item.leader_squad,
+    Turno: shiftMap.get(item.shift) || item.shift,
+    Pulsera: item.wristband,
+    Observación: item.observation,
+    Banco: item.bank,
+    "Tipo de cuenta": item.account_type,
+    "Número de cuenta": item.account_number,
+    AFP: item.afp,
+    Salud: item.health,
+    status: item.status == 1 ? "Activo" : "Inactivo",
+  };
+});
+
 
   return (
     <>

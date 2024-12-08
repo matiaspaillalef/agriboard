@@ -384,7 +384,6 @@ useEffect(() => {
       </div>
       <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-  
           <CardTable
             data={dataVaritiesDay}
             thead="Variedad, Especie, Sector, Cantidad, Cajas"
