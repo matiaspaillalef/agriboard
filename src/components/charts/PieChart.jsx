@@ -9,7 +9,6 @@ const DynamicChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 const PieChart = ({ data, title }) => {
   const [loading, setLoading] = useState(true);
   const [chartsData, setChartsData] = useState([]);
-
   const [series, setSeries] = useState([]);
   const [options, setOptions] = useState({
     labels: [],
@@ -33,6 +32,11 @@ const PieChart = ({ data, title }) => {
     },
     dataLabels: {
       enabled: false,
+      formatter: (val) => `${Math.round(val)}%`,
+      style: {
+        colors: ['#fff'], // Color opcional para las etiquetas
+        fontSize: '14px',
+      },
     },
     hover: { mode: null },
     plotOptions: {
@@ -59,14 +63,17 @@ const PieChart = ({ data, title }) => {
         fontSize: "12px",
         backgroundColor: "#000000"
       },
+      y: {
+        formatter: (val) => `${Math.round(val)}%`, // Formateamos el valor en el tooltip
+      },
     },
   });
 
   useEffect(() => {
     if (data && data.length > 0) {
-
       const newSeries = data.map(item => item.percentage);
       const newLabels = data.map(item => item.variety);
+  
       // Agrupar los datos por especie
       const groupedData = data.reduce((acc, item) => {
         if (!acc[item.especie]) {
@@ -75,43 +82,50 @@ const PieChart = ({ data, title }) => {
         acc[item.especie].push(item);
         return acc;
       }, {});
-
+  
       // Transformar los datos agrupados para los gráficos
       const charts = Object.keys(groupedData).map((especie) => {
         const especiesData = groupedData[especie];
-        const series = especiesData.map(item => item.cantidad);
+        const seriesRaw = especiesData.map(item => item.cantidad);
         const labels = especiesData.map(item => item.variety);
-
+  
+        // Calcular los porcentajes
+        const total = seriesRaw.reduce((acc, val) => acc + val, 0);
+        const series = seriesRaw.map(value => {
+          const percentage = total > 0 ? (value / total) * 100 : 0;
+          return Math.round(percentage); // Redondear los porcentajes
+        });
+  
         return {
-          title: title + ' | ' + especie,
+          title: `${title} | ${especie}`,
           series,
           labels,
         };
       });
-
+  
       // Actualizar estado con los datos agrupados
       setChartsData(charts);
       setLoading(false);
-
-      // Update state with new data
+  
+      // Actualizar estado general del gráfico
       setSeries(newSeries);
       setOptions(prevOptions => ({
         ...prevOptions,
         labels: newLabels,
       }));
-
-
     } else {
+      // Si no hay datos, limpiar los estados
       setChartsData([]);
       setLoading(false);
-
+  
       setSeries([]);
       setOptions(prevOptions => ({
         ...prevOptions,
         labels: [],
       }));
     }
-  }, [data]);
+  }, [data]); // Dependencia: se ejecuta cuando `data` cambia
+  
 
   // Crear un arreglo de slides con los gráficos
   const slides = chartsData.map((chart, index) => (
@@ -129,16 +143,30 @@ const PieChart = ({ data, title }) => {
         />
       </div>
       <div className="flex flex-row !justify-between flex-wrap gap-2 rounded-2xl px-6 py-3 dark:!bg-navy-700 dark:shadow-none">
-        {chart.series.map((item, index) => (
-          <React.Fragment key={index}>
-            <div className="flex flex-col items-center justify-center">
-              <div className={`h-2 w-2 rounded-full bg-[${options.colors[index]}]`} />
-              <p className="ml-1 text-sm font-normal text-gray-600">{options.labels[index]}</p>
-              <p className="mt-px text-xl font-bold text-navy-700 dark:text-white">{Math.round(item)}%</p>
-            </div>
-            {index !== chart.series.length - 1 && <div className="h-11 w-px bg-gray-300 dark:bg-white/10" />}
-          </React.Fragment>
-        ))}
+        {(() => {
+          // Sumar los valores del array
+          const total = chart.series.reduce((acc, val) => acc + val, 0);
+
+          // Mapear los valores para calcular el porcentaje
+          return chart.series.map((item, index) => {
+            const percentage = total > 0 ? (item / total) * 100 : 0;
+
+            return (
+              <React.Fragment key={index}>
+                <div className="flex flex-col items-center justify-center">
+                  <div className={`h-2 w-2 rounded-full bg-[${options.colors[index]}]`} />
+                  <p className="ml-1 text-sm font-normal text-gray-600">{options.labels[index]}</p>
+                  <p className="mt-px text-xl font-bold text-navy-700 dark:text-white">
+                    {Math.round(percentage)}%
+                  </p>
+                </div>
+                {index !== chart.series.length - 1 && (
+                  <div className="h-11 w-px bg-gray-300 dark:bg-white/10" />
+                )}
+              </React.Fragment>
+            );
+          });
+        })()}
       </div>
     </div>
   ));
