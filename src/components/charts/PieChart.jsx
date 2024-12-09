@@ -142,7 +142,7 @@ const PieChart = ({ data, title }) => {
           series={chart.series}
         />
       </div>
-      <div className="flex flex-row !justify-between flex-wrap gap-2 rounded-2xl px-6 py-3 dark:!bg-navy-700 dark:shadow-none">
+      <div className="flex flex-row !justify-between flex-wrap gap-2 rounded-2xl px-6 py-3 dark:!bg-navy-700 dark:shadow-none w-fit m-auto">
         {(() => {
           // Sumar los valores del array
           const total = chart.series.reduce((acc, val) => acc + val, 0);
