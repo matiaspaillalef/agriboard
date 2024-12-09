@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import {
   CalendarDaysIcon,
   ChartBarIcon,
@@ -59,12 +59,46 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [idRole, setIdRole] = useState("");
   const [error, setError] = useState("");
+  const [dataGrounds, setDataGrounds] = useState([]);
 
   const getSelectedGroundFromSessionStorage = useCallback(() => {
     return sessionStorage.getItem("selectedGround");
   }, []);
 
+
+  //Se hace la llamada a la API para obtener los datos de la empresa al cargar la pagina por promera vez y controlar algunos problemas
+  useEffect(() => {
+
+    const userCompantData = JSON.parse(sessionStorage.getItem("selectedCompanyId"));
+    //console.log('userData', userCompantData);
+    
+    const fetchData = async () => {
+      try {
+        const dataGround = await getDataGround(Number(companyId ? companyId : userCompantData)); // Aquí haces la llamada a la API
+        //console.log(dataGround);
+        setDataGrounds(dataGround); // Aquí actualizas el estado con los datos que recibiste
+
+        if (dataGround.code == 'OK') {
+          if(dataGround.grounds.length > 0){
+            dataGround.grounds.map((item) => {
+              const firstGroundId = dataGround.grounds[0].id;
+              //console.log('firstGroundId', firstGroundId);
+              setSelectedGround(firstGroundId);
+           
+            });
+          }
+        }
+        
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+  
+    fetchData(); // Llamas a la función asincrónica
+  }, []); // Este useEffect se ejecutará solo una vez al montar el componente
+
   const getCompanyIdFromSessionStorage = useCallback(() => {
+
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
     const userData = JSON.parse(sessionStorage.getItem("userData"));
     if (storedCompanyId) {
@@ -111,6 +145,7 @@ const Dashboard = () => {
       setIsLoading(false);
     }
   }, []);
+  
 
   const fetchDataDay = useCallback(async (companyId, groundId) => {
     if (!companyId) {
@@ -190,7 +225,6 @@ const Dashboard = () => {
       }, 3000);
     }
   }, [fetchKgDataQlty]);
-
 
 
   const checkForCompanyAndGroundChange = async () => {

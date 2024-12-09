@@ -186,7 +186,7 @@ export const getdataWorkersWeek = async (company_id, ground) => {
     if (res.ok) {
       const data = await res.json();
 
-      console.log(data);
+      //console.log(data);
       if (data.code === "OK") {
         return data.data;
       } else if (data.code === "ERROR") {
@@ -206,7 +206,7 @@ export const getdataWorkersWeek = async (company_id, ground) => {
 export const getDataVaritiesDay = async (company_id, ground) => {
   try {
     const url = `${URLAPI}/api/v1/filter/dashboard/dataVaritiesDay/${company_id}/${ground}`;
-    console.log("Endpoint:", url);
+    //console.log("Endpoint:", url);
 
     const res = await fetch(url, {
       method: "POST",
@@ -374,7 +374,7 @@ export const getDataCalcKgAvg = async (company_id, ground) => {
 export const getDataDaysOfHarvest = async (company_id, ground) => {
   try {
     const url = `${URLAPI}/api/v1/filter/dashboard/daysOfHarvest/${company_id}/${ground}`;
-    console.log("Endpoint:", url);
+    //console.log("Endpoint:", url);
 
     const res = await fetch(url, {
       method: "POST",

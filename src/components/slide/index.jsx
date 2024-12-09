@@ -5,7 +5,7 @@ import "slick-carousel/slick/slick-theme.css";
 import Image from "next/image";
 
 const SimpleSlider = (props) => {
-    const { slides, slidesToShow, dots, infinite, speed, fade, autoplay, arrow } = props;
+    const { slides, slidesToShow, dots, infinite, speed, fade, autoplay, arrow, typeSlide } = props;
 
     var settings = {
         dots: dots !== undefined ? dots : false,
@@ -23,8 +23,7 @@ const SimpleSlider = (props) => {
         <Slider {...settings}>
             {slides.map((slide, index) => (
                 <div className="inner-slide" key={index}>
-                    {/* Comprobamos si el slide es una imagen o un componente JSX */}
-                    {typeof slide === 'string' ? (
+                    {typeSlide === 'images' ? (
                         <Image
                             src={slide}
                             alt={`Slide ${index}`}
