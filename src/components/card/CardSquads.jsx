@@ -91,8 +91,6 @@ const CardTableSquads = ({
     name: "",
   });
 
-  console.log("selectSquad:", selectSquad);
-
   //Search Workers
   const [showSelectedWorkers, setShowSelectedWorkers] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
