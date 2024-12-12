@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Avatar from "@/assets/img/avatars/avatar7.png";
 
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+
 import { getDataGround } from "@/app/api/ProductionApi";
 
 import WeatherMini from "../weather/WatherMini";
@@ -20,6 +22,8 @@ const Navbar = (props) => {
   const [selectedGround, setSelectedGround] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [idRole, setIdRole] = useState("");
+  const [ultimaActualizacion, setUltimaActualizacion] = useState("");
+  const [buttonClicked, setButtonClicked] = useState(false);
 
   const path = usePathname();
 
@@ -47,9 +51,9 @@ const Navbar = (props) => {
     try {
       const data = await getDataGround(companyId);
 
-      if (data.code === "OK"){
+      if (data.code === "OK") {
         setDataGrounds(data.grounds);
-      }else{
+      } else {
         setDataGrounds([]);
       }
 
@@ -137,6 +141,26 @@ const Navbar = (props) => {
     }
   };
 
+  useEffect(() => {
+    const ultimaRecarga = localStorage.getItem("ultimaRecarga");
+    if (ultimaRecarga) {
+      setUltimaActualizacion(ultimaRecarga);
+    }
+  }, []);
+
+
+  const handleRecargar = () => {
+
+    const fechaRecarga = new Date().toLocaleString();
+    localStorage.setItem("ultimaRecarga", fechaRecarga);
+
+    setButtonClicked(true);
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000); // 1000 ms = 1 segundo
+  };
+
   return (
     <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
       <div className="ml-[6px]">
@@ -149,24 +173,43 @@ const Navbar = (props) => {
 
       <div className="flex w-full items-center justify-center gap-2 flex-col md:flex-row md:w-auto">
         {path === "/dashboard" && (
-          <div className="relative mt-[3px] flex h-[61px] w-full md:w-[255px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[255px] xl:gap-2">
-            <select
-              className="flex h-full w-full items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white md:w-[250px]xl:w-[225px] px-5 gap-3 border-none text-[14px]"
-              name="ground"
-              id="ground"
-              value={selectedGround}
-              onChange={handleGroundChange}
-            >
-              {dataGrounds && Array.isArray(dataGrounds) && dataGrounds.length > 0 ? (
-                dataGrounds.map((ground) => (
-                  <option key={ground.id} value={ground.id}>
-                    {ground.name}
-                  </option>
-                ))
-              ) : (
-                <option value="">Sin campos</option>
-              )}
-            </select>
+          <div className="flex gap-2">
+
+
+            <div className="relative mt-[3px] flex h-[61px] w-full md:w-[265px] flex-grow items-center gap-2 rounded-full bg-blueSecondary px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[265px] xl:gap-2 pl-5 justify-start">
+              <button
+                className={`flex items-center justify-center w-[40px] h-[40px] bg-white rounded-full shadow-xl shadow-shadow-500 dark:bg-navy-900 dark:text-white basis-[40px] flex-shrink-0 ${buttonClicked ? "animate-spin" : ""}`}
+                onClick={handleRecargar}
+              >
+                <ArrowPathIcon className="h-6 w-6 text-blueSecondary" />
+              </button>
+              <p className="text-white text-[12px]">
+                Última actualización:{" "}
+                <span className="font-bold block">
+                  {ultimaActualizacion || "No disponible"}
+                </span>
+              </p>
+            </div>
+
+            <div className="relative mt-[3px] flex h-[61px] w-full md:w-[255px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[255px] xl:gap-2">
+              <select
+                className="flex h-full w-full items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white md:w-[250px]xl:w-[225px] px-5 gap-3 border-none text-[14px]"
+                name="ground"
+                id="ground"
+                value={selectedGround}
+                onChange={handleGroundChange}
+              >
+                {dataGrounds && Array.isArray(dataGrounds) && dataGrounds.length > 0 ? (
+                  dataGrounds.map((ground) => (
+                    <option key={ground.id} value={ground.id}>
+                      {ground.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Sin campos</option>
+                )}
+              </select>
+            </div>
           </div>
         )}
 

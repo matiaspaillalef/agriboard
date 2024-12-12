@@ -81,13 +81,13 @@ const ProductionRegularizationProduction = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableRegularizationProduction
                 data={dataRegularizationProduction}
-                thead="Campo, Sector, Fecha cosecha,Hora Cosecha, Especie, Variedad, Formato cosecha"    
+                thead="Campo, Sector, Trabajador, RUT, Fecha cosecha,Hora Cosecha, Kilos, Especie, Variedad"    
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
                 companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
                 datosCompanies={dataCompanies}
-                omitirColumns={["id", "company_id", "worker", "zone", "squad", "squad_leader", "batch", "worker_rut", "hilera", "boxes", "kg_boxes", "quality", "season", "sync", "sync_date", "turns", "date_register", "temp", "wet", "contractor", "weigher_rut", "source"]}
+                omitirColumns={["id", "company_id", "zone", "squad", "squad_leader", "batch", "hilera", "boxes", "quality", "season", "sync", "sync_date", "turns", "date_register", "temp", "wet", "contractor", "weigher_rut", "source", "harvest_format"]}
               />
             </div>
           </div>

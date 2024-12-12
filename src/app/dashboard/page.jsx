@@ -250,7 +250,6 @@ const Dashboard = () => {
     }
   }, [fetchKgDataQlty]);
 
-console.log('dataGrounds', dataKgAvgDay);
   const checkForCompanyAndGroundChange = async () => {
     const body = document.body;
     const companyClass = Array.from(body.classList).find((className) =>
