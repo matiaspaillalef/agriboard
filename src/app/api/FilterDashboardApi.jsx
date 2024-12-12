@@ -236,6 +236,39 @@ export const getDataVaritiesDay = async (company_id, ground) => {
   }
 };
 
+export const getDataVaritiesSeason = async (company_id, ground) => {
+  try {
+    const url = `${URLAPI}/api/v1/filter/dashboard/dataVaritiesSeason/${company_id}/${ground}`;
+    //console.log("Endpoint:", url);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.code === "OK") {
+        return data.data;
+      } else {
+        console.error("Error de API:", data.message);
+        return {};
+      }
+    } else {
+      const errorDetails = await res.text(); // Captura la respuesta de error
+      console.error("Error de red:", res.status, res.statusText, errorDetails);
+      return {};
+    }
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+};
+
 
 export const getDataDispatchDay = async (company_id, ground) => {
   try {
@@ -370,6 +403,39 @@ export const getDataCalcKgAvg = async (company_id, ground) => {
     return {};
   }
 }
+
+
+
+export const getDataAllDaysOfHarvest = async (company_id, ground) => {
+  try{
+
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/allDaysOfHarvest/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.data;
+      }
+    }
+
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
+
 
 export const getDataDaysOfHarvest = async (company_id, ground) => {
   try {
