@@ -13,6 +13,7 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
   UserGroupIcon,
+  ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -95,6 +96,8 @@ const CardTableSquads = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredWorkers, setFilteredWorkers] = useState(workers);
 
+  const [selectedWorkers, setSelectedWorkers] = useState('');
+
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
@@ -112,6 +115,7 @@ const CardTableSquads = ({
   const handleCheckboxChange = (event) => {
     setShowSelectedWorkers(event.target.checked);
     if (event.target.checked) {
+
       // Mostrar solo los trabajadores seleccionados en la cuadrilla
       //console.log("Trabajadores seleccionados:", selectSquad.workers);
       if (selectSquad.workers && selectSquad.workers.length > 0) {
@@ -876,114 +880,129 @@ const CardTableSquads = ({
           </Dialog>
 
           <Dialog
-            open={openAddWorkers}
-            handler={setOpenAddWorkers}
-            size="md"
-            className="p-5 lg:max-w-[40%] dark:bg-navy-900"
-          >
-            <>
-              <h2 className="text-left mb-7 font-medium text-xl mt-5 text-navy-900 dark:text-white">
-                Asignar trabajadores a <strong>{selectSquad.name}</strong>
-              </h2>
-              <button
-                type="button"
-                //onClick={() => setOpenAddWorkers(false)}
-                onClick={handleModalClose}
-                className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
-              >
-                <XMarkIcon className="text-white w-5 h-5" />
-              </button>
+  open={openAddWorkers}
+  handler={setOpenAddWorkers}
+  size="md"
+  className="p-5 lg:max-w-[40%] dark:bg-navy-900"
+>
+  <>
+    <h2 className="text-left mb-7 font-medium text-xl mt-5 text-navy-900 dark:text-white">
+      Asignar trabajadores a <strong>{selectSquad.name}</strong>
+    </h2>
+    <button
+      type="button"
+      onClick={handleModalClose}
+      className="bg-gray-500 text-white px-1 py-1 rounded mr-2 absolute right-1 top-2"
+    >
+      <XMarkIcon className="text-white w-5 h-5" />
+    </button>
 
-              <div className="mb-3 grid grid-cols-3 gap-5 lg:grid-cols-3 items-center">
-                <div className="flex flex-col gap-3">
-                  <input
-                    type="text"
-                    placeholder="Buscar trabajadores..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="search w-full p-2 rounded-md border bg-white/0 dark:bg-navy-900 text-navy-900 dark:text-white border-gray-200 dark:border-white/10"
-                  />
-                </div>
-                <div className="flex flex-row gap-3">
-                  <input
-                    type="checkbox"
-                    id="showSelectedWorkers"
-                    className="!bg-center rounded-sm"
-                    checked={showSelectedWorkers}
-                    onChange={handleCheckboxChange}
-                  />
-                  <label
-                    htmlFor="showSelectedWorkers"
-                    className="text-sm font-semibold dark:text-white"
-                  >
-                    Ver asignados
-                  </label>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <button
-                    type="button"
-                    onClick={handleAssignWorkers}
-                    className="linear w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                  >
-                    Asignar trabajadores
-                  </button>
-                </div>
-              </div>
-              <div className="max-h-[400px] overflow-y-scroll">
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      <th className="inputcheck border-b-gray-200 border-b dark:text-white"></th>
-                      <th className="text-left border-b-gray-200 border-b dark:text-white">
-                        Nombre
-                      </th>
-                      <th className="text-left border-b-gray-200 border-b dark:text-white">
-                        RUT
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
+    <div className="mb-3 grid grid-cols-3 gap-5 lg:grid-cols-3 items-center">
+      <div className="flex flex-col gap-3">
+        <input
+          type="text"
+          placeholder="Buscar trabajadores..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="search w-full p-2 rounded-md border bg-white/0 dark:bg-navy-900 text-navy-900 dark:text-white border-gray-200 dark:border-white/10"
+        />
+      </div>
+      <div className="flex flex-row gap-3">
+        <input
+          type="checkbox"
+          id="showSelectedWorkers"
+          className="!bg-center rounded-sm"
+          checked={showSelectedWorkers}
+          onChange={handleCheckboxChange}
+        />
+        <label
+          htmlFor="showSelectedWorkers"
+          className="text-sm font-semibold dark:text-white"
+        >
+          Ver asignados
+        </label>
+      </div>
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={handleAssignWorkers}
+          className="linear w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+        >
+          Asignar trabajadores
+        </button>
+      </div>
+    </div>
+    <div className="max-h-[400px] overflow-y-scroll">
+      <table className="w-full">
+        <thead>
+          <tr>
+            <th className="inputcheck border-b-gray-200 border-b dark:text-white"></th>
+            <th className="text-left border-b-gray-200 border-b dark:text-white">
+              Nombre
+            </th>
+            <th className="text-left border-b-gray-200 border-b dark:text-white">
+              RUT
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {Array.isArray(filteredWorkers) && filteredWorkers.length > 0 ? (
+            filteredWorkers.map((worker, index) => {
+              return (
+                <tr
+                  key={worker.id}
+                  className={`pt-[14px] p-3 text-[14px] px-5 ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""}`}
+                >
+                  <td className="py-2">
+                    <input
+                      type="checkbox"
+                      className="!bg-center rounded-sm"
+                      checked={worker.isSelected || false}
+                      onChange={() => {
+                        // Cambiar el estado de selección del trabajador
+                        worker.isSelected = !worker.isSelected;
+                        setWorkers([...workers]); // Actualiza el estado de los trabajadores
+                        setSelectedWorkers(worker); // Actualiza el trabajador seleccionado
+                      }}
+                    />
+                  </td>
+                  <td className="dark:text-white">
+                    {worker.name + " " + worker.lastname}
+                    {
+                      Array.isArray(initialData) && initialData.length > 0 && worker.isSelected && (
+                        initialData.map((squad) => {
+                          // Convertir la cadena de 'workers' a un array de números
+                          const workersArray = JSON.parse(squad.workers);
 
-                    {Array.isArray(filteredWorkers) && filteredWorkers.length > 0 ? (
-                      filteredWorkers.map((worker, index) => {
+                          // Verificar si el trabajador ya pertenece a la cuadrilla actual (selectSquad.id)
+                          if (workersArray.includes(worker.id) && squad.id !== selectSquad.id) {
+                            // Mostrar el mensaje solo si el trabajador está en una cuadrilla diferente
+                            return <small className="block text-red-600" key={squad.id}><ExclamationTriangleIcon width="16" height="16" className="inline-block mr-1" /> Este trabajador ya pertenece a la cuadrilla <strong>{squad.name}</strong></small>;
+                          }
 
+                          // Si el trabajador pertenece a la cuadrilla que estamos viendo, no mostramos nada
+                          return null;
+                        })
+                      )
+                    }
+                  </td>
+                  <td className="dark:text-white">{worker.rut}</td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan="4" className="text-center">
+                No hay trabajadores asignados a esta cuadrilla.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </>
+</Dialog>
 
-                        return (
-                          <tr
-                            key={worker.id}
-                            className={`pt-[14px] p-3 text-[14px] px-5 ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""}`}
-                          >
-                            <td className="py-2">
-                              <input
-                                type="checkbox"
-                                className="!bg-center rounded-sm"
-                                checked={worker.isSelected || false}
-                                onChange={() => {
-                                  worker.isSelected = !worker.isSelected;
-                                  setWorkers([...workers]); // Actualiza el estado de los trabajadores
-                                }}
-                              />
-                            </td>
-                            <td className="dark:text-white">
-                              {worker.name + " " + worker.lastname}
-                            </td>
-                            <td className="dark:text-white">{worker.rut}</td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="4" className="text-center">
-                          No hay trabajadores asignados a esta cuadrilla.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-
-                </table>
-              </div>
-            </>
-          </Dialog>
         </>
       )}
     </>
