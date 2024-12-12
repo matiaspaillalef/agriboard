@@ -27,7 +27,8 @@ import {
   getDataQuality,
   getDataSeasons,
   getDataHarvestFormat,
-  filterResultsMonthly
+  filterResultsMonthly,
+
 } from "@/app/api/ProductionApi";
 
 
@@ -148,7 +149,6 @@ const CardTableProductionReports = ({
           );
         }
 
-        console.log("fetchedDataUsers", fetchedDataWorkers);
         setOptions({
           ground: fetchedDataGround.grounds,
           sector: fetchedDataSector,
@@ -473,10 +473,6 @@ const CardTableProductionReports = ({
             // Determinar cabeceras basadas en datos reales
             const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
 
-            // Depuración: Verificar las cabeceras y datos
-            console.log("Headers:", headers);
-            console.log("Raw Data:", rawData);
-
             // Crear los datos finales con cabeceras dinámicas
             const formatData = rawData.map(item => {
               const filteredItem = filterUndefinedValues(item);
@@ -489,8 +485,6 @@ const CardTableProductionReports = ({
               return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
             });
 
-            // Depuración: Verificar los datos finales antes de asignarlos
-            console.log("Formatted Data:", formData);
 
             // Guardamos los datos procesados
             setFormatInitialData(formData);
@@ -801,12 +795,16 @@ const CardTableProductionReports = ({
   };
 
   const handleFilterResults = async () => {
+
+    console.log('Filtros:', filters);
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
-      if (key === 'totals' || key === 'from' || key === 'to' || checkedIds.includes(key) || key === 'worker_rut') {
+      if (key === 'totals' || key === 'from' || key === 'to' || checkedIds.includes(key) || key === 'worker_rut' || key === 'year' || key === 'month') {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
+
+    console.log('Filtros con IDs:', filtrosConIds);
 
     try {
       const results = await filterResultsMonthly(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
@@ -930,6 +928,39 @@ const CardTableProductionReports = ({
     harvest_date: "Fecha Cosecha",
   };
 
+
+  const [mesSeleccionado, setMesSeleccionado] = useState('');
+
+
+  const handleChange = (e) => {
+    setMesSeleccionado(e.target.value);
+    setFilters((prev) => ({
+      ...prev,
+      month: e.target.value,
+    }));
+  };
+
+  const handleChangeYear = (e) => {
+    setYearSelected(e.target.value);
+
+    setFilters((prev) => ({
+      ...prev,
+      year: e.target.value,
+    }));
+  };
+
+  const currentYear = new Date().getFullYear(); // Año actual UTC
+  const years = [];
+
+  // Generamos los años desde el actual hasta 10 años atrás
+  for (let i = 0; i < 10; i++) {
+    years.push(currentYear - i);
+  }
+
+  const [yearSelected, setYearSelected] = useState('');
+
+
+
   return (
     <>
       <div className="mb-3 filters">
@@ -957,6 +988,92 @@ const CardTableProductionReports = ({
                 {renderField(key, fields[key].type)}
               </div>
             ))}
+
+            <div className={`mes block items-center gap-2`}>
+              <div className={`mes-check flex gap-2`}>
+
+                <label
+                  htmlFor="mes"
+                  className="text-sm font-semibold text-gray-800 dark:text-white mb-2"
+                >
+                  Seleccionar mes
+                </label>
+              </div>
+
+              <select
+                name="mes"
+                id="mes"
+                className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white 
+                    }`}
+                value={mesSeleccionado}
+                onChange={handleChange}
+              >
+                <option key="0" value="" disabled>
+                  Seleccione una opción
+                </option>
+                <option key="1" value="1">
+                  Enero
+                </option>
+                <option key="2" value="2">
+                  Febrero
+                </option>
+                <option key="3" value="3">
+                  Marzo
+                </option>
+                <option key="4" value="4">
+                  Abril
+                </option>
+                <option key="5" value="5">
+                  Mayo
+                </option>
+                <option key="6" value="6">
+                  Junio
+                </option>
+                <option key="7" value="7">
+                  Julio
+                </option>
+                <option key="8" value="8">
+                  Agosto
+                </option>
+                <option key="9" value="9">
+                  Septiembre
+                </option>
+                <option key="10" value="10">
+                  Octubre
+                </option>
+                <option key="11" value="11">
+                  Noviembre
+                </option>
+                <option key="12" value="12">
+                  Diciembre
+                </option>
+              </select>
+
+            </div>
+
+            <div className="block items-center gap-2">
+      <div className="flex gap-2">
+        <label htmlFor="año" className="text-sm font-semibold text-gray-800 dark:text-white mb-2">
+          Seleccionar año
+        </label>
+      </div>
+
+      <select
+        name="año"
+        id="año"
+        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+        value={yearSelected} // Usamos el valor seleccionado
+        onChange={handleChangeYear} // Manejamos el cambio de selección
+      >
+
+        <option value="" disabled>Seleccione un año</option>
+        {years.map((año) => (
+          <option key={año} value={año}>
+            {año}
+          </option>
+        ))}
+      </select>
+    </div>
           </div>
         </div>
 

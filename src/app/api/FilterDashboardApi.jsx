@@ -405,6 +405,40 @@ export const getDataCalcKgAvg = async (company_id, ground) => {
 }
 
 
+export const getDataCalcKgAvgDay = async (company_id, ground) => {
+  try {
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/avgKgBoxesDay/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.data;
+      } else if (data.code === "ERROR") {
+        console.error(data.message);
+        return {};
+      }
+    } else {
+      console.error("Network response was not ok:", res.statusText);
+      return {};
+    }
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
+
+
 
 export const getDataAllDaysOfHarvest = async (company_id, ground) => {
   try{
