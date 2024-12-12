@@ -171,10 +171,9 @@ const Navbar = (props) => {
         <TitlePage />
       </div>
 
-      <div className="flex w-full items-center justify-center gap-2 flex-col md:flex-row md:w-auto">
+      <div className="flex w-full items-center justify-center gap-2 flex-col md:flex-row">
         {path === "/dashboard" && (
-          <div className="flex gap-2">
-
+          <div className="flex flex-col gap-2 md:flex-row sm:w-full">
 
             <div className="relative mt-[3px] flex h-[61px] w-full md:w-[265px] flex-grow items-center gap-2 rounded-full bg-blueSecondary px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[265px] xl:gap-2 pl-5 justify-start">
               <button
