@@ -1077,7 +1077,7 @@ const CardTableProductionReports = ({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 px-5 py-2 rounded-md">
+        <div className="flex-col gap-2 px-5 py-2 rounded-md hidden">
           <label
             htmlFor="selectAll"
             className="text-sm font-semibold text-gray-800 dark:text-whitee"

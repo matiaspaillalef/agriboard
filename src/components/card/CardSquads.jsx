@@ -946,57 +946,65 @@ const CardTableSquads = ({
           </tr>
         </thead>
         <tbody>
-          {Array.isArray(filteredWorkers) && filteredWorkers.length > 0 ? (
-            filteredWorkers.map((worker, index) => {
-              return (
-                <tr
-                  key={worker.id}
-                  className={`pt-[14px] p-3 text-[14px] px-5 ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""}`}
-                >
-                  <td className="py-2">
-                    <input
-                      type="checkbox"
-                      className="!bg-center rounded-sm"
-                      checked={worker.isSelected || false}
-                      onChange={() => {
-                        // Cambiar el estado de selección del trabajador
-                        worker.isSelected = !worker.isSelected;
-                        setWorkers([...workers]); // Actualiza el estado de los trabajadores
-                        setSelectedWorkers(worker); // Actualiza el trabajador seleccionado
-                      }}
-                    />
-                  </td>
-                  <td className="dark:text-white">
-                    {worker.name + " " + worker.lastname}
-                    {
-                      Array.isArray(initialData) && initialData.length > 0 && worker.isSelected && (
-                        initialData.map((squad) => {
-                          // Convertir la cadena de 'workers' a un array de números
-                          const workersArray = JSON.parse(squad.workers);
+        {
+  Array.isArray(filteredWorkers) && filteredWorkers.length > 0 ? (
+    filteredWorkers.map((worker, index) => {
+      // Lógica para verificar si el trabajador pertenece a otra cuadrilla
+      let workerInOtherSquad = false;
+      let otherSquadName = '';
 
-                          // Verificar si el trabajador ya pertenece a la cuadrilla actual (selectSquad.id)
-                          if (workersArray.includes(worker.id) && squad.id !== selectSquad.id) {
-                            // Mostrar el mensaje solo si el trabajador está en una cuadrilla diferente
-                            return <small className="block text-red-600" key={squad.id}><ExclamationTriangleIcon width="16" height="16" className="inline-block mr-1" /> Este trabajador ya pertenece a la cuadrilla <strong>{squad.name}</strong></small>;
-                          }
+      if (Array.isArray(initialData) && initialData.length > 0) {
+        initialData.forEach((squad) => {
+          const workersArray = JSON.parse(squad.workers);
+          if (workersArray.includes(worker.id) && squad.id !== selectSquad.id) {
+            workerInOtherSquad = true;
+            otherSquadName = squad.name;
+          }
+        });
+      }
 
-                          // Si el trabajador pertenece a la cuadrilla que estamos viendo, no mostramos nada
-                          return null;
-                        })
-                      )
-                    }
-                  </td>
-                  <td className="dark:text-white">{worker.rut}</td>
-                </tr>
-              );
-            })
-          ) : (
-            <tr>
-              <td colSpan="4" className="text-center">
-                No hay trabajadores asignados a esta cuadrilla.
-              </td>
-            </tr>
-          )}
+      return (
+        <tr
+          key={worker.id}
+          className={`pt-[14px] p-3 text-[14px] px-5 ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""} ${workerInOtherSquad ? "bg-warning bg-gray-300 opacity-80 cursor-not-allowed pointer-events-none" : ""}`}
+        >
+          <td className="py-2">
+            <input
+              type="checkbox"
+              className={`!bg-center rounded-sm ${workerInOtherSquad ? "cursor-not-allowed pointer-events-none" : ""}`}
+              checked={worker.isSelected || false}
+              onChange={() => {
+                // Cambiar el estado de selección del trabajador
+                worker.isSelected = !worker.isSelected;
+                setWorkers([...workers]); // Actualiza el estado de los trabajadores
+                setSelectedWorkers(worker); // Actualiza el trabajador seleccionado
+              }}
+            />
+          </td>
+          <td className="dark:text-white">
+            {worker.name + " " + worker.lastname}
+            {
+              workerInOtherSquad && (
+                <small className="block text-red-600">
+                  <ExclamationTriangleIcon width="16" height="16" className="inline-block mr-1" />
+                  Este trabajador ya pertenece a la cuadrilla <strong>{otherSquadName}</strong>
+                </small>
+              )
+            }
+          </td>
+          <td className="dark:text-white">{worker.rut}</td>
+        </tr>
+      );
+    })
+  ) : (
+    <tr>
+      <td colSpan="4" className="text-center">
+        No hay trabajadores asignados a esta cuadrilla.
+      </td>
+    </tr>
+  )
+}
+
         </tbody>
       </table>
     </div>
