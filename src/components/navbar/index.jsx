@@ -148,6 +148,8 @@ const Navbar = (props) => {
     }
   }, []);
 
+  const initialDate = new Date().toLocaleString();
+  //console.log("initialDate", initialDate);
 
   const handleRecargar = () => {
 
@@ -171,7 +173,7 @@ const Navbar = (props) => {
         <TitlePage />
       </div>
 
-      <div className="flex w-full items-center justify-center gap-2 flex-col md:flex-row">
+      <div className="flex w-full items-center gap-2 flex-col md:flex-row justify-end">
         {path === "/dashboard" && (
           <div className="flex flex-col gap-2 md:flex-row sm:w-full justify-end">
 
@@ -185,7 +187,7 @@ const Navbar = (props) => {
               <p className="text-white text-[12px]">
                 Última actualización:{" "}
                 <span className="font-bold block">
-                  {ultimaActualizacion || "No disponible"}
+                  {ultimaActualizacion || initialDate}
                 </span>
               </p>
             </div>
