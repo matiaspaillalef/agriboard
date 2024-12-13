@@ -3,12 +3,9 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Image from "next/image";
-//import { baseUrl } from "./config";
 
 const SimpleSlider = (props) => {
-    const { slides, slidesToShow, dots, infinite, speed, fade, autoplay, arrow } = props;
-
-    //console.log(slides);
+    const { slides, slidesToShow, dots, infinite, speed, fade, autoplay, arrow, typeSlide } = props;
 
     var settings = {
         dots: dots !== undefined ? dots : false,
@@ -26,16 +23,21 @@ const SimpleSlider = (props) => {
         <Slider {...settings}>
             {slides.map((slide, index) => (
                 <div className="inner-slide" key={index}>
-                    <Image
-                        //src={slide.image_url}
-                        src={slide}
-                        alt={`Slide ${index}`}
-                        className="object-cover h-full w-full"
-                    />
+                    {typeSlide === 'images' ? (
+                        <Image
+                            src={slide}
+                            alt={`Slide ${index}`}
+                            className="object-cover h-full w-full"
+                            width={500} // Asegúrate de definir el ancho y alto apropiados
+                            height={300} // Ajusta la altura según sea necesario
+                        />
+                    ) : (
+                        slide // Si no es una imagen, lo renderizamos como JSX (por ejemplo, un gráfico o texto)
+                    )}
                 </div>
             ))}
         </Slider>
     );
-}
+};
 
 export default SimpleSlider;

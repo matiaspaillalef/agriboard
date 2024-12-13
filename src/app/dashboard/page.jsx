@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import {
   CalendarDaysIcon,
   ChartBarIcon,
@@ -13,9 +13,14 @@ import {
   getDataWorkers,
   getdataWorkersWeek,
   getDataVaritiesDay,
+  getDataVaritiesSeason,
   getDataDispatchDay,
   getDataVarietiesSeasonPercentage,
   getDataHumidityTemperatureSeason,
+  getDataCalcKgAvg,
+  getDataCalcKgAvgDay,
+  getDataDaysOfHarvest,
+  getDataAllDaysOfHarvest,
 } from "@/app/api/FilterDashboardApi";
 import { getDataGround } from "../api/ProductionApi";
 import MiniCard from "@/components/card/MiniCard";
@@ -33,6 +38,7 @@ import {
   lineChartOptionsTotalSpent,
 } from "../data/dataGraphics";
 import { dataMiniCardDashboard } from "../data/dataMiniCard";
+import { data } from "autoprefixer";
 
 const fechaActual = new Date();
 
@@ -44,22 +50,67 @@ const Dashboard = () => {
   const [dataWorkers, setDataWorkers] = useState([]);
   const [dataWorkersWeek, setDataWorkersWeek] = useState([]);
   const [dataVaritiesDay, setDataVaritiesDay] = useState([]);
+  const [dataVaritiesSeason, setDataVaritiesSeason] = useState([]);
   const [dataVarietiesSeasonPercentage, setDataVarietiesSeasonPercentage] =
     useState([]);
   const [dataHumidityTemperatureSeason, setDataHumidityTemperatureSeason] =
     useState([]);
+  const [dataKgAvg, setDataKgAvg] = useState([]);
+  const [dataKgAvgDay, setDataKgAvgDay] = useState([]);
+  const [dataDaysOfHarvest, setDataDaysOfHarvest] = useState([]);
+  const [dataAllDaysOfHarvest, setDataAllDaysOfHarvest] = useState([]);
   const [dataDispatchGuideDay, setDataDispatchGuideDay] = useState([]);
   const [selectedGround, setSelectedGround] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [idRole, setIdRole] = useState("");
   const [error, setError] = useState("");
+  const [dataGrounds, setDataGrounds] = useState([]);
+
+  const [selectedOption, setSelectedOption] = useState('1'); // Inicialmente seleccionado 'Día'
+
+  const handleSelectChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
 
   const getSelectedGroundFromSessionStorage = useCallback(() => {
     return sessionStorage.getItem("selectedGround");
   }, []);
 
+
+  //Se hace la llamada a la API para obtener los datos de la empresa al cargar la pagina por promera vez y controlar algunos problemas
+  useEffect(() => {
+
+    const userCompantData = JSON.parse(sessionStorage.getItem("selectedCompanyId"));
+    //console.log('userData', userCompantData);
+    
+    const fetchData = async () => {
+      try {
+        const dataGround = await getDataGround(Number(companyId ? companyId : userCompantData)); // Aquí haces la llamada a la API
+        //console.log(dataGround);
+        setDataGrounds(dataGround); // Aquí actualizas el estado con los datos que recibiste
+
+        if (dataGround.code == 'OK') {
+          if(dataGround.grounds.length > 0){
+            dataGround.grounds.map((item) => {
+              const firstGroundId = dataGround.grounds[0].id;
+              //console.log('firstGroundId', firstGroundId);
+              setSelectedGround(firstGroundId);
+           
+            });
+          }
+        }
+        
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+  
+    fetchData(); // Llamas a la función asincrónica
+  }, []); // Este useEffect se ejecutará solo una vez al montar el componente
+
   const getCompanyIdFromSessionStorage = useCallback(() => {
+
     const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
     const userData = JSON.parse(sessionStorage.getItem("userData"));
     if (storedCompanyId) {
@@ -106,6 +157,7 @@ const Dashboard = () => {
       setIsLoading(false);
     }
   }, []);
+  
 
   const fetchDataDay = useCallback(async (companyId, groundId) => {
     if (!companyId) {
@@ -123,19 +175,28 @@ const Dashboard = () => {
         const dataWorkers = await getDataWorkers(companyId, groundId);
         const dataWorkersWeek = await getdataWorkersWeek(companyId, groundId);
         const dataVaritiesDay = await getDataVaritiesDay(companyId, groundId);
+        const dataVaritiesSeason = await getDataVaritiesSeason(companyId, groundId);
         const dataDispatchGuideDay = await getDataDispatchDay(companyId, groundId);
         const dataVarietiesSeasonPercentage = await getDataVarietiesSeasonPercentage(companyId, groundId);
         const dataHumidityTemperatureSeason = await getDataHumidityTemperatureSeason(companyId, groundId);
+        const dataKgAvg = await getDataCalcKgAvg(companyId, groundId);
+        const dataKgAvgDay = await getDataCalcKgAvgDay(companyId, groundId);
+        const dataDaysOfHarvest = await getDataDaysOfHarvest(companyId, groundId);
+        const dataAllDaysOfHarvest = await getDataAllDaysOfHarvest(companyId, groundId);
 
         setDataKgDay(dataDay);
         setDataKgSeason(dataSeason);
         setDataWorkers(dataWorkers);
         setDataWorkersWeek(dataWorkersWeek);
         setDataVaritiesDay(dataVaritiesDay);
+        setDataVaritiesSeason(dataVaritiesSeason);
         setDataDispatchGuideDay(dataDispatchGuideDay);
         setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
         setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
-        console.log(dataVaritiesDay);
+        setDataKgAvg(dataKgAvg);
+        setDataKgAvgDay(dataKgAvgDay);
+        setDataDaysOfHarvest(dataDaysOfHarvest);
+        setDataAllDaysOfHarvest(dataAllDaysOfHarvest);
       } else {
         const grounds = await getDataGround(companyId);
 
@@ -150,18 +211,28 @@ const Dashboard = () => {
             const dataWorkers = await getDataWorkers(companyId, firstGroundId);
             const dataWorkersWeek = await getdataWorkersWeek(companyId, firstGroundId);
             const dataVaritiesDay = await getDataVaritiesDay(companyId, firstGroundId);
+            const dataVaritiesSeason = await getDataVaritiesSeason(companyId, firstGroundId);
             const dataDispatchGuideDay = await getDataDispatchDay(companyId, firstGroundId);
             const dataVarietiesSeasonPercentage = await getDataVarietiesSeasonPercentage(companyId, firstGroundId);
             const dataHumidityTemperatureSeason = await getDataHumidityTemperatureSeason(companyId, firstGroundId);
+            const dataKgAvg = await getDataCalcKgAvg(companyId, firstGroundId);
+            const dataKgAvgDay = await getDataCalcKgAvgDay(companyId, firstGroundId);
+            const dataDaysOfHarvest = await getDataDaysOfHarvest(companyId, firstGroundId);
+            const dataAllDaysOfHarvest = await getDataAllDaysOfHarvest(companyId, firstGroundId);
 
             setDataKgDay(dataDay);
             setDataKgSeason(dataSeason);
             setDataWorkers(dataWorkers);
             setDataWorkersWeek(dataWorkersWeek);
             setDataVaritiesDay(dataVaritiesDay);
+            setDataVaritiesSeason(dataVaritiesSeason);
             setDataDispatchGuideDay(dataDispatchGuideDay);
             setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
             setDataHumidityTemperatureSeason(dataHumidityTemperatureSeason);
+            setDataKgAvg(dataKgAvg);
+            setDataKgAvgDay(dataKgAvgDay);
+            setDataDaysOfHarvest(dataDaysOfHarvest);
+            setDataAllDaysOfHarvest(dataAllDaysOfHarvest);
           } else {
             setError("No grounds found for the company.");
           }
@@ -178,8 +249,6 @@ const Dashboard = () => {
       }, 3000);
     }
   }, [fetchKgDataQlty]);
-
-
 
   const checkForCompanyAndGroundChange = async () => {
     const body = document.body;
@@ -312,36 +381,36 @@ useEffect(() => {
         />
 
         <MiniCard
-          name="Total kilos día"
+          name="Total kilos"
           icon={ChartBarIcon}
           data={[
             {
               id: 1,
-              name: "Fresco",
+              name: "Día",
               value: dataKgDay?.kg_boxes || 0,
             },
             {
               id: 2,
-              name: "IQF",
-              value: dataKgDayQlty?.kg_boxes || 0,
+              name: "Temporada",
+              value: dataKgSeason?.kg_boxes || 0,
             },
           ]}
           isLoading={isLoading}
         />
 
         <MiniCard
-          name="Kilos temporada"
+          name="Información Temporada"
           icon={ChartBarIcon}
           data={[
             {
               id: 1,
-              name: "Fresco",
-              value: dataKgSeason?.kg_boxes || 0,
+              name: "Días cos.",
+              value:  dataAllDaysOfHarvest[0]?.dias_cosecha || 0,
             },
             {
               id: 2,
-              name: "IQF",
-              value: dataKgSeasonQlty?.kg_boxes || 0,
+              name: "Kg. Prom.",
+              value: dataKgAvg?.avgKgBoxes || 0,
             },
           ]}
           isLoading={isLoading}
@@ -358,8 +427,13 @@ useEffect(() => {
             },
             {
               id: 2,
-              name: "Cant. Rgistros",
+              name: "Registros",
               value: dataWorkersWeek?.workersWeek || 0,
+            },
+            {
+              id: 3,
+              name: "Kg. Prom. Día",
+              value: dataKgAvgDay?.avgKgBoxes || 0,
             },
           ]}
           isLoading={isLoading}
@@ -367,25 +441,52 @@ useEffect(() => {
       </div>
       <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-          <CardTable
-            data={dataVaritiesDay}
-            thead="Variedad,Especie, Cantidad, Cajas"
-            columnsClasses={[
-              "text-left",
-              "text-left",
-              "text-right",
-              "text-right",
-            ]}
-            title="Kilos variedad día"
-          />
+          
+          <div className="ml-auto mr-0 flex items-center gap-4">
+            <p>Visualizar Kg por:</p>
+        <select className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
+              value={selectedOption}
+              onChange={handleSelectChange}>
+        <option value="1">Día</option>
+        <option value="2">Temporada</option>
+      </select>
+      </div>
+
+      {selectedOption === '1' ? (
+        <CardTable
+          data={dataVaritiesDay}
+          thead="Variedad, Especie, Sector, Cantidad, Cajas"
+          columnsClasses={[
+            "text-left",
+            "text-left",
+            "text-left",
+            "text-right",
+            "text-right",
+          ]}
+          title="Kilos variedad día"
+        />
+      ) : (
+        <CardTable
+          data={dataVaritiesSeason}
+          thead="Variedad, Especie, Sector, Cantidad, Cajas"
+          columnsClasses={[
+            "text-left",
+            "text-left",
+            "text-left",
+            "text-right",
+            "text-right",
+          ]}
+          title="Kilos variedad temporada"
+        />
+      )}
         </div>
 
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
           <CardTable
-            data={dataDispatchGuideDay}
-            thead="Guía, Exportadora, Cajas, Kilos, Abbreviación"
+            data={dataDaysOfHarvest}
+            thead="Especie, Variedad, Días de cosecha"
             omitirColumns={["id"]}
-            title="Despachos del día"
+            title="Días de cosecha"
           />
         </div>
       </div>

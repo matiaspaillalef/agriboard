@@ -1,12 +1,14 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import SimpleSlider from "@/components/slide"; // Asegúrate de que el path sea correcto
 
 const DynamicChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const PieChart = ({ data, title }) => {
   const [loading, setLoading] = useState(true);
+  const [chartsData, setChartsData] = useState([]);
   const [series, setSeries] = useState([]);
   const [options, setOptions] = useState({
     labels: [],
@@ -30,6 +32,11 @@ const PieChart = ({ data, title }) => {
     },
     dataLabels: {
       enabled: false,
+      formatter: (val) => `${Math.round(val)}%`,
+      style: {
+        colors: ['#fff'], // Color opcional para las etiquetas
+        fontSize: '14px',
+      },
     },
     hover: { mode: null },
     plotOptions: {
@@ -56,79 +63,139 @@ const PieChart = ({ data, title }) => {
         fontSize: "12px",
         backgroundColor: "#000000"
       },
+      y: {
+        formatter: (val) => `${Math.round(val)}%`, // Formateamos el valor en el tooltip
+      },
     },
   });
 
   useEffect(() => {
     if (data && data.length > 0) {
-      // Transform the data
       const newSeries = data.map(item => item.percentage);
       const newLabels = data.map(item => item.variety);
-
-      // Update state with new data
+  
+      // Agrupar los datos por especie
+      const groupedData = data.reduce((acc, item) => {
+        if (!acc[item.especie]) {
+          acc[item.especie] = [];
+        }
+        acc[item.especie].push(item);
+        return acc;
+      }, {});
+  
+      // Transformar los datos agrupados para los gráficos
+      const charts = Object.keys(groupedData).map((especie) => {
+        const especiesData = groupedData[especie];
+        const seriesRaw = especiesData.map(item => item.cantidad);
+        const labels = especiesData.map(item => item.variety);
+  
+        // Calcular los porcentajes
+        const total = seriesRaw.reduce((acc, val) => acc + val, 0);
+        const series = seriesRaw.map(value => {
+          const percentage = total > 0 ? (value / total) * 100 : 0;
+          return Math.round(percentage); // Redondear los porcentajes
+        });
+  
+        return {
+          title: `${title} | ${especie}`,
+          series,
+          labels,
+        };
+      });
+  
+      // Actualizar estado con los datos agrupados
+      setChartsData(charts);
+      setLoading(false);
+  
+      // Actualizar estado general del gráfico
       setSeries(newSeries);
       setOptions(prevOptions => ({
         ...prevOptions,
         labels: newLabels,
       }));
-
-      setLoading(false);
     } else {
-      // Reset series and options if no data is found
+      // Si no hay datos, limpiar los estados
+      setChartsData([]);
+      setLoading(false);
+  
       setSeries([]);
       setOptions(prevOptions => ({
         ...prevOptions,
         labels: [],
       }));
-      
-      setLoading(false);
     }
-  }, [data]);
+  }, [data]); // Dependencia: se ejecuta cuando `data` cambia
+  
+
+  // Crear un arreglo de slides con los gráficos
+  const slides = chartsData.map((chart, index) => (
+    <div key={index} className="mb-6">
+      <h4 className="text-xl font-bold text-navy-700 dark:text-white text-left mb-5">
+        {chart.title}
+      </h4>
+      <div className="mb-auto flex h-[220px] w-full items-center justify-center">
+        <DynamicChart
+          options={options}
+          type="pie"
+          width="100%"
+          height="100%"
+          series={chart.series}
+        />
+      </div>
+      <div className="flex flex-row !justify-between flex-wrap gap-2 rounded-2xl px-6 py-3 dark:!bg-navy-700 dark:shadow-none w-fit m-auto">
+        {(() => {
+          // Sumar los valores del array
+          const total = chart.series.reduce((acc, val) => acc + val, 0);
+
+          // Mapear los valores para calcular el porcentaje
+          return chart.series.map((item, index) => {
+            const percentage = total > 0 ? (item / total) * 100 : 0;
+
+            return (
+              <React.Fragment key={index}>
+                <div className="flex flex-col items-center justify-center">
+                  <div className={`h-2 w-2 rounded-full bg-[${options.colors[index]}]`} />
+                  <p className="ml-1 text-sm font-normal text-gray-600">{options.labels[index]}</p>
+                  <p className="mt-px text-xl font-bold text-navy-700 dark:text-white">
+                    {Math.round(percentage)}%
+                  </p>
+                </div>
+                {index !== chart.series.length - 1 && (
+                  <div className="h-11 w-px bg-gray-300 dark:bg-white/10" />
+                )}
+              </React.Fragment>
+            );
+          });
+        })()}
+      </div>
+    </div>
+  ));
 
   return (
     <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none p-6">
-      
-      {title && <h4 className="text-xl font-bold text-navy-700 dark:text-white text-left mb-5">{title}</h4>}
-      
       {loading ? (
         <div role="status" className="max-w-full animate-pulse p-0">
-          <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none p-6">
-            <div className={`h-[22px] dark:bg-gray-200 bg-gray-400 w-1/2 rounded-sm pb-[10px] mb-5`}></div>
-            <div className="mb-auto flex h-[220px] w-full items-center justify-center">
-              <div className={`h-[180px] dark:bg-gray-200 bg-gray-400 w-[180px] rounded-full pb-[10px] mb-5`}></div>
-            </div>
+          <div className={`h-[22px] dark:bg-gray-200 bg-gray-400 w-1/2 rounded-sm pb-[10px] mb-5`}></div>
+          <div className="mb-auto flex h-[220px] w-full items-center justify-center">
+            <div className={`h-[180px] dark:bg-gray-200 bg-gray-400 w-[180px] rounded-full pb-[10px] mb-5`}></div>
           </div>
         </div>
       ) : (
         <>
-          {series.length === 0 ? (
+          {chartsData.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[220px] w-full text-center text-gray-600 dark:text-white">
               <p className="text-xl font-semibold">No hay datos disponibles</p>
             </div>
           ) : (
-            <>
-              <div className="mb-auto flex h-[220px] w-full items-center justify-center">
-                <DynamicChart
-                  options={options}
-                  type="pie"
-                  width="100%"
-                  height="100%"
-                  series={series}
-                />
-              </div>
-              <div className="flex flex-row !justify-between flex-wrap gap-2 rounded-2xl px-6 py-3 dark:!bg-navy-700 dark:shadow-none">
-                {series.map((item, index) => (
-                  <React.Fragment key={index}>
-                    <div className="flex flex-col items-center justify-center">
-                      <div className={`h-2 w-2 rounded-full bg-[${options.colors[index]}]`} />
-                      <p className="ml-1 text-sm font-normal text-gray-600">{options.labels[index]}</p>
-                      <p className="mt-px text-xl font-bold text-navy-700 dark:text-white">{Math.round(item)}%</p>
-                    </div>
-                    {index !== series.length - 1 && <div className="h-11 w-px bg-gray-300 dark:bg-white/10" />}
-                  </React.Fragment>
-                ))}
-              </div>
-            </>
+            <SimpleSlider
+              slides={slides}  // Pasamos los gráficos de pastel como slides
+              slidesToShow={1}
+              dots={true}
+              infinite={true}
+              autoplay={true}
+              speed={500}
+              fade={true}
+            />
           )}
         </>
       )}

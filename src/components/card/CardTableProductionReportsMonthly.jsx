@@ -27,7 +27,8 @@ import {
   getDataQuality,
   getDataSeasons,
   getDataHarvestFormat,
-  filterResultsMonthly
+  filterResultsMonthly,
+
 } from "@/app/api/ProductionApi";
 
 
@@ -148,7 +149,6 @@ const CardTableProductionReports = ({
           );
         }
 
-        console.log("fetchedDataUsers", fetchedDataWorkers);
         setOptions({
           ground: fetchedDataGround.grounds,
           sector: fetchedDataSector,
@@ -314,7 +314,7 @@ const CardTableProductionReports = ({
     if (!companyID) {
       return;
     }
-  
+
     const fetchData = async () => {
       try {
         // Llamamos a las APIs para obtener los datos necesarios
@@ -345,7 +345,7 @@ const CardTableProductionReports = ({
           getDataContractors(companyID),
           getDataUser(companyID),
         ]);
-  
+
         // Guardamos los datos que se obtienen de las APIs
         setDataSector(fetchedDataSector);
         setDataWorkers(fetchedDataWorkers);
@@ -353,92 +353,154 @@ const CardTableProductionReports = ({
         setDataSpecies(fetchedDataSpecies);
         setDataQuality(fetchedDataQuality);
         setDataHarvestFormat(fetchedDataHarvestFormat);
-  
+
         if (fetchedDataGround.code === "OK") {
           const groundData = fetchedDataGround.grounds;
           setDataGround(groundData);
         }
-  
+
         if (fetchedDataSquads.code === "OK") {
           const squadsData = fetchedDataSquads.squads;
           setDataSquads(squadsData);
         }
-  
+
         if (fetchedDataTurns.code === "OK") {
           const turnsData = fetchedDataTurns.shifts;
           setDataTurns(turnsData);
         }
-  
+
         // Procesamos los datos de cosecha
         const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
         const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
-        const harvestData = initialData || [];
-  
-        // Formateamos los datos de cosecha
-        const formattedData = harvestData.reduce((acc, item) => {
-          const workerName = workerMap.get(item.worker);
-  
-          // Parsear la fecha correctamente desde 'YYYY-MM-DD HH:MM:SS'
-          let harvestDate;
-          if (item.harvest_date) {
-            // Tomar solo la parte de la fecha antes del espacio
-            const dateString = item.harvest_date.split(' ')[0]; // "2024-12-02"
-            harvestDate = new Date(dateString); // Convertir en objeto Date
-          }
-  
-          // Si la fecha no es válida, omitir el registro
-          if (!harvestDate || isNaN(harvestDate.getTime())) {
-            console.error('Fecha de cosecha inválida para:', item);
-            return acc; // Si la fecha es inválida, simplemente ignoramos este item
-          }
-  
-          const harvestDay = harvestDate.getDate(); // Obtener el día (1-31) de la fecha de cosecha
+        const harvestData = Array.isArray(initialData) ? initialData : [];
+        const groundMap = new Map(fetchedDataGround.grounds.map(g => [g.id, g.name])); // Asegúrate que 'fetchedDataGround.grounds' contiene los datos correctos
+        const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name])); // Suponiendo que 'fetchedDataSector' tenga 'id' y 'name'
+        const squadMap = new Map(fetchedDataSquads.squads.map(s => [s.id, s.name])); // Suponiendo que 'fetchedDataSquads.squads' contenga los datos de las cuadrillas
+        const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
+        const userMap = new Map(fetchedDataUsers.usuarios.map(u => [u.id, `${u.name} ${u.lastname}`]));
+        const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
+        const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
+        const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(h => [h.id, h.name]));
+        const seasonMap = new Map(fetchedDataSeasons.map(season => [season.id, season.name]));
+        const shiftsMap = new Map(fetchedDataTurns.shifts.map(t => [t.id, t.name])); // Si 'fetchedDataTurns' contiene 'id' y 'name'
 
-          console.log(`Cosechero: ${workerName}, Día: ${harvestDay}`); // Depuración
-  
-          // Crear una nueva entrada para el trabajador si no existe
-          if (!acc[workerName]) {
-            acc[workerName] = {
-              Cosechero: workerName,
-              RUT: item.worker_rut,
-              Especie: specieMap.get(item.specie),
-              ...Array.from({ length: 31 }, (_, i) => `Día ${i + 1}`).reduce((daysAcc, day) => {
-                daysAcc[day] = 0; // Inicializamos todos los días con 0
-                return daysAcc;
-              }, {})
-            };
+
+        if (switchState === false) {
+          // Formateamos los datos de cosecha
+          const formattedData = harvestData.reduce((acc, item) => {
+            const workerName = workerMap.get(item.worker);
+
+            // Parsear la fecha correctamente desde 'YYYY-MM-DD HH:MM:SS'
+            let harvestDate;
+            if (item.harvest_date) {
+              // Tomar solo la parte de la fecha antes del espacio
+              const dateString = item.harvest_date.split(' ')[0]; // "2024-12-02"
+              harvestDate = new Date(dateString); // Convertir en objeto Date
+            }
+
+            // Si la fecha no es válida, omitir el registro
+            if (!harvestDate || isNaN(harvestDate.getTime())) {
+              //console.error('Fecha de cosecha inválida para:', item);
+              return acc; // Si la fecha es inválida, simplemente ignoramos este item
+            }
+
+            const harvestDay = harvestDate.getDate(); // Obtener el día (1-31) de la fecha de cosecha
+
+            //console.log(`Cosechero: ${workerName}, Día: ${harvestDay}`); // Depuración
+
+            // Crear una nueva entrada para el trabajador si no existe
+            if (!acc[workerName]) {
+              acc[workerName] = {
+                Cosechero: workerName,
+                RUT: item.worker_rut,
+                Especie: specieMap.get(item.specie),
+                ...Array.from({ length: 31 }, (_, i) => `Día ${i + 1}`).reduce((daysAcc, day) => {
+                  daysAcc[day] = 0; // Inicializamos todos los días con 0
+                  return daysAcc;
+                }, {})
+              };
+            }
+
+            // Verificar que el campo 'kg_boxes' esté disponible y asignarlo
+            const kgBoxes = item.kg_boxes || 0; // Si no hay kg_boxes, asignamos 0
+            console.log(`Cosechero: ${workerName}, Día: ${harvestDay}, Kg Cajas: ${kgBoxes}`); // Depuración
+
+            // Asignar los kilos al día correspondiente
+            const dayKey = `Día ${harvestDay}`;
+            acc[workerName][dayKey] = kgBoxes; // Asignar los kg_boxes al día correspondiente
+
+            return acc;
+          }, {});
+
+          // Convertimos los datos a un array para ser renderizado
+          const finalData = Object.values(formattedData);
+
+          // Guardamos los datos finales formateados
+          setFormatInitialData(finalData);
+        } else {
+          // Función para filtrar valores undefined o null
+          const filterUndefinedValues = (obj) => {
+            return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+          };
+
+          try {
+            // Procesar datos y construir cabeceras dinámicamente
+            const rawData = await Promise.all(
+              initialData.map(async (item) => {
+                return {
+                  Campo: groundMap.get(item.ground) || '',
+                  Sector: sectorMap.get(item.sector) || '',
+                  Cuadrilla: squadMap.get(item.squad) || '',
+                  "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
+                  Lote: item.batch || '',
+                  Cosechero: workerMap.get(item.worker) || '',
+                  "RUT Cosechero": item.worker_rut || '',
+                  "Fecha cosecha": item.harvest_date ? formatDate(item.harvest_date) : '',
+                  Contratista: contractorMap.get(item.contractor) || '',
+                  Especie: specieMap.get(item.specie) || '',
+                  Variedad: varietyMap.get(item.variety) || '',
+                  Cajas: item.boxes || '',
+                  "Kilos Caja": item.kg_boxes || '',
+                  Calidad: qualityMap.get(item.quality) || '',
+                  "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
+                  Pesador: userMap.get(item.weigher_rut) || '',
+                  Temporada: seasonMap.get(item.season) || '',
+                  Turno: shiftsMap.get(item.turns) || '',
+                };
+              })
+            );
+
+            // Determinar cabeceras basadas en datos reales
+            const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
+
+            // Crear los datos finales con cabeceras dinámicas
+            const formatData = rawData.map(item => {
+              const filteredItem = filterUndefinedValues(item);
+              return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
+            });
+
+            // Remover las columnas que no se quieren mostrar
+            const omitColumns = ["Zona", "Hilera", "Turno"];
+            const formData = formatData.map((item) => {
+              return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
+            });
+
+
+            // Guardamos los datos procesados
+            setFormatInitialData(formData);
+          } catch (error) {
+            console.error("Error en procesamiento de datos en else:", error);
           }
-  
-          // Verificar que el campo 'kg_boxes' esté disponible y asignarlo
-          const kgBoxes = item.kg_boxes || 0; // Si no hay kg_boxes, asignamos 0
-          console.log(`Cosechero: ${workerName}, Día: ${harvestDay}, Kg Cajas: ${kgBoxes}`); // Depuración
-  
-          // Asignar los kilos al día correspondiente
-          const dayKey = `Día ${harvestDay}`;
-          acc[workerName][dayKey] = kgBoxes; // Asignar los kg_boxes al día correspondiente
-  
-          return acc;
-        }, {});
-  
-        // Convertimos los datos a un array para ser renderizado
-        const finalData = Object.values(formattedData);
-  
-        // Guardamos los datos finales formateados
-        setFormatInitialData(finalData);
-  
+        }
+
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-  
+
     fetchData();
   }, [companyID, initialData]); // Dependencia de companyID y initialData
-  
-  
-  
-  
-  
-  
+
   /*useEffect(() => {
     if (!companyID) {
       //console.log("Company ID is not available yet");
@@ -629,7 +691,7 @@ const CardTableProductionReports = ({
   const [filteredData, setFilteredData] = useState([]);
   const [dataReport, setDataReport] = useState([]);
   const [checkedIds, setCheckedIds] = useState([]);
- 
+
 
   const [fields, setFields] = useState({
     ground: { checked: false, type: "select", label: "Campo" },
@@ -654,23 +716,38 @@ const CardTableProductionReports = ({
   });
 
 
-
   const handleCheck = (event) => {
     const { id, checked } = event.target;
-
-    //console.log("ID:", id, "Checked:", checked);
 
     // Crea una copia del objeto fields
     setFields((prevFields) => {
       const newFields = { ...prevFields };
 
-      // Desmarcar `worker` cuando se marca `worker_rut`, y viceversa
+
       if (id === 'worker_rut' && checked) {
         newFields.worker.checked = false;  // Desmarcar `worker`
+        /*setFilters((prev) => {
+          const { worker, ...rest } = prev; // Elimina la propiedad `worker` completamente
+          return rest;
+        });*/
+        setFilters((prev) => ({
+          ...prev,
+          worker: "",
+        }));
+
       }
 
       if (id === 'worker' && checked) {
         newFields.worker_rut.checked = false;  // Desmarcar `worker_rut`
+        /*setFilters((prev) => {
+          const { worker_rut, ...rest } = prev; // Elimina la propiedad `worker` completamente
+          return rest;
+      });*/
+
+        setFilters((prev) => ({
+          ...prev,
+          worker_rut: "",
+        }));
       }
 
       // Actualizar el estado del checkbox específico
@@ -689,11 +766,13 @@ const CardTableProductionReports = ({
         if (checked) {
           return [...prevCheckedIds, id];
         } else {
+          // Si se desmarca, elimina el id del estado checkedIds
           return prevCheckedIds.filter((checkedId) => checkedId !== id);
         }
       }
     });
   };
+
 
   const handleFilterChange = (event) => {
     const { id, value } = event.target;
@@ -715,33 +794,34 @@ const CardTableProductionReports = ({
 
   };
 
-  console.log("Switch state:", switchState);
-
-  //console.log("Filtros", filters);
-
   const handleFilterResults = async () => {
 
-    console.log("Filtros:", filters);
-
+    console.log('Filtros:', filters);
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
-      if (key === 'totals' || key === 'from' || key == 'to' || checkedIds.includes(key) || key == 'worker_rut') {
+      if (key === 'totals' || key === 'from' || key === 'to' || checkedIds.includes(key) || key === 'worker_rut' || key === 'year' || key === 'month') {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
 
-    //console.log("Filtros con IDs:", filtrosConIds);
+    console.log('Filtros con IDs:', filtrosConIds);
 
     try {
       const results = await filterResultsMonthly(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
 
-      //console.log("Resultados filtrados:", results);
-      setInitialData(results);
-      setDataReport(results);
+      if (Array.isArray(results)) {
+        setInitialData(results);
+        setDataReport(results);
+      } else {
+        setInitialData([]);
+        setDataReport([]);
+        //console.error('Los resultados devueltos no son un array:', results);
+      }
     } catch (error) {
-      console.error("Error al filtrar los resultados:", error);
+      console.error('Error al filtrar los resultados:', error);
     }
   };
+
 
   const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
 
@@ -848,6 +928,39 @@ const CardTableProductionReports = ({
     harvest_date: "Fecha Cosecha",
   };
 
+
+  const [mesSeleccionado, setMesSeleccionado] = useState('');
+
+
+  const handleChange = (e) => {
+    setMesSeleccionado(e.target.value);
+    setFilters((prev) => ({
+      ...prev,
+      month: e.target.value,
+    }));
+  };
+
+  const handleChangeYear = (e) => {
+    setYearSelected(e.target.value);
+
+    setFilters((prev) => ({
+      ...prev,
+      year: e.target.value,
+    }));
+  };
+
+  const currentYear = new Date().getFullYear(); // Año actual UTC
+  const years = [];
+
+  // Generamos los años desde el actual hasta 10 años atrás
+  for (let i = 0; i < 10; i++) {
+    years.push(currentYear - i);
+  }
+
+  const [yearSelected, setYearSelected] = useState('');
+
+
+
   return (
     <>
       <div className="mb-3 filters">
@@ -875,10 +988,96 @@ const CardTableProductionReports = ({
                 {renderField(key, fields[key].type)}
               </div>
             ))}
+
+            <div className={`mes block items-center gap-2`}>
+              <div className={`mes-check flex gap-2`}>
+
+                <label
+                  htmlFor="mes"
+                  className="text-sm font-semibold text-gray-800 dark:text-white mb-2"
+                >
+                  Seleccionar mes
+                </label>
+              </div>
+
+              <select
+                name="mes"
+                id="mes"
+                className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white 
+                    }`}
+                value={mesSeleccionado}
+                onChange={handleChange}
+              >
+                <option key="0" value="" disabled>
+                  Seleccione una opción
+                </option>
+                <option key="1" value="1">
+                  Enero
+                </option>
+                <option key="2" value="2">
+                  Febrero
+                </option>
+                <option key="3" value="3">
+                  Marzo
+                </option>
+                <option key="4" value="4">
+                  Abril
+                </option>
+                <option key="5" value="5">
+                  Mayo
+                </option>
+                <option key="6" value="6">
+                  Junio
+                </option>
+                <option key="7" value="7">
+                  Julio
+                </option>
+                <option key="8" value="8">
+                  Agosto
+                </option>
+                <option key="9" value="9">
+                  Septiembre
+                </option>
+                <option key="10" value="10">
+                  Octubre
+                </option>
+                <option key="11" value="11">
+                  Noviembre
+                </option>
+                <option key="12" value="12">
+                  Diciembre
+                </option>
+              </select>
+
+            </div>
+
+            <div className="block items-center gap-2">
+      <div className="flex gap-2">
+        <label htmlFor="año" className="text-sm font-semibold text-gray-800 dark:text-white mb-2">
+          Seleccionar año
+        </label>
+      </div>
+
+      <select
+        name="año"
+        id="año"
+        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+        value={yearSelected} // Usamos el valor seleccionado
+        onChange={handleChangeYear} // Manejamos el cambio de selección
+      >
+
+        <option value="" disabled>Seleccione un año</option>
+        {years.map((año) => (
+          <option key={año} value={año}>
+            {año}
+          </option>
+        ))}
+      </select>
+    </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 px-5 py-2 rounded-md">
+        <div className="flex-col gap-2 px-5 py-2 rounded-md hidden">
           <label
             htmlFor="selectAll"
             className="text-sm font-semibold text-gray-800 dark:text-whitee"

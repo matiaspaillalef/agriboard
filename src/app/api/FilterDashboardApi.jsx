@@ -58,7 +58,6 @@ export const getDataKgDayQlty = async (company_id, ground, quality) => {
       const data = await res.json();
 
       //console.log(data);
-
       if (data.code === "OK") {
         return data.data;
       } else if (data.code === "ERROR") {
@@ -187,6 +186,7 @@ export const getdataWorkersWeek = async (company_id, ground) => {
     if (res.ok) {
       const data = await res.json();
 
+      //console.log(data);
       if (data.code === "OK") {
         return data.data;
       } else if (data.code === "ERROR") {
@@ -205,36 +205,70 @@ export const getdataWorkersWeek = async (company_id, ground) => {
 
 export const getDataVaritiesDay = async (company_id, ground) => {
   try {
-    const res = await fetch(
-      `${URLAPI}/api/v1/filter/dashboard/dataVaritiesDay/${company_id}/${ground}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": token,
-        },
-        cache: "no-store",
-      }
-    );
+    const url = `${URLAPI}/api/v1/filter/dashboard/dataVaritiesDay/${company_id}/${ground}`;
+    //console.log("Endpoint:", url);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      cache: "no-store",
+    });
 
     if (res.ok) {
       const data = await res.json();
-
       if (data.code === "OK") {
         return data.data;
-      } else if (data.code === "ERROR") {
-        console.error(data.message); // Corregido 'mensaje' a 'message'
-        return {}; // Devuelve un objeto vacío en caso de error
+      } else {
+        console.error("Error de API:", data.message);
+        return {};
       }
     } else {
-      console.error("Network response was not ok:", res.statusText);
-      return {}; // Devuelve un objeto vacío en caso de error de red
+      const errorDetails = await res.text(); // Captura la respuesta de error
+      console.error("Error de red:", res.status, res.statusText, errorDetails);
+      return {};
     }
   } catch (err) {
     console.error("Error en fetch:", err);
-    return {}; // Devuelve un objeto vacío en caso de excepción
+    return {};
   }
 };
+
+export const getDataVaritiesSeason = async (company_id, ground) => {
+  try {
+    const url = `${URLAPI}/api/v1/filter/dashboard/dataVaritiesSeason/${company_id}/${ground}`;
+    //console.log("Endpoint:", url);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.code === "OK") {
+        return data.data;
+      } else {
+        console.error("Error de API:", data.message);
+        return {};
+      }
+    } else {
+      const errorDetails = await res.text(); // Captura la respuesta de error
+      console.error("Error de red:", res.status, res.statusText, errorDetails);
+      return {};
+    }
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+};
+
 
 export const getDataDispatchDay = async (company_id, ground) => {
   try {
@@ -286,6 +320,7 @@ export const getDataVarietiesSeasonPercentage = async (company_id, ground) => {
     if (res.ok) {
       const data = await res.json();
 
+      //console.log(data);
       if (data.code === "OK") {
         return data.data;
       } else if (data.code === "ERROR") {
@@ -327,6 +362,140 @@ export const getDataHumidityTemperatureSeason = async (company_id, ground) => {
       }
     } else {
       console.error("Network response was not ok:", res.statusText);
+      return {};
+    }
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+};
+
+
+export const getDataCalcKgAvg = async (company_id, ground) => {
+  try {
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/avgKgBoxes/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.data;
+      } else if (data.code === "ERROR") {
+        console.error(data.message);
+        return {};
+      }
+    } else {
+      console.error("Network response was not ok:", res.statusText);
+      return {};
+    }
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
+
+
+export const getDataCalcKgAvgDay = async (company_id, ground) => {
+  try {
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/avgKgBoxesDay/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.data;
+      } else if (data.code === "ERROR") {
+        console.error(data.message);
+        return {};
+      }
+    } else {
+      console.error("Network response was not ok:", res.statusText);
+      return {};
+    }
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
+
+
+
+export const getDataAllDaysOfHarvest = async (company_id, ground) => {
+  try{
+
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/allDaysOfHarvest/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.data;
+      }
+    }
+
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
+
+
+export const getDataDaysOfHarvest = async (company_id, ground) => {
+  try {
+    const url = `${URLAPI}/api/v1/filter/dashboard/daysOfHarvest/${company_id}/${ground}`;
+    //console.log("Endpoint:", url);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.code === "OK") {
+        return data.data;
+      } else {
+        console.error("Error de API:", data.message);
+        return {};
+      }
+    } else {
+      const errorDetails = await res.text(); // Captura la respuesta de error
+      console.error("Error de red:", res.status, res.statusText, errorDetails);
       return {};
     }
   } catch (err) {

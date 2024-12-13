@@ -30,9 +30,9 @@ const MiniCard = ({ name, icon: Icon, data, featured, isLoading }) => {
             </span>
           </div>
         </div>
-        <div className="h-50 ml-4 flex w-auto gap-4 justify-center">
+        <div className="h-50 ml-2 flex w-auto gap-1 justify-center">
           {isLoading ? (
-            <div className="flex gap-5">
+            <div className="flex gap-3">
               <div
                 role="status"
                 className="max-w-full animate-pulse flex flex-col gap-1"
@@ -62,11 +62,11 @@ const MiniCard = ({ name, icon: Icon, data, featured, isLoading }) => {
                 key={item.id}
                 className="h-50 ml-4 flex w-auto flex-col justify-center"
               >
-                <p className="font-dm text-sm font-medium text-gray-600">
+                <p className="font-dm text-[12px] font-medium text-gray-600">
                   {item.name}
                 </p>
                 <h4
-                  className={`text-lg font-bold ${
+                  className={`text-g font-bold ${
                     featured ? "text-white" : "text-navy-700"
                   } dark:text-white`}
                 >

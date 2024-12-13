@@ -114,6 +114,40 @@ const CardTableRegularizationProduction = ({
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
+  const [filteredData, setFilteredData] = useState([]);
+
+  useEffect(() => {
+    if (Array.isArray(initialData) && initialData.length > 0) {
+      // Ordenar los datos por fecha de `harvest_date` (descendente)
+      const sortedData = initialData.sort(
+        (a, b) => new Date(b.harvest_date) - new Date(a.harvest_date)
+      );
+
+      // Obtener las fechas únicas de cosecha, pero asegurar que sean al menos 5
+      let uniqueDates = [];
+      for (let i = 0; i < sortedData.length; i++) {
+        const harvestDate = formatDate(sortedData[i].harvest_date);
+        if (!uniqueDates.includes(harvestDate)) {
+          uniqueDates.push(harvestDate);
+        }
+        if (uniqueDates.length >= 5) {
+          break; // Detener el ciclo cuando tengamos 5 fechas únicas
+        }
+      }
+
+      console.log("uniqueDates", uniqueDates);
+
+      // Filtrar los registros que estén dentro de esas fechas únicas
+      const filtered = sortedData.filter((item) => {
+        const harvestDate = formatDate(item.harvest_date);
+        return uniqueDates.includes(harvestDate);
+      });
+
+      console.log("filtered", filtered);
+
+      setFilteredData(filtered);
+    }
+  }, [initialData]);
 
   useEffect(() => {
     const handleNameItems = async () => {
@@ -588,7 +622,7 @@ const CardTableRegularizationProduction = ({
 
   //const totalPages = Math.ceil(initialData.length / itemsPerPage);
   const totalPages = Math.ceil(
-    (initialData ? initialData.length : 0) / itemsPerPage
+    (filteredData ? filteredData.length : 0) / itemsPerPage
   );
 
   const handlePageChange = (pageNumber) => {
@@ -598,7 +632,7 @@ const CardTableRegularizationProduction = ({
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = Array.isArray(initialData) ? initialData.slice(indexOfFirstItem, indexOfLastItem) : [];
+  const currentItems = Array.isArray(filteredData) ? filteredData.slice(indexOfFirstItem, indexOfLastItem) : [];
 
   const pagination = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -632,18 +666,16 @@ const CardTableRegularizationProduction = ({
   const today = new Date().toISOString().split('T')[0]
 
   const formatDate = (isoDate) => {
-
     let dateTime = new Date(isoDate);
-
-
-    let day = String(dateTime.getUTCDate()).padStart(2, '0');
-    let month = String(dateTime.getUTCMonth() + 1).padStart(2, '0');
+  
+    let day = String(dateTime.getUTCDate()).padStart(2, "0");
+    let month = String(dateTime.getUTCMonth() + 1).padStart(2, "0");
     let year = dateTime.getUTCFullYear();
-
-    let formattedDate = `${day}-${month}-${year}`;
-
-    return `${formattedDate}`;
+  
+    return `${day}-${month}-${year}`;
   };
+
+  
 
   const formatDateSearch = (dateString) => {
     const date = new Date(dateString);
@@ -709,7 +741,7 @@ const CardTableRegularizationProduction = ({
         } else {
           setDataGround([]);
         }
-        console.log(fetchedDataGround);
+        //console.log(fetchedDataGround);
         setDataSeasons(fetchedDataSeasons);
         setDataContractors(fetchedDataContractors);
 
@@ -781,6 +813,9 @@ const CardTableRegularizationProduction = ({
 
     fetchData();
   }, [initialData, companyID]);
+
+
+  
 
   return (
     <>
@@ -994,10 +1029,10 @@ const CardTableRegularizationProduction = ({
                 <div className="flex items-center gap-5">
                   <p className="text-sm text-gray-800 dark:text-white">
                     Mostrando {indexOfFirstItem + 1} a{" "}
-                    {indexOfLastItem > initialData.length
-                      ? initialData.length
+                    {indexOfLastItem > filteredData.length
+                      ? filteredData.length
                       : indexOfLastItem}{" "}
-                    de {initialData.length} registros
+                    de {filteredData.length} registros
                   </p>
                 </div>
                 <div className="flex items-center gap-5">
@@ -1123,18 +1158,11 @@ const CardTableRegularizationProduction = ({
                         <option key="0" value="">
                           Elige un campo
                         </option>
+
                         {Array.isArray(dataGround) && dataGround.length > 0 ? (
-                          dataGround.filter(
-                            (ground) =>
-                              ground.status != 0 &&
-                              ground.zone == dataChangeZone
-                          ).length > 0 ? (
+                          dataGround.filter((ground) => ground.status != '0' && ground.status != 0).length > 0 ? (
                             dataGround
-                              .filter(
-                                (ground) =>
-                                  ground.status != 0 &&
-                                  ground.zone == dataChangeZone
-                              )
+                              .filter((ground) => ground.status != 0)
                               .map((ground) => (
                                 <option key={ground.id} value={ground.id}>
                                   {ground.name}
@@ -1452,44 +1480,36 @@ const CardTableRegularizationProduction = ({
                         defaultValue={selectedItem ? selectedItem.variety : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <>
-                          <option key="empty" value="">Elige una variedad</option>
-                          {Array.isArray(dataSpecies) &&
-                            dataSpecies.length > 0 ? (
-                            dataSpecies
-                              .filter((specie) => specie.id == dataChangeSpecie)
-                              .map((specie) =>
-                                Array.isArray(specie.varieties) &&
-                                  specie.varieties.length > 0 ? (
-                                  <>
-                                    <option key="empty" value="">
-                                      Elige una variedad
-                                    </option>
-                                    {specie.varieties.map((variety) =>
-                                      dataVarieties
-                                        .filter(
-                                          (varietySelect) =>
-                                            varietySelect.id == variety
-                                        )
-                                        .map((varietySelect) => (
-                                          <option
-                                            key={varietySelect.id}
-                                            value={varietySelect.id}
-                                          >
-                                            {varietySelect.name}
-                                          </option>
-                                        ))
-                                    )}
-                                  </>
-                                ) : (
-                                  <option value="">No hay variedades</option>
+                        <option key="empty" value="">
+                          Elige una variedad
+                        </option>
+                        {Array.isArray(dataSpecies) && dataSpecies.length > 0 ? (
+                          dataSpecies
+                            .filter((specie) => specie.id == dataChangeSpecie)
+                            .map((specie) =>
+                              Array.isArray(specie.varieties) && specie.varieties.length > 0 ? (
+                                specie.varieties.map((variety) =>
+                                  dataVarieties
+                                    .filter((varietySelect) => varietySelect.id == variety)
+                                    .map((varietySelect) => (
+                                      <option key={varietySelect.id} value={varietySelect.id}>
+                                        {varietySelect.name}
+                                      </option>
+                                    ))
                                 )
+                              ) : (
+                                <option key={`no-varieties-${specie.id}`} value="">
+                                  No hay variedades
+                                </option>
                               )
-                          ) : (
-                            <option value="">No hay variedades</option>
-                          )}
-                        </>
+                            )
+                        ) : (
+                          <option key="no-species" value="">
+                            No hay variedades
+                          </option>
+                        )}
                       </select>
+
                     </div>
 
                     <div className="flex flex-col gap-3">

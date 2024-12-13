@@ -239,6 +239,7 @@ function LoginPage(props) {
                 autoplay={true}
                 speed={500}
                 fade={true}
+                typeSlide="images"
               />
               <Image
                 src={LogoNormal}
