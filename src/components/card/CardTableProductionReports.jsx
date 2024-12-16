@@ -380,7 +380,7 @@ const CardTableProductionReports = ({
           setDataUsers(Users);
         }
 
-        //console.log("fetchedDataGround", fetchedDataSeasons);
+        console.log("fetchedDataGround", fetchedDataUsers);
 
         if (Array.isArray(initialData) && initialData.length > 0) {
           // Crear mapas para búsquedas rápidas
@@ -416,16 +416,6 @@ const CardTableProductionReports = ({
             }
           }
 
-          const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
-          const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
-          const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
-          const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
-          const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
-          const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
-          const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
-          const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
-
-
           if (fetchedDataUsers.code === "OK") {
             const Users = fetchedDataUsers.usuarios;
             if (Array.isArray(Users)) {
@@ -434,6 +424,16 @@ const CardTableProductionReports = ({
               console.error('La propiedad users no es un array:', Users);
             }
           }
+
+          const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
+          const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
+          const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
+          const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
+          const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
+          const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
+          const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
+          const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
+          const weigherMap = new Map(fetchedDataUsers.usuarios.map(u => [u.id, `${u.name} ${u.lastname}`]));
 
 
           // Función para filtrar valores undefined o null
@@ -460,7 +460,7 @@ const CardTableProductionReports = ({
                 "Kilos Caja": item.kg_boxes || '',
                 Calidad: qualityMap.get(item.quality) || '',
                 "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
-                Pesador: userMap.get(item.weigher_rut) || '',
+                Pesador: weigherMap.get(Number(item.weigher_rut)) || 'Sin asignar',
                 Temporada: seasonMap.get(item.season) || '',
                 Turno: shiftsMap.get(item.turns) || '',
               };
@@ -868,8 +868,8 @@ const CardTableProductionReports = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={formatInitialData}
-                    filename="Tipos de recolección"
-                    sheetname="Tipos de recolección"
+                    filename="Reporte de producción"
+                    sheetname="Reporte de recolección"
                     titlebutton="Exportar a excel"
                   />
                 )}

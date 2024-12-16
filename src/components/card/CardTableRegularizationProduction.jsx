@@ -38,6 +38,8 @@ import {
   deleteRegularizationProduction,
 } from "@/app/api/ProductionApi";
 
+import { getDataUser } from "@/app/api/ConfiguracionApi";
+
 import {
   getDataWorkers,
   getDataSquads,
@@ -111,6 +113,9 @@ const CardTableRegularizationProduction = ({
   const [dataHarvestFormat, setDataHarvestFormat] = useState([]);
   const [dataContractors, setDataContractors] = useState([]);
   const [dataShifts, setDataShifts] = useState([]);
+  const [dataUser, setDataUser] = useState([]);
+
+  const [dataUserExcel, setDataUserExcel] = useState([]);
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
@@ -163,6 +168,7 @@ const CardTableRegularizationProduction = ({
       const harvestFormat = await getDataHarvestFormat(companyID);
       const contractors = await getDataContractors(companyID);
       const shifts = await getDataShifts(companyID);
+      const user = await getDataUser();
 
       setDataGround(ground.grounds);
       setDataSector(sector);
@@ -176,6 +182,7 @@ const CardTableRegularizationProduction = ({
       setDataHarvestFormat(harvestFormat);
       setDataContractors(contractors);
       setDataShifts(shifts);
+      setDataUser(user.usuarios);
     };
     handleNameItems();
 
@@ -715,6 +722,7 @@ const CardTableRegularizationProduction = ({
           fetchedDataGround,
           fetchedDataSeasons,
           fetchedDataContractors,
+          fetchedDataUser,
         ] = await Promise.all([
           getDataSectorBarracks(companyID),
           getDataSquads(companyID),
@@ -726,6 +734,7 @@ const CardTableRegularizationProduction = ({
           getDataGround(companyID),
           getDataSeasons(companyID),
           getDataContractors(companyID),
+          getDataUser(),
         ]);
 
         // Aquí puedes guardar los datos en el estado si es necesario
@@ -736,6 +745,17 @@ const CardTableRegularizationProduction = ({
         setDataSpecies(fetchedDataSpecies);
         setDataQuality(fetchedDataQuality);
         setDataHarvestFormat(fetchedDataHarvestFormat);
+        console.log(fetchedDataUser);
+        console.log(fetchedDataUser.code);
+        console.log(fetchedDataUser.usuarios);
+        console.log(dataUser);
+        if(fetchedDataUser.code == 'OK'){
+          console.log(fetchedDataUser.usuarios);
+          setDataUserExcel(fetchedDataUser.usuarios);
+        }else{
+          setDataUserExcel([]);
+        }
+        console.log(dataUserExcel);
         if (fetchedDataGround == 'OK') {
           setDataGround(fetchedDataGround.grounds);
         } else {
@@ -746,63 +766,51 @@ const CardTableRegularizationProduction = ({
         setDataContractors(fetchedDataContractors);
 
         if (initialData) {
-          const formatData = await Promise.all(
-            initialData.map(async (item) => {
-              return {
-                Zona: item.zone,
-                Campo: fetchedDataGround.grounds.find(
-                  (ground) => ground.id === item.ground
-                )?.name,
-                Sector: fetchedDataSector.find(
-                  (sector) => sector.id === item.sector
-                )?.name,
-                Cuadrilla: fetchedDataSquads.squads.find(
-                  (squad) => squad.id === item.squad
-                )?.name,
-                "Jefe cuadrilla": fetchedDataWorkers.find(
-                  (worker) => worker.id === item.squad_leader
-                )?.name,
-                Lote: item.batch,
-                Cosechero:
-                  fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.name +
+          const formatData = initialData.map((item) => {
+          
+            // Aseguramos que el tipo de dato sea consistente
+            const pesador = fetchedDataUser?.usuarios?.find((user) => {
+              console.log(`Comparando ${Number(item.weigher_rut)} con ${user.id}`);
+              return Number(item.weigher_rut) === user.id;
+            });
+        
+          
+            return {
+              Zona: item.zone || "Sin asignar",
+              Campo: fetchedDataGround.grounds?.find((ground) => ground.id === item.ground)?.name || "Sin asignar",
+              Sector: fetchedDataSector?.find((sector) => sector.id === item.sector)?.name || "Sin asignar",
+              Cuadrilla: fetchedDataSquads.squads?.find((squad) => squad.id === item.squad)?.name || "Sin asignar",
+              "Jefe cuadrilla":
+                fetchedDataWorkers?.find((worker) => worker.id === item.squad_leader)?.name || "Sin asignar",
+              Lote: item.batch || "Sin asignar",
+              Cosechero:
+                fetchedDataWorkers?.find((worker) => worker.id === item.worker)?.name +
                   " " +
-                  fetchedDataWorkers && fetchedDataWorkers.find((worker) => worker.id === item.worker)
-                    ?.lastname,
-                "RUT Cosechero": item.worker_rut,
-                "Fecha cosecha": formatDate(item.harvest_date),
-                Especie: fetchedDataSpecies.find(
-                  (specie) => specie.id === item.specie
-                )?.name,
-                Variedad: fetchedDataVarieties.find(
-                  (variety) => variety.id === item.variety
-                )?.name,
-                Cajas: item.boxes,
-                "Kilos Caja": item.kg_boxes,
-                Calidad: fetchedDataQuality.find(
-                  (quality) => quality.id === item.quality
-                )?.name,
-                Hilera: item.hilera,
-                "Formato cosecha": fetchedDataHarvestFormat.find(
-                  (format) => format.id === item.harvest_format
-                )?.name,
-                "RUT Pesador": item.weigher_rut,
-                Sincronizado: item.sync,
-                "Fecha sincronización": item.sync_date,
-                Temporada: fetchedDataSeasons.find(
-                  (season) => season.id === item.season
-                )?.name,
-                Turnos: item.turns,
-                "Fecha registro": item.date_register,
-                Temp: item.temp,
-                Humedad: item.wet,
-                Contratista: fetchedDataContractors.find(
-                  (contractor) => contractor.id === item.contractor
-                )?.name,
-              };
-            })
-          );
+                  fetchedDataWorkers?.find((worker) => worker.id === item.worker)?.lastname || "Sin asignar",
+              "RUT Cosechero": item.worker_rut || "Sin asignar",
+              "Fecha cosecha": formatDate(item.harvest_date),
+              Especie: fetchedDataSpecies?.find((specie) => specie.id === item.specie)?.name || "Sin asignar",
+              Variedad: fetchedDataVarieties?.find((variety) => variety.id === item.variety)?.name || "Sin asignar",
+              Cajas: item.boxes || "Sin asignar",
+              "Kilos Caja": item.kg_boxes || "Sin asignar",
+              Calidad: fetchedDataQuality?.find((quality) => quality.id === item.quality)?.name || "Sin asignar",
+              Hilera: item.hilera || "Sin asignar",
+              "Formato cosecha": fetchedDataHarvestFormat?.find((format) => format.id === item.harvest_format)?.name || "Sin asignar",
+              Pesador: pesador ? `${pesador.name} ${pesador.lastname}` : "Sin asignar",
+              //"ID Pesador": item.weigher_rut,
+              Sincronizado: item.sync || "Sin asignar",
+              "Fecha sincronización": item.sync_date || "Sin asignar",
+              Temporada: fetchedDataSeasons?.find((season) => season.id === item.season)?.name || "Sin asignar",
+              Turnos: item.turns || "Sin asignar",
+              "Fecha registro": item.date_register || "Sin asignar",
+              Temp: item.temp || "Sin asignar",
+              Humedad: item.wet || "Sin asignar",
+              Contratista: fetchedDataContractors?.find((contractor) => contractor.id === item.contractor)?.name || "Sin asignar",
+            };
+          });
 
+          //console.log("formatData", dataUser);
+          //console.log("formatData", initialData);
           //console.log("formatData", formatData);
           setFormatInitialData(formatData);
         }
@@ -854,8 +862,8 @@ const CardTableRegularizationProduction = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={formatInitialData}
-                    filename="Tipos de recolección"
-                    sheetname="Tipos de recolección"
+                    filename="Regularización de producción"
+                    sheetname="Regularización de producción"
                     titlebutton="Exportar a excel"
                   />
                 )}
@@ -1952,7 +1960,16 @@ const CardTableRegularizationProduction = ({
                     )}
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Pesador:</strong> {selectedItem.weigher_rut || "-"}
+                    <strong>Pesador:</strong> {" "}
+
+                    {dataUserExcel.filter(
+                      (user) => user.id == selectedItem.weigher_rut
+                    ).map((user) => (
+                      <span key={user.id}>
+                        {user.name} {user.lastname}
+                      </span>
+                    ))}
+                      
                   </p>
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     <strong>Temporada:</strong>{" "}
