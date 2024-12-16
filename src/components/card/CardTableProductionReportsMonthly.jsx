@@ -1235,8 +1235,8 @@ const CardTableProductionReports = ({
           {Array.isArray(initialData) &&
             initialData.length > 0 &&
             pagination.length > 1 && (
-              <div className="flex items-center justify-between mt-5">
-                <div className="flex items-center gap-5">
+              <div className="flex flex-col md:flex-row items-center justify-between mt-5">
+                <div className="flex items-center gap-2 mt-5 md:gap-5 md:mt-0">
                   <p className="text-sm text-gray-800 dark:text-white">
                     Mostrando {indexOfFirstItem + 1} a{" "}
                     {indexOfLastItem > initialData.length
@@ -1245,7 +1245,7 @@ const CardTableProductionReports = ({
                     de {initialData.length} registros
                   </p>
                 </div>
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-2 mt-5 md:gap-5 md:mt-0">
                   {/* Botón de página anterior */}
                   <button
                     type="button"
