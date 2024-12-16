@@ -98,6 +98,8 @@ const CardTableProductionReports = ({
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
+  const [dates, setDates] = useState({ from: "", to: "" });
+
   //Checks para el filtro
 
   const [options, setOptions] = useState({
@@ -380,8 +382,6 @@ const CardTableProductionReports = ({
           setDataUsers(Users);
         }
 
-        console.log("fetchedDataGround", fetchedDataUsers);
-
         if (Array.isArray(initialData) && initialData.length > 0) {
           // Crear mapas para búsquedas rápidas
           let groundMap = new Map();
@@ -524,66 +524,79 @@ const CardTableProductionReports = ({
   });
 
 
-
   const handleCheck = (event) => {
     const { id, checked } = event.target;
-
-    // Actualiza los IDs chequeados
+  
+    // Actualiza los IDs seleccionados
     setCheckedIds((prevCheckedIds) => {
       if (id === "selectAll") {
-        // Marca todos los checkboxes si "selectAll" está marcado
         return checked ? Object.keys(fields) : [];
       } else {
-        // Marca o desmarca el checkbox específico
-        if (checked) {
-          return [...prevCheckedIds, id];
-        } else {
-          return prevCheckedIds.filter((checkedId) => checkedId !== id);
-        }
+        return checked
+          ? [...prevCheckedIds, id]
+          : prevCheckedIds.filter((checkedId) => checkedId !== id);
       }
     });
-
+  
     // Actualiza el estado de los checkboxes en `fields`
     setFields((prev) => {
       const newFields = { ...prev };
       if (id === "selectAll") {
-        // Selecciona/deselecciona todos los checkboxes
         Object.keys(newFields).forEach((key) => {
           newFields[key].checked = checked;
         });
       } else {
-        // Actualiza solo el checkbox específico
         if (newFields[id]) {
           newFields[id].checked = checked;
         }
       }
       return newFields;
     });
-
-    // Actualiza los filtros basados en la selección de todos
+  
+    // Actualiza los filtros y asegura que `harvest_date` esté vacío en los casos requeridos
     setFilters((prevFilters) => {
+      const updatedFilters = { ...prevFilters };
+    
       if (id === "selectAll") {
-        // Selecciona/deselecciona todos los filtros
+        const preservedFilters = { from: prevFilters.from, to: prevFilters.to };
+    
+        // Asegura que siempre harvest_date esté presente si `from` y `to` existen
         return checked
-          ? Object.keys(fields).reduce((acc, key) => {
-            acc[key] = ""; // Asigna valor vacío o el valor deseado
-            return acc;
-          }, {})
-          : {}; // Limpiar todos los filtros si se desmarca "selectAll"
+          ? {
+              ...preservedFilters,
+              ...Object.keys(fields).reduce((acc, key) => {
+                acc[key] = ""; // Asignar valor vacío a cada filtro
+                return acc;
+              }, {}),
+              harvest_date: "", // Agregar harvest_date vacío
+            }
+          : preservedFilters;
       } else {
-        // Actualiza filtros específicos según el ID
-        const updatedFilters = { ...prevFilters };
         if (checked) {
-          updatedFilters[id] = ""; // Asigna valor vacío o el valor deseado
+          updatedFilters[id] = ""; // Agregar el filtro marcado con valor vacío
         } else {
-          delete updatedFilters[id]; // Elimina el filtro si se desmarca
+          delete updatedFilters[id]; // Eliminar el filtro desmarcado
         }
+    
+        // Asegurarse que harvest_date siempre exista si están from y to
+        const remainingKeys = Object.keys(updatedFilters);
+        if (remainingKeys.includes("from") && remainingKeys.includes("to")) {
+          updatedFilters.harvest_date = ""; // Agregar harvest_date vacío
+        }
+
+        console.log(updatedFilters);
+    
         return updatedFilters;
       }
     });
 
+    console.log("Checked IDs:", checkedIds);
+    console.log("Fields:", fields);
+    
+  
     setShowFilter(true);
   };
+  
 
   const handleFilterChange = (event) => {
     const { id, value } = event.target;
@@ -601,22 +614,26 @@ const CardTableProductionReports = ({
     setFilters((prev) => ({
       ...prev,
       totals: isChecked ? 1 : 0, // Convierte el estado del switch a 1 o 0
+      harvest_date: "", // Asegura que harvest_date esté vacío
     }));
+
+    console.log("Switch state:", isChecked);
+    console.log("Switch state:", filters);
 
   };
 
-  //console.log("Filtros", filters);
+console.log("Filtros", filters);
 
   const handleFilterResults = async () => {
 
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
-      if (key === 'totals' || key === 'from' || key == 'to' || checkedIds.includes(key)) {
+      if (key === 'totals' || key === 'from' || key == 'to' || checkedIds.includes(key) || key === 'harvest_date') {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
 
-    //console.log("Filtros con IDs:", filtrosConIds);
+    console.log("Filtros con IDs:", filtrosConIds);
 
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
@@ -1000,8 +1017,8 @@ const CardTableProductionReports = ({
           {Array.isArray(initialData) &&
             initialData.length > 0 &&
             pagination.length > 1 && (
-              <div className="flex items-center justify-between mt-5">
-                <div className="flex items-center gap-5">
+              <div className="flex flex-col md:flex-row items-center justify-between mt-5">
+                <div className="flex items-center gap-2 mt-5 md:gap-5 md:mt-0">
                   <p className="text-sm text-gray-800 dark:text-white">
                     Mostrando {indexOfFirstItem + 1} a{" "}
                     {indexOfLastItem > initialData.length
@@ -1010,7 +1027,7 @@ const CardTableProductionReports = ({
                     de {initialData.length} registros
                   </p>
                 </div>
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-2 mt-5 md:gap-5 md:mt-0">
                   {/* Botón de página anterior */}
                   <button
                     type="button"

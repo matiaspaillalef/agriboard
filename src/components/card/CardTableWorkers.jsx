@@ -856,7 +856,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
           {updateMessage}
         </div>
       )}
-      <div className="mb-3 flex gap-5 justify-between items-center">
+      <div className="mb-3 flex flex-col md:flex-row gap-1 md:gap-5 justify-between items-center">
         <Button
           onClick={handleOpenNewUser}
           //variant="gradient"
@@ -865,11 +865,11 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
           <PlusIcon className="w-5 h-5" />
           Nuevo trabajador
         </Button>
-        <div className="mb-3 flex gap-5 ">
+        <div className="mb-3 flex gap-1 md:gap-5 flex-col md:flex-row w-full md:w-auto">
           {(idRole == 1 || idRole == 2) && (
             <button
               onClick={handleOpenCleanBand}
-              className="import-button linear mt-2 w-auto rounded-xl bg-red-500 py-[12px] px-[25px] text-base font-medium text-white transition duration-200 hover:bg-red-700 active:bg-red-700 items-center justify-center flex gap-2 normal-case"
+              className="import-button linear mt-2 w-full md:w-auto rounded-xl bg-red-500 py-[12px] px-[25px] text-base font-medium text-white transition duration-200 hover:bg-red-700 active:bg-red-700 items-center justify-center flex gap-2 normal-case"
             >
               <SparklesIcon className="w-5 h-5" />
               Eliminar pulseras
@@ -903,7 +903,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
               </h4>
             )}
 
-            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+            <div className="buttonsActions mb-3 flex gap-1 w-full flex-col md:w-auto md:flex-row md:gap-5">
               {Array.isArray(initialData) &&
                 initialData.length > 0 &&
                 downloadBtn && (
@@ -1093,8 +1093,8 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
           {Array.isArray(initialData) &&
             initialData.length > 0 &&
             pagination.length > 1 && (
-              <div className="flex items-center justify-between mt-5">
-                <div className="flex items-center gap-5">
+              <div className="flex flex-col md:flex-row items-center justify-between mt-5">
+                <div className="flex items-center gap-2 mt-5 md:gap-5 md:mt-0">
                   <p className="text-sm text-gray-800 dark:text-white">
                     Mostrando {indexOfFirstItem + 1} a{" "}
                     {indexOfLastItem > initialData.length
@@ -1103,7 +1103,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
                     de {initialData.length} registros
                   </p>
                 </div>
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-2 mt-5 md:gap-5 md:mt-0">
                   {/* Botón de página anterior */}
                   <button
                     type="button"

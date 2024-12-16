@@ -76,7 +76,7 @@ const LineChart = ({ data, title }) => {
         <div role="status" className="max-w-full animate-pulse p-0">
           <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none !p-[20px] text-center h-full">
             <div className={`h-[22px] dark:bg-gray-200 bg-gray-400 w-1/2 rounded-sm pb-[10px] mb-5`}></div>
-            <div className="flex h-full w-full flex-row justify-between sm:flex-wrap lg:flex-nowrap 2xl:overflow-hidden gap-5">
+            <div className="flex flex-col h-full w-full md:flex-row justify-between sm:flex-wrap lg:flex-nowrap 2xl:overflow-hidden gap-5">
               <div className="flex flex-col">
                 <div className="flex items-start justify-start flex-col gap-2">
                   {series.map((item, index) => (
@@ -93,7 +93,7 @@ const LineChart = ({ data, title }) => {
       ) : (
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none !p-[20px] text-center h-full">
           {title && <h4 className="text-xl font-bold text-navy-700 dark:text-white text-left mb-5">{title}</h4>}
-          <div className="flex h-full w-full flex-row justify-between sm:flex-wrap lg:flex-nowrap 2xl:overflow-hidden">
+          <div className="flex flex-col h-full w-full md:flex-row justify-between sm:flex-wrap lg:flex-nowrap 2xl:overflow-hidden">
             <div className="flex flex-col">
               <div className="flex items-start justify-start flex-col gap-2">
                 {series.map((item, index) => (
