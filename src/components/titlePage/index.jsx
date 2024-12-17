@@ -127,9 +127,9 @@ const TitlePage = () => {
 
     return (
         <p className="shrink text-[33px] capitalize text-navy-700 dark:text-white">
-            <a className="font-bold capitalize hover:text-navy-700 dark:hover:text-white" href="/horizon-tailwind-react/admin/default">
+            <span className="font-bold capitalize hover:text-navy-700 dark:hover:text-white">
                 {translatedSegment}
-            </a>
+            </span>
         </p>
     );
 };

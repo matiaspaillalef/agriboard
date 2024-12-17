@@ -150,8 +150,6 @@ const CardTableProductionReports = ({
           );
         }
 
-        console.log("fetchedDataUsers", fetchedDataUsers);
-
         setOptions({
           ground: fetchedDataGround.grounds,
           sector: fetchedDataSector,
@@ -550,6 +548,33 @@ const CardTableProductionReports = ({
           newFields[id].checked = checked;
         }
       }
+
+      if (id === 'worker_rut' && checked) {
+        newFields.worker.checked = false;  // Desmarcar `worker`
+        /*setFilters((prev) => {
+          const { worker, ...rest } = prev; // Elimina la propiedad `worker` completamente
+          return rest;
+        });*/
+        setFilters((prev) => ({
+          ...prev,
+          worker: "",
+        }));
+
+      }
+
+      if (id === 'worker' && checked) {
+        newFields.worker_rut.checked = false;  // Desmarcar `worker_rut`
+        /*setFilters((prev) => {
+          const { worker_rut, ...rest } = prev; // Elimina la propiedad `worker` completamente
+          return rest;
+      });*/
+
+        setFilters((prev) => ({
+          ...prev,
+          worker_rut: "",
+        }));
+      }
+      
       return newFields;
     });
   
@@ -583,15 +608,10 @@ const CardTableProductionReports = ({
         if (remainingKeys.includes("from") && remainingKeys.includes("to")) {
           updatedFilters.harvest_date = ""; // Agregar harvest_date vacío
         }
-
-        console.log(updatedFilters);
     
         return updatedFilters;
       }
     });
-
-    console.log("Checked IDs:", checkedIds);
-    console.log("Fields:", fields);
     
   
     setShowFilter(true);
@@ -617,12 +637,8 @@ const CardTableProductionReports = ({
       harvest_date: "", // Asegura que harvest_date esté vacío
     }));
 
-    console.log("Switch state:", isChecked);
-    console.log("Switch state:", filters);
 
   };
-
-console.log("Filtros", filters);
 
   const handleFilterResults = async () => {
 
@@ -633,7 +649,6 @@ console.log("Filtros", filters);
       return acc;
     }, {});
 
-    console.log("Filtros con IDs:", filtrosConIds);
 
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
