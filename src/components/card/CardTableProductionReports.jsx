@@ -458,7 +458,7 @@ const CardTableProductionReports = ({
                 "Kilos Caja": item.kg_boxes || '',
                 Calidad: qualityMap.get(item.quality) || '',
                 "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
-                Pesador: weigherMap.get(Number(item.weigher_rut)) || 'Sin asignar',
+                Pesador: weigherMap.get(Number(item.weigher_rut)) || '',
                 Temporada: seasonMap.get(item.season) || '',
                 Turno: shiftsMap.get(item.turns) || '',
               };
