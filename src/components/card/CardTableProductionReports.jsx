@@ -524,7 +524,7 @@ const CardTableProductionReports = ({
 
   const handleCheck = (event) => {
     const { id, checked } = event.target;
-  
+
     // Actualiza los IDs seleccionados
     setCheckedIds((prevCheckedIds) => {
       if (id === "selectAll") {
@@ -535,7 +535,7 @@ const CardTableProductionReports = ({
           : prevCheckedIds.filter((checkedId) => checkedId !== id);
       }
     });
-  
+
     // Actualiza el estado de los checkboxes en `fields`
     setFields((prev) => {
       const newFields = { ...prev };
@@ -574,27 +574,27 @@ const CardTableProductionReports = ({
           worker_rut: "",
         }));
       }
-      
+
       return newFields;
     });
-  
+
     // Actualiza los filtros y asegura que `harvest_date` esté vacío en los casos requeridos
     setFilters((prevFilters) => {
       const updatedFilters = { ...prevFilters };
-    
+
       if (id === "selectAll") {
         const preservedFilters = { from: prevFilters.from, to: prevFilters.to };
-    
+
         // Asegura que siempre harvest_date esté presente si `from` y `to` existen
         return checked
           ? {
-              ...preservedFilters,
-              ...Object.keys(fields).reduce((acc, key) => {
-                acc[key] = ""; // Asignar valor vacío a cada filtro
-                return acc;
-              }, {}),
-              harvest_date: "", // Agregar harvest_date vacío
-            }
+            ...preservedFilters,
+            ...Object.keys(fields).reduce((acc, key) => {
+              acc[key] = ""; // Asignar valor vacío a cada filtro
+              return acc;
+            }, {}),
+            harvest_date: "", // Agregar harvest_date vacío
+          }
           : preservedFilters;
       } else {
         if (checked) {
@@ -602,21 +602,21 @@ const CardTableProductionReports = ({
         } else {
           delete updatedFilters[id]; // Eliminar el filtro desmarcado
         }
-    
+
         // Asegurarse que harvest_date siempre exista si están from y to
         const remainingKeys = Object.keys(updatedFilters);
         if (remainingKeys.includes("from") && remainingKeys.includes("to")) {
           updatedFilters.harvest_date = ""; // Agregar harvest_date vacío
         }
-    
+
         return updatedFilters;
       }
     });
-    
-  
+
+
     setShowFilter(true);
   };
-  
+
 
   const handleFilterChange = (event) => {
     const { id, value } = event.target;
@@ -658,6 +658,8 @@ const CardTableProductionReports = ({
       setDataReport(results);
     } catch (error) {
       console.error("Error al filtrar los resultados:", error);
+    } finally {
+      setCurrentPage(1);
     }
   };
 

@@ -816,6 +816,8 @@ const CardTableProductionReports = ({
       }
     } catch (error) {
       console.error('Error al filtrar los resultados:', error);
+    }finally{
+      setCurrentPage(1);
     }
   };
 
