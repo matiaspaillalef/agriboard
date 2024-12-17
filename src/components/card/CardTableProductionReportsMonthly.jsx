@@ -796,15 +796,12 @@ const CardTableProductionReports = ({
 
   const handleFilterResults = async () => {
 
-    console.log('Filtros:', filters);
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
       if (key === 'totals' || key === 'from' || key === 'to' || checkedIds.includes(key) || key === 'worker_rut' || key === 'year' || key === 'month') {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
-
-    console.log('Filtros con IDs:', filtrosConIds);
 
     try {
       const results = await filterResultsMonthly(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
