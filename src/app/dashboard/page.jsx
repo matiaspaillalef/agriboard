@@ -188,7 +188,23 @@ const Dashboard = () => {
         setDataKgSeason(dataSeason);
         setDataWorkers(dataWorkers);
         setDataWorkersWeek(dataWorkersWeek);
-        setDataVaritiesDay(dataVaritiesDay);
+    
+        //Se hace un nuevo orden para no tocar el backend
+        //New orden, first specie, variety, sector, kg_boxes
+        const  newOrderDataVarietiesDay = dataVaritiesDay.map((item) => {
+          return {
+            specie: item.specie,
+            variety: item.variety,
+            sector: item.sector,
+            cantidad: item.cantidad,
+            cajas: item.cajas
+          };
+        }
+        );
+
+        setDataVaritiesDay(newOrderDataVarietiesDay);
+        //setDataVaritiesDay(dataVaritiesDay);
+
         setDataVaritiesSeason(dataVaritiesSeason);
         setDataDispatchGuideDay(dataDispatchGuideDay);
         setDataVarietiesSeasonPercentage(dataVarietiesSeasonPercentage);
@@ -455,7 +471,7 @@ useEffect(() => {
       {selectedOption === '1' ? (
         <CardTable
           data={dataVaritiesDay}
-          thead="Variedad, Especie, Sector, Cantidad, Cajas"
+          thead="Especie, Variedad, Sector, Cantidad, Cajas"
           columnsClasses={[
             "text-left",
             "text-left",
@@ -468,11 +484,13 @@ useEffect(() => {
       ) : (
         <CardTable
           data={dataVaritiesSeason}
-          thead="Variedad, Especie, Sector, Cantidad, Cajas"
+          thead="Especie, Variedad, Cantidad, Cajas"
+          omitirColumns={["sector"]}
           columnsClasses={[
             "text-left",
             "text-left",
-            "text-left",
+            //"text-left",
+            "text-right",
             "text-right",
             "text-right",
           ]}
