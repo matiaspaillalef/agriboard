@@ -39,6 +39,7 @@ import {
 } from "../data/dataGraphics";
 import { dataMiniCardDashboard } from "../data/dataMiniCard";
 import { data } from "autoprefixer";
+import { set } from "date-fns";
 
 const fechaActual = new Date();
 
@@ -66,8 +67,22 @@ const Dashboard = () => {
   const [idRole, setIdRole] = useState("");
   const [error, setError] = useState("");
   const [dataGrounds, setDataGrounds] = useState([]);
-
   const [selectedOption, setSelectedOption] = useState('1'); // Inicialmente seleccionado 'Día'
+
+  //Loading data
+  const [loadingDataKgDay, setLoadingDataKgDay] = useState(true);
+const [loadingDataKgSeason, setLoadingDataKgSeason] = useState(true);
+const [loadingDataWorkers, setLoadingDataWorkers] = useState(true);
+const [loadingDataWorkersWeek, setLoadingDataWorkersWeek] = useState(true);
+const [loadingDataVaritiesDay, setLoadingDataVaritiesDay] = useState(true);
+const [loadingDataVaritiesSeason, setLoadingDataVaritiesSeason] = useState(true);
+const [loadingDataDispatchGuideDay, setLoadingDataDispatchGuideDay] = useState(true);
+const [loadingDataVarietiesSeasonPercentage, setLoadingDataVarietiesSeasonPercentage] = useState(true);
+const [loadingDataHumidityTemperatureSeason, setLoadingDataHumidityTemperatureSeason] = useState(true);
+const [loadingDataKgAvg, setLoadingDataKgAvg] = useState(true);
+const [loadingDataKgAvgDay, setLoadingDataKgAvgDay] = useState(true);
+const [loadingDataDaysOfHarvest, setLoadingDataDaysOfHarvest] = useState(true);
+const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(true);
 
   const handleSelectChange = (event) => {
     setSelectedOption(event.target.value);
@@ -83,29 +98,31 @@ const Dashboard = () => {
 
     const userCompantData = JSON.parse(sessionStorage.getItem("selectedCompanyId"));
     //console.log('userData', userCompantData);
-    
+
     const fetchData = async () => {
       try {
         const dataGround = await getDataGround(Number(companyId ? companyId : userCompantData)); // Aquí haces la llamada a la API
         //console.log(dataGround);
         setDataGrounds(dataGround); // Aquí actualizas el estado con los datos que recibiste
 
+        console.log('dataGround', dataGround);
+
         if (dataGround.code == 'OK') {
-          if(dataGround.grounds.length > 0){
+          if (dataGround.grounds.length > 0) {
             dataGround.grounds.map((item) => {
               const firstGroundId = dataGround.grounds[0].id;
               //console.log('firstGroundId', firstGroundId);
               setSelectedGround(firstGroundId);
-           
+
             });
           }
         }
-        
+
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-  
+
     fetchData(); // Llamas a la función asincrónica
   }, []); // Este useEffect se ejecutará solo una vez al montar el componente
 
@@ -157,7 +174,7 @@ const Dashboard = () => {
       setIsLoading(false);
     }
   }, []);
-  
+
 
   const fetchDataDay = useCallback(async (companyId, groundId) => {
     if (!companyId) {
@@ -166,6 +183,19 @@ const Dashboard = () => {
     }
 
     setIsLoading(true);
+    setLoadingDataKgDay(true);
+    setLoadingDataKgSeason(true);
+    setLoadingDataWorkers(true);
+    setLoadingDataVaritiesDay(true);
+    setLoadingDataVaritiesSeason(true);
+    setLoadingDataHumidityTemperatureSeason(true);
+    setLoadingDataKgAvg(true);
+    setLoadingDataKgAvgDay(true);
+    setLoadingDataDaysOfHarvest(true);
+    setLoadingDataAllDaysOfHarvest(true);
+    setLoadingDataVarietiesSeasonPercentage(true);
+
+
     setError(""); // Reset error state
 
     try {
@@ -188,10 +218,10 @@ const Dashboard = () => {
         setDataKgSeason(dataSeason);
         setDataWorkers(dataWorkers);
         setDataWorkersWeek(dataWorkersWeek);
-    
+
         //Se hace un nuevo orden para no tocar el backend
         //New orden, first specie, variety, sector, kg_boxes
-        const  newOrderDataVarietiesDay = dataVaritiesDay.map((item) => {
+        const newOrderDataVarietiesDay = dataVaritiesDay.map((item) => {
           return {
             specie: item.specie,
             variety: item.variety,
@@ -216,9 +246,9 @@ const Dashboard = () => {
       } else {
         const grounds = await getDataGround(companyId);
 
-        if(grounds.code === 'OK'){
+        if (grounds.code === 'OK') {
           if (Array.isArray(grounds.grounds) && grounds.grounds.length > 0) {
-            
+
             const firstGroundId = grounds.grounds[0].id;
 
             setSelectedGround(firstGroundId);
@@ -252,7 +282,7 @@ const Dashboard = () => {
           } else {
             setError("No grounds found for the company.");
           }
-        }else{
+        } else {
           setSelectedGround("");
         }
 
@@ -262,7 +292,19 @@ const Dashboard = () => {
     } finally {
       setTimeout(() => {
         setIsLoading(false);
-      }, 3000);
+        setLoadingDataKgDay(false);
+        setLoadingDataKgSeason(false);
+        setLoadingDataWorkers(false);
+        setLoadingDataVaritiesDay(false);
+        setLoadingDataVaritiesSeason(false);
+        setLoadingDataHumidityTemperatureSeason(false);
+        setLoadingDataKgAvg(false);
+        setLoadingDataKgAvgDay(false);
+        setLoadingDataDaysOfHarvest(false);
+        setLoadingDataAllDaysOfHarvest(false);
+        setLoadingDataVarietiesSeasonPercentage(false);
+
+      }, 1000);
     }
   }, [fetchKgDataQlty]);
 
@@ -279,16 +321,17 @@ const Dashboard = () => {
       const newCompanyId = companyClass.split("-")[1];
       if (newCompanyId !== companyId) {
         setCompanyId(newCompanyId);
+
         const grounds = await getDataGround(newCompanyId);
 
-        if (grounds.code == 'OK'){
+        if (grounds.code == 'OK') {
           if (grounds.grounds.length > 0) {
             const firstGroundId = grounds.grounds[0].id;
             setSelectedGround(firstGroundId);
             fetchDataDay(newCompanyId, firstGroundId);
             fetchKgDataQlty(newCompanyId, firstGroundId, 1);
           }
-        }else{
+        } else {
           setSelectedGround("");
           fetchDataDay(newCompanyId, "");
           fetchKgDataQlty(newCompanyId, "", 1);
@@ -308,35 +351,35 @@ const Dashboard = () => {
     }
   };
 
-useEffect(() => {
-  const initialCompanyId = getCompanyIdFromSessionStorage();
-  const initialGroundId = getSelectedGroundFromSessionStorage();
+  useEffect(() => {
+    const initialCompanyId = getCompanyIdFromSessionStorage();
+    const initialGroundId = getSelectedGroundFromSessionStorage();
 
-  if (initialCompanyId) {
-    setCompanyId(initialCompanyId);
-    if (initialGroundId) {
-      setSelectedGround(initialGroundId);
-      fetchDataDay(initialCompanyId, initialGroundId);
-      fetchKgDataQlty(initialCompanyId, initialGroundId, 1);
-    } else {
-      getDataGround(initialCompanyId).then((grounds) => {
-        if (grounds.length > 0) {
-          const firstGroundId = grounds[0].id;
-          setSelectedGround(firstGroundId);
-          fetchDataDay(initialCompanyId, firstGroundId);
-          fetchKgDataQlty(initialCompanyId, firstGroundId, 1);
-        } else {
-          setError("No grounds found for the company.");
-        }
-      }).catch(err => setError("Error fetching grounds: " + err.message));
+    if (initialCompanyId) {
+      setCompanyId(initialCompanyId);
+      if (initialGroundId) {
+        setSelectedGround(initialGroundId);
+        fetchDataDay(initialCompanyId, initialGroundId);
+        fetchKgDataQlty(initialCompanyId, initialGroundId, 1);
+      } else {
+        getDataGround(initialCompanyId).then((grounds) => {
+          if (grounds.length > 0) {
+            const firstGroundId = grounds[0].id;
+            setSelectedGround(firstGroundId);
+            fetchDataDay(initialCompanyId, firstGroundId);
+            fetchKgDataQlty(initialCompanyId, firstGroundId, 1);
+          } else {
+            setError("No grounds found for the company.");
+          }
+        }).catch(err => setError("Error fetching grounds: " + err.message));
+      }
     }
-  }
-}, [
-  getCompanyIdFromSessionStorage,
-  getSelectedGroundFromSessionStorage,
-  fetchDataDay,
-  fetchKgDataQlty
-]);
+  }, [
+    getCompanyIdFromSessionStorage,
+    getSelectedGroundFromSessionStorage,
+    fetchDataDay,
+    fetchKgDataQlty
+  ]);
 
   useEffect(() => {
     const body = document.body;
@@ -352,8 +395,10 @@ useEffect(() => {
   }, [companyId, selectedGround, checkForCompanyAndGroundChange]);
 
   useEffect(() => {
+
     if (selectedGround && companyId) {
       fetchDataDay(companyId, selectedGround);
+      fetchKgDataQlty(companyId, selectedGround, 1);
     }
   }, [selectedGround, companyId, fetchDataDay]);
 
@@ -395,7 +440,6 @@ useEffect(() => {
           featured={true}
           isLoading={isLoading}
         />
-
         <MiniCard
           name="Total kilos"
           icon={ChartBarIcon}
@@ -411,7 +455,7 @@ useEffect(() => {
               value: dataKgSeason?.kg_boxes || 0,
             },
           ]}
-          isLoading={isLoading}
+          isLoading={loadingDataKgDay && loadingDataKgSeason}
         />
 
         <MiniCard
@@ -421,7 +465,7 @@ useEffect(() => {
             {
               id: 1,
               name: "Días cos.",
-              value:  dataAllDaysOfHarvest[0]?.dias_cosecha || 0,
+              value: dataAllDaysOfHarvest[0]?.dias_cosecha || 0,
             },
             {
               id: 2,
@@ -429,7 +473,7 @@ useEffect(() => {
               value: dataKgAvg?.avgKgBoxes || 0,
             },
           ]}
-          isLoading={isLoading}
+          isLoading={loadingDataAllDaysOfHarvest && loadingDataKgAvg}
         />
 
         <MiniCard
@@ -452,51 +496,52 @@ useEffect(() => {
               value: dataKgAvgDay?.avgKgBoxes || 0,
             },
           ]}
-          isLoading={isLoading}
+          isLoading={loadingDataWorkers && loadingDataWorkersWeek && loadingDataKgAvgDay}
         />
       </div>
       <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-          
+
           <div className="ml-auto mr-0 flex items-center gap-4">
             <p>Visualizar Kg por:</p>
-        <select className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
+            <select className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
               value={selectedOption}
               onChange={handleSelectChange}>
-        <option value="1">Día</option>
-        <option value="2">Temporada</option>
-      </select>
-      </div>
-
-      {selectedOption === '1' ? (
-        <CardTable
-          data={dataVaritiesDay}
-          thead="Especie, Variedad, Sector, Cantidad, Cajas"
-          columnsClasses={[
-            "text-left",
-            "text-left",
-            "text-left",
-            "text-right",
-            "text-right",
-          ]}
-          title="Kilos variedad día"
-        />
-      ) : (
-        <CardTable
-          data={dataVaritiesSeason}
-          thead="Especie, Variedad, Cantidad, Cajas"
-          omitirColumns={["sector"]}
-          columnsClasses={[
-            "text-left",
-            "text-left",
-            //"text-left",
-            "text-right",
-            "text-right",
-            "text-right",
-          ]}
-          title="Kilos variedad temporada"
-        />
-      )}
+              <option value="1">Día</option>
+              <option value="2">Temporada</option>
+            </select>
+          </div>
+          {selectedOption === '1' ? (
+            <CardTable
+              data={dataVaritiesDay}
+              thead="Especie, Variedad, Sector, Cantidad, Cajas"
+              columnsClasses={[
+                "text-left",
+                "text-left",
+                "text-left",
+                "text-right",
+                "text-right",
+              ]}
+              loadingData={loadingDataVaritiesDay}
+              title="Kilos variedad día"
+            />
+          ) : (
+            <CardTable
+              data={dataVaritiesSeason}
+              thead="Especie, Variedad, Cantidad, Cajas"
+              omitirColumns={["sector"]}
+              columnsClasses={[
+                "text-left",
+                "text-left",
+                //"text-left",
+                "text-right",
+                "text-right",
+                "text-right",
+              ]}
+              loadingData={loadingDataVaritiesSeason}
+              title="Kilos variedad temporada"
+            />
+          )}
         </div>
 
         <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
@@ -505,6 +550,7 @@ useEffect(() => {
             thead="Especie, Variedad, Días de cosecha"
             omitirColumns={["id"]}
             title="Días de cosecha"
+            loadingData={loadingDataDaysOfHarvest}
           />
         </div>
       </div>
@@ -513,15 +559,15 @@ useEffect(() => {
           <PieChart
             data={dataVarietiesSeasonPercentage}
             title="Variedad temporada"
+            loadingData={loadingDataVarietiesSeasonPercentage}
           />
         </div>
-
-
 
         <div className="lg:col-span-2">
           <LineChart
             data={dataHumidityTemperatureSeason}
             title="Humedad y temperatura"
+            loadingData={loadingDataHumidityTemperatureSeason}
           />
         </div>
       </div>
