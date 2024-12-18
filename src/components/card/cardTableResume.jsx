@@ -9,8 +9,9 @@ const CardTable = ({
   columnsClasses = [],
   omitirColumns = [],
   title,
+  loadingData
 }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Extraer etiquetas de columna de thead
   const columnLabels = thead
@@ -21,7 +22,7 @@ const CardTable = ({
   useEffect(() => {
     const fetchData = async () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      setLoading(false);
+      setLoading(true);
     };
 
     fetchData();
@@ -32,7 +33,7 @@ const CardTable = ({
 
   return (
     <div>
-      {loading ? (
+      {loadingData ? (
         <div role="status" className="max-w-full animate-pulse p-0">
           {/* Titulo de carga */}
           <div
