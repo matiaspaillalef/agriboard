@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 
 const DynamicChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-const LineChart = ({ data, title }) => {
+const LineChart = ({ data, title, loadingData }) => {
   const { humedad = [], temperatura = [], fechas = [] } = data || {};
 
   const [loading, setLoading] = useState(true);
@@ -72,7 +72,7 @@ const LineChart = ({ data, title }) => {
 
   return (
     <>
-      {loading ? (
+      {loadingData ? (
         <div role="status" className="max-w-full animate-pulse p-0">
           <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none !p-[20px] text-center h-full">
             <div className={`h-[22px] dark:bg-gray-200 bg-gray-400 w-1/2 rounded-sm pb-[10px] mb-5`}></div>
