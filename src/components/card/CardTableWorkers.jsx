@@ -461,6 +461,9 @@ const CardTableWorkers = ({
 
           // Creamos al usuario
           const updateUser = await createUser(dataWeigher);
+
+          initialData(newFetchData);
+
         } else {
           // Si no es pesador, buscamos al usuario y lo eliminamos
           const getUserData = await getDataUser();
@@ -1624,7 +1627,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
                     </div>
 
                     {
-                      <div className="flex flex-col gap-3">
+                      <div className="flex-col gap-3 hidden">
                         <label
                           htmlFor="squad"
                           className="text-sm font-semibold text-gray-800 dark:text-white"
