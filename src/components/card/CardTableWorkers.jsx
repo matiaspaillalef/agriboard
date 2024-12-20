@@ -1638,7 +1638,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
                           name="squad"
                           id="squad"
                           disabled={openShowUser}
-                          required={true}
+                          //required={true}
                           {...register("squad")}
                           defaultValue={selectedItem ? selectedItem.squad : ""}
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
