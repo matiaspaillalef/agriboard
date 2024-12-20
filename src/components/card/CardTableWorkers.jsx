@@ -461,6 +461,9 @@ const CardTableWorkers = ({
 
           // Creamos al usuario
           const updateUser = await createUser(dataWeigher);
+
+          initialData(newFetchData);
+
         } else {
           // Si no es pesador, buscamos al usuario y lo eliminamos
           const getUserData = await getDataUser();
@@ -1624,7 +1627,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
                     </div>
 
                     {
-                      <div className="flex flex-col gap-3">
+                      <div className="flex-col gap-3 hidden">
                         <label
                           htmlFor="squad"
                           className="text-sm font-semibold text-gray-800 dark:text-white"
@@ -1635,7 +1638,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
                           name="squad"
                           id="squad"
                           disabled={openShowUser}
-                          required={true}
+                          //required={true}
                           {...register("squad")}
                           defaultValue={selectedItem ? selectedItem.squad : ""}
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
