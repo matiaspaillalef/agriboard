@@ -862,6 +862,36 @@ export const deleteWorker = async (id) => {
   }
 }
 
+export const updateSquadForWorker = async (data) => {
+  console.log('Datos para actualizar el escuadrón:', data);
+  try {
+    const res = await fetch(URLAPI + "/api/v1/management-people/workers/updateSquadForWorkers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    });
+
+    console.log('Respuesta:', res);
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData.code;
+    } else {
+      const errorData = await res.json();
+      console.error("Error response:", errorData);
+      return errorData.code || "ERROR";
+    }
+  } catch (err) {
+    console.error("Error al enviar la solicitud:", err);
+    return "ERROR";
+  }
+}
+
+
 
 //Delete AllBand
 export const deleteAllBand = async (data) => {
