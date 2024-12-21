@@ -105,8 +105,6 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
         //console.log(dataGround);
         setDataGrounds(dataGround); // Aquí actualizas el estado con los datos que recibiste
 
-        console.log('dataGround', dataGround);
-
         if (dataGround.code == 'OK') {
           if (dataGround.grounds.length > 0) {
             dataGround.grounds.map((item) => {

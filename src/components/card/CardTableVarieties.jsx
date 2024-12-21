@@ -119,8 +119,6 @@ const CardTableGround = ({
         );
 
         /*const dataSpecies = await getDataSpecies(companyID);
-
-        console.log('dataspecie', dataSpecies);
         
         if (dataSpecies) {
           dataSpecies.filter((item) => item.id === data.species_id);
