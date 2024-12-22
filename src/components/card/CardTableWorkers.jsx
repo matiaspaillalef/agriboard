@@ -38,6 +38,9 @@ import {
   getDataSquads,
   getDataShifts,
   deleteAllBand,
+  addWorkerToSquad,
+  deleteWorkerFromSquad,
+  updateWorkerFromSquad
 } from "@/app/api/ManagementPeople";
 
 import {
@@ -145,6 +148,7 @@ const CardTableWorkers = ({
     id: null,
     name: "",
     lastname: "",
+    squad: "",
   });
 
   const fileInputRef = useRef(null);
@@ -474,6 +478,15 @@ const CardTableWorkers = ({
           }
         }
 
+        //Actualizamos Squeads desde workers
+        const dataUpdateSquads = {
+          id: transformedData.id,
+          squad: transformedData.squad,
+        };
+
+        const responseCode = await updateWorkerFromSquad(dataUpdateSquads);
+        //Actualizamos Squeads desde workers
+
         // Cerramos el modal o el formulario de edición
         setOpen(false);
 
@@ -492,8 +505,8 @@ const CardTableWorkers = ({
   };
 
 
-  const handleOpenAlert = (index, id, name, lastname, email) => {
-    setItemToDelete({ index, id, name, lastname, email });
+  const handleOpenAlert = (index, id, name, lastname, email, squad) => {
+    setItemToDelete({ index, id, name, lastname, email, squad });
     setOpenAlert(true);
   };
 
@@ -503,13 +516,14 @@ const CardTableWorkers = ({
   };
 
   const handlerRemove = async () => {
-    const { index, id, email } = itemToDelete;
+    const { index, id, email, squad } = itemToDelete;
 
     try {
       //if (userConfirmed) {
       const deleteWorker = await deleteWorkerApi(id);
       const userData = await getDataUser();
 
+      console.log(deleteWorker);
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteWorker == "OK") {
         const updatedData = [...initialData];
@@ -517,7 +531,7 @@ const CardTableWorkers = ({
         setInitialData(updatedData);
         setOpenAlert(false);
         setUpdateMessage("Trabajador eliminado correctamente");
-
+      
 
         if (userData.code == "OK") {
           const userToDelete = userData.usuarios.find((user) => user.mail == email);
@@ -533,6 +547,17 @@ const CardTableWorkers = ({
           }
 
         }
+
+        //Eliminamos al usuario de squads
+        const dataUpdateSquads = {
+          id: id,
+          squad: squad,
+        };
+
+        const responseCode = await deleteWorkerFromSquad(dataUpdateSquads);
+        //Eliminamos al usuario de squads
+
+
       } else {
         setUpdateMessage(
           "Error al eliminar al trabajador. Inténtalo nuevamente."
@@ -542,6 +567,8 @@ const CardTableWorkers = ({
       console.error(error);
       // Manejo de errores
       setUpdateMessage("Ocurrió un error al intentar eliminar al trabajador.");
+    } finally {
+      getDataWorkers(companyID);
     }
   };
 
@@ -587,9 +614,28 @@ const CardTableWorkers = ({
 
         }
 
+        let saveRut = data.rut;
+
         const newDataFetch = await getDataWorkers(companyID);
         //console.log(newDataFetch);
         setInitialData(newDataFetch);
+
+        let idUpdate = '';
+        let squadUpdate = '';
+
+        newDataFetch.map((item) => {
+          if (item.rut == saveRut) {
+            idUpdate = item.id;
+            squadUpdate = item.squad;
+          }
+        });
+
+        const dataUpdateSquads = {
+          id: idUpdate,
+          squad: squadUpdate,
+        };
+
+        const responseCode = await addWorkerToSquad(dataUpdateSquads);
 
         setOpen(false);
 
@@ -798,54 +844,54 @@ const CardTableWorkers = ({
   };
 
   //Mapeamos la data a exportar
-const exportData = Array.isArray(initialData) && initialData && initialData.map((item) => {
-  // Función para separar el RUT y el DV
-  const splitRut = (rut) => {
-    // Primero eliminamos puntos y guiones
-    const cleanedRut = rut.replace(/[.\-]/g, '');
+  const exportData = Array.isArray(initialData) && initialData && initialData.map((item) => {
+    // Función para separar el RUT y el DV
+    const splitRut = (rut) => {
+      // Primero eliminamos puntos y guiones
+      const cleanedRut = rut.replace(/[.\-]/g, '');
 
-    // Separamos el RUT y el dígito verificador
-    const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
-    const dv = cleanedRut.slice(-1); // Último carácter (el dígito verificador)
+      // Separamos el RUT y el dígito verificador
+      const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
+      const dv = cleanedRut.slice(-1); // Último carácter (el dígito verificador)
 
-    return { rutNumber, dv };
-  };
+      return { rutNumber, dv };
+    };
 
-  const { rutNumber, dv } = splitRut(item.rut); // Llamamos a la función con el RUT de cada item
+    const { rutNumber, dv } = splitRut(item.rut); // Llamamos a la función con el RUT de cada item
 
-  return {
-    Rut: rutNumber, // Columna para el RUT (sin puntos ni guiones)
-    DV: dv, // Columna para el dígito verificador
-    Nombre: item.name,
-    Apellido: item.lastname,
-    "Apellido materno": item.lastname2,
-    "Pesador": item.weigher == 1 ? "Sí" : "No",
-    "Fecha de nacimiento": formatDateToInput(item.born_date),
-    Género: item.gender,
-    "Estado civil": item.state_civil,
-    Estado: item.state,
-    Ciudad: item.city,
-    Dirección: item.address,
-    Teléfono: item.phone,
-    Correo: item.email,
-    "Teléfono empresa": item.phone_company,
-    "Fecha de ingreso": formatDateToInput(item.date_admission),
-    Cargo: cargoMap.get(item.position) || item.position,
-    Contratista: contractorMap.get(item.contractor) || item.contractor,
-    Cuadrilla: squadMap.get(item.squad) || item.squad,
-    "Líder de Cuadrilla":
-      workerMap.get(item.leader_squad) || item.leader_squad,
-    Turno: shiftMap.get(item.shift) || item.shift,
-    Pulsera: item.wristband,
-    Observación: item.observation,
-    Banco: item.bank,
-    "Tipo de cuenta": item.account_type,
-    "Número de cuenta": item.account_number,
-    AFP: item.afp,
-    Salud: item.health,
-    status: item.status == 1 ? "Activo" : "Inactivo",
-  };
-});
+    return {
+      Rut: rutNumber, // Columna para el RUT (sin puntos ni guiones)
+      DV: dv, // Columna para el dígito verificador
+      Nombre: item.name,
+      Apellido: item.lastname,
+      "Apellido materno": item.lastname2,
+      "Pesador": item.weigher == 1 ? "Sí" : "No",
+      "Fecha de nacimiento": formatDateToInput(item.born_date),
+      Género: item.gender,
+      "Estado civil": item.state_civil,
+      Estado: item.state,
+      Ciudad: item.city,
+      Dirección: item.address,
+      Teléfono: item.phone,
+      Correo: item.email,
+      "Teléfono empresa": item.phone_company,
+      "Fecha de ingreso": formatDateToInput(item.date_admission),
+      Cargo: cargoMap.get(item.position) || item.position,
+      Contratista: contractorMap.get(item.contractor) || item.contractor,
+      Cuadrilla: squadMap.get(item.squad) || item.squad,
+      "Líder de Cuadrilla":
+        workerMap.get(item.leader_squad) || item.leader_squad,
+      Turno: shiftMap.get(item.shift) || item.shift,
+      Pulsera: item.wristband,
+      Observación: item.observation,
+      Banco: item.bank,
+      "Tipo de cuenta": item.account_type,
+      "Número de cuenta": item.account_number,
+      AFP: item.afp,
+      Salud: item.health,
+      status: item.status == 1 ? "Activo" : "Inactivo",
+    };
+  });
 
 
   return (
@@ -1074,7 +1120,8 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
                                   row.id,
                                   row.name ? row.name : "",
                                   row.lastname ? row.lastname : "",
-                                  row.email ? row.email : ""
+                                  row.email ? row.email : "",
+                                  row.squad ? row.squad : ""
                                 );
                               }}
                             >
@@ -1627,7 +1674,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
                     </div>
 
                     {
-                      <div className="flex-col gap-3 hidden">
+                      <div className="flex-col gap-3">
                         <label
                           htmlFor="squad"
                           className="text-sm font-semibold text-gray-800 dark:text-white"
@@ -1638,7 +1685,7 @@ const exportData = Array.isArray(initialData) && initialData && initialData.map(
                           name="squad"
                           id="squad"
                           disabled={openShowUser}
-                          //required={true}
+                          required={true}
                           {...register("squad")}
                           defaultValue={selectedItem ? selectedItem.squad : ""}
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"

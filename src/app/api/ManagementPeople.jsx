@@ -499,7 +499,6 @@ export const createSquad = async (data) => {
 }
 
 export const updateSquad = async (data) => {
-  console.log('datas', data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/management-people/Squads/updateSquad",
@@ -862,8 +861,8 @@ export const deleteWorker = async (id) => {
   }
 }
 
+//Actualizar desde squad el squad de workers
 export const updateSquadForWorker = async (data) => {
-  console.log('Datos para actualizar el escuadrón:', data);
   try {
     const res = await fetch(URLAPI + "/api/v1/management-people/workers/updateSquadForWorkers", {
       method: "POST",
@@ -874,8 +873,6 @@ export const updateSquadForWorker = async (data) => {
       body: JSON.stringify(data),
       cache: "no-store",
     });
-
-    console.log('Respuesta:', res);
 
     if (res.ok) {
       const workerData = await res.json();
@@ -890,6 +887,87 @@ export const updateSquadForWorker = async (data) => {
     return "ERROR";
   }
 }
+
+//Asignar el id de squad a los trabajadores desde workers hacia squads
+export const addWorkerToSquad = async (data) => {
+  try {
+    const res = await fetch(URLAPI + "/api/v1/management-people/workers/addWorkerToSquad", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData.code;
+    } else {
+      const errorData = await res.json();
+      console.error("Error response:", errorData);
+      return errorData.code || "ERROR";
+    }
+  } catch (err) {
+    console.error("Error al enviar la solicitud:", err);
+    return "ERROR";
+  }
+}
+
+//Eliminar el id de squad a los trabajadores desde workers hacia squads
+export const deleteWorkerFromSquad = async (data) => {
+  try {
+    const res = await fetch(URLAPI + "/api/v1/management-people/workers/deleteWorkerFromSquad", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData.code;
+    } else {
+      const errorData = await res.json();
+      console.error("Error response:", errorData);
+      return errorData.code || "ERROR";
+    }
+  } catch (err) {
+    console.error("Error al enviar la solicitud:", err);
+    return "ERROR";
+  }
+}
+
+export const updateWorkerFromSquad = async (data) => {
+  try {
+    const res = await fetch(URLAPI + "/api/v1/management-people/workers/updateWorkerFromSquad", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData.code;
+    } else {
+      const errorData = await res.json();
+      console.error("Error response:", errorData);
+      return errorData.code || "ERROR";
+    }
+  } catch (err) {
+    console.error("Error al enviar la solicitud:", err);
+    return "ERROR";
+  }
+}
+
 
 
 
