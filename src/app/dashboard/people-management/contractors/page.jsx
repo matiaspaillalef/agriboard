@@ -76,11 +76,11 @@ const PeopleManagementContractors = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableContractors
                 data={dataContractors}
-                thead="RUT, Nombre, Apellido, Giro, Teléfono, Email, Región, Ciudad, Estado"
+                thead="RUT, Nombre, Apellido, Giro, Teléfono, Email, Estado"
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
-                omitirColumns={"id"}
+                omitirColumns={["id", "city", "state", "address"]}
               />
             </div>
           </div>

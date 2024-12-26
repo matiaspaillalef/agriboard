@@ -388,9 +388,47 @@ const CardTableUsers = ({
               </h4>
             )}
 
-            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
+            <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5 items-center">
               {Array.isArray(initialData) &&
                 initialData.length > 0 &&
+
+                //select filtarr por empresas
+                datosCompanies.code === "OK" &&
+                Array.isArray(datosCompanies.companies) && (
+                  <select
+                    name="id_company"
+                    id="id_company"
+                    className="flex mt-2 w-full items-center justify-center rounded-xl border bg-white/0 pr-[30px] py-[12px] text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white md:flex-1 md:w-auto"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value) {
+                        const filteredData = data.filter(
+                          (item) => item.id_company == value
+                        );
+                        setInitialData(filteredData);
+                      } else {
+                        setInitialData(data);
+                      }
+
+                      setCurrentPage(1); // Resetear a la primera página después de la búsqueda
+
+                      //console.log(value);
+                      //console.log(filteredData);
+                      //console.log(data);
+                    }
+                  }
+                  >
+                    <option value="">Filtrar por empresa</option>
+                    {datosCompanies.companies.map((empresa, index) => (
+                      <option key={index} value={empresa.id}>
+                        {empresa.name_company}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+              {
+
                 downloadBtn && (
                   <ExportarExcel
                     data={initialData}
