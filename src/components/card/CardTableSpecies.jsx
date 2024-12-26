@@ -58,7 +58,7 @@ const CardTableSpecies = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState(data || []);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 

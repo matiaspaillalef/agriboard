@@ -531,7 +531,7 @@ const CardTableWorkers = ({
         setInitialData(updatedData);
         setOpenAlert(false);
         setUpdateMessage("Trabajador eliminado correctamente");
-      
+
 
         if (userData.code == "OK") {
           const userToDelete = userData.usuarios.find((user) => user.mail == email);
@@ -1026,118 +1026,156 @@ const CardTableWorkers = ({
 
               <tbody role="rowgroup">
                 {Array.isArray(initialData) && initialData.length > 0 ? (
-                  currentItems.map((row, index) => (
-                    <tr key={index} role="row">
-                      {Object.keys(row).map((key, rowIndex) => {
-                        if (omitirColumns.includes(key)) {
-                          return null; // Omitir la columna si está en omitirColumns
-                        }
-                        return (
+                  currentItems.map((row, index) => {
+                    // Verificar qué datos están vacíos
+                    const emptyFields = Object.keys(row)
+                      .filter((key) => key !== 'observation' && key !== 'phone_company' && (!row[key] && row[key] !== 0)) // Excluimos observation y phone_company
+                      .map((key) => key); // Obtener las claves que están vacías
+
+                    //console.log(`Campos vacíos en la fila ${index}:`, emptyFields);
+
+                    // Verificar si hay campos vacíos en la fila
+                    const hasEmptyFields = emptyFields.length > 0;
+
+                    return (
+                      <tr
+                        key={index}
+                        role="row"
+                        // Aplicar la clase 'isEmpty' solo si hay campos vacíos en la fila
+                        className={hasEmptyFields ? "isEmpty bg-yellow-100 dark:bg-yellow-600 text-brand-900" : ""}
+                      >
+                        {Object.keys(row).map((key, rowIndex) => {
+                          if (omitirColumns.includes(key)) {
+                            return null; // Omitir la columna si está en omitirColumns
+                          }
+
+                          // Verificar si la celda está vacía (excepto 'observation' y 'phone_company')
+                          const isEmpty = key !== 'observation' && key !== 'phone_company' && !row[key];
+
+                          return (
+                            <td
+                              key={rowIndex}
+                              role="cell"
+                              className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
+                                ? "bg-lightPrimary dark:bg-navy-900"
+                                : ""
+                                } ${columnsClasses[rowIndex] || "text-left"} ${isEmpty ? "bg-red-100 text-brand-900" : ""}`}
+                            >
+                              <div className={`text-base font-medium text-navy-700 dark:text-white ${hasEmptyFields && "flex items-center gap-1"}`}>
+
+                                {key === "rut" && (
+                                
+                           
+                                hasEmptyFields && (
+                                  <Tooltip
+                                    placement="top"
+                                    content="Faltan datos"
+                                    className="bg-red-500 text-white p-1 rounded-md px-3"
+                                  >
+                                      <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
+                                  </Tooltip>
+                                    ) 
+                                
+                                )
+                                }
+
+                                {key === "status" ? (
+                                  row[key] == 1 ? (
+                                    <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                      Activo
+                                    </p>
+                                  ) : (
+                                    <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                      Inactivo
+                                    </p>
+                                  )
+                                ) : key !== "password" ? (
+                                  key === "state" ? (
+                                    // Transformar el número de región a su nombre correspondiente
+                                    StateCL.find(
+                                      (state) => state.region_number == row[key]
+                                    )?.region || "-"
+                                  ) : (
+                                    formatNumber(row[key])
+                                  )
+                                ) : (
+                                  "" // No mostrar la contraseña
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                        {actions && (
                           <td
-                            key={rowIndex}
-                            role="cell"
+                            colSpan={columnLabels.length}
                             className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                              } ${columnsClasses[rowIndex] || "text-left"}`}
+                              }`}
                           >
-                            <div className="text-base font-medium text-navy-700 dark:text-white">
-                              {key === "status" ? (
-                                //console.log(key),
-                                row[key] == 1 ? (
-                                  <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                    Activo
-                                  </p>
-                                ) : (
-                                  <p className="inactiveState bg-red-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
-                                    Inactivo
-                                  </p>
-                                )
-                              ) : key !== "password" ? (
-                                key === "state" ? (
-                                  // Transformar el número de región a su nombre correspondiente
-                                  StateCL.find(
-                                    (state) => state.region_number == row[key]
-                                  )?.region || "-"
-                                ) : (
-                                  formatNumber(row[key])
-                                )
-                              ) : (
-                                "" // No mostrar la contraseña
-                              )}
-                            </div>
+                            <Tooltip
+                              placement="bottom"
+                              content="Ver trabajador"
+                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
+                            >
+                              <button
+                                type="button"
+                                className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                                onClick={() => handleOpenShowUser(row)}
+                              >
+                                <EyeIcon className="w-6 h-6" />
+                              </button>
+                            </Tooltip>
+
+                            <Tooltip
+                              placement="bottom"
+                              content="Editar trabajador"
+                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
+                            >
+                              <button
+                                type="button"
+                                className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                                onClick={() => handleOpenEditUser(row)}
+                              >
+                                <PencilSquareIcon className="w-6 h-6" />
+                              </button>
+                            </Tooltip>
+
+                            <Tooltip
+                              placement="bottom"
+                              content="Eliminar trabajador"
+                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
+                            >
+                              <button
+                                id="remove"
+                                type="button"
+                                onClick={() => {
+                                  handleOpenAlert(
+                                    index,
+                                    row.id,
+                                    row.name ? row.name : "",
+                                    row.lastname ? row.lastname : "",
+                                    row.email ? row.email : "",
+                                    row.squad ? row.squad : ""
+                                  );
+                                }}
+                              >
+                                <TrashIcon className="w-6 h-6" />
+                              </button>
+                            </Tooltip>
                           </td>
-                        );
-                      })}
-                      {actions && (
-                        <td
-                          colSpan={columnLabels.length}
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
-                            ? "bg-lightPrimary dark:bg-navy-900"
-                            : ""
-                            }`}
-                        >
-                          <Tooltip
-                            placement="bottom"
-                            content="Ver trabajador"
-                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                          >
-                            <button
-                              type="button"
-                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                              onClick={() => handleOpenShowUser(row)}
-                            >
-                              <EyeIcon className="w-6 h-6" />
-                            </button>
-                          </Tooltip>
-
-                          <Tooltip
-                            placement="bottom"
-                            content="Editar trabajador"
-                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                          >
-                            <button
-                              type="button"
-                              className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                              onClick={() => handleOpenEditUser(row)}
-                            >
-                              <PencilSquareIcon className="w-6 h-6" />
-                            </button>
-                          </Tooltip>
-
-                          <Tooltip
-                            placement="bottom"
-                            content="Eliminar trabajdor"
-                            className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                          >
-                            <button
-                              id="remove"
-                              type="button"
-                              onClick={() => {
-                                //console.log(row);
-                                handleOpenAlert(
-                                  index,
-                                  row.id,
-                                  row.name ? row.name : "",
-                                  row.lastname ? row.lastname : "",
-                                  row.email ? row.email : "",
-                                  row.squad ? row.squad : ""
-                                );
-                              }}
-                            >
-                              <TrashIcon className="w-6 h-6" />
-                            </button>
-                          </Tooltip>
-                        </td>
-                      )}
-                    </tr>
-                  ))
+                        )}
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td className="py-4">No se encontraron registros.</td>
                   </tr>
                 )}
               </tbody>
+
+
             </table>
           </div>
           {Array.isArray(initialData) &&
