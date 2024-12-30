@@ -68,6 +68,7 @@ export const createContractor = async (data) => {
           state: data.state,
           city: data.city,
           status: data.status,
+          address: data.address,
           idCompany: userData.idCompany,
         }),
         cache: "no-store",
@@ -114,6 +115,7 @@ export const updateContractor = async (data) => {
           state: data.state,
           city: data.city,
           status: data.status,
+          address: data.address,
         }),
         cache: "no-store",
       }

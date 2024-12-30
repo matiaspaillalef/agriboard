@@ -14,6 +14,8 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
   EyeIcon,
+  PhoneIcon,
+  ChatBubbleLeftRightIcon
 } from "@heroicons/react/24/outline";
 
 import {
@@ -60,6 +62,7 @@ const CardTableContractors = ({
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [openShowUser, setOpenShowUser] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState(null); // Estado para almacenar los datos del item seleccionado para editar
   const [updateMessage, setUpdateMessage] = useState(null); // Estado para manejar el mensaje de actualización
@@ -112,17 +115,32 @@ const CardTableContractors = ({
   });
 
   const handleOpenNewUser = () => {
+    setOpenShowUser(false);
     setIsEdit(false);
     handleOpen();
   };
 
   const handleOpenEditUser = (user) => {
+    //console.log(user);
+    setOpenShowUser(false);
     setRutValido(true); //Se pasa en true ya que si leventa la ventada de editar es por que los datos ya fueron validados
     setSelectedRegion(user.state);
     setIsEdit(true);
     setFormData(user);
     setSelectedItem(user);
     handleOpen(user);
+    
+  };
+
+
+  const handleOpenShowUser = (user) => {
+    //console.log(user);
+    setSelectedItem(user);
+    setOpenShowUser(true);
+    setSelectedRegion(user.state);
+    setFormData(user);
+    handleOpen(user);
+    setIsEdit(false);
   };
 
   const handleOpen = (user) => {
@@ -130,9 +148,10 @@ const CardTableContractors = ({
     setSelectedItem(user); // Actualiza el estado con los datos del usuario seleccionado
     setOpen(!open);
   };
+  
 
   const onUpdateItem = async (data) => {
-    console.log(data);
+
     try {
       const updateContractorApi = await updateContractor(data);
 
@@ -142,16 +161,17 @@ const CardTableContractors = ({
         const updatedData = initialData.map((item) =>
           item.id == data.id
             ? {
-                rut: data.rut,
-                name: data.name,
-                lastname: data.lastname,
-                giro: data.giro,
-                phone: data.phone,
-                email: data.email,
-                state: data.state,
-                city: data.city,
-                status: data.status,
-              }
+              rut: data.rut,
+              name: data.name,
+              lastname: data.lastname,
+              giro: data.giro,
+              phone: data.phone,
+              email: data.email,
+              state: data.state,
+              city: data.city,
+              address: data.address,
+              status: data.status,
+            }
             : item
         );
 
@@ -206,10 +226,10 @@ const CardTableContractors = ({
 
   // Creación
   const onSubmitForm = async (data) => {
+
     try {
       const createContractorapi = await createContractor(data);
 
-      console.log(createContractorapi);
       // Agrega la fila del front-end
       if (createContractorapi == "OK") {
         const updatedData = [...initialData, data]; // Agregar el nuevo usuario a la lista de datos existente
@@ -220,7 +240,6 @@ const CardTableContractors = ({
         const userData = JSON.parse(userDataString);
         const idCompany = userData.idCompany;
 
-        console.log("user data", userData);
         //Hago este fech para traer el ID del usuario recien creado y trayendo la data actualizada de la BD
         const newDataFetch = await getDataContractors(idCompany); // Actualizar la lista de usuarios
         //console.log(newDataFetch);
@@ -306,9 +325,8 @@ const CardTableContractors = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -334,9 +352,8 @@ const CardTableContractors = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -355,20 +372,20 @@ const CardTableContractors = ({
                   />
                 )}
 
-{SearchInput && (
-                <input
-                  type="search"
-                  placeholder="Buscar"
-                  className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
-                  onKeyUp={handlerSearch}
-                />
-              )}
+                {SearchInput && (
+                  <input
+                    type="search"
+                    placeholder="Buscar"
+                    className="search mt-2 w-[250px] h-[50px] rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-400 dark:border-white dark:text-white"
+                    onKeyUp={handlerSearch}
+                  />
+                )}
               </div>
             )}
           </div>
 
           <div className="h-full overflow-x-scroll max-h-dvh">
-          <table
+            <table
               role="table"
               className="mt-8 h-max w-full"
               variant="simple"
@@ -614,232 +631,343 @@ const CardTableContractors = ({
               <XMarkIcon className="w-6 h-6" />
             </button>
             <DialogHeader className="dark:text-white">
-              {isEdit ? "Editar Contratista" : "Crear Contratista"}
+              {openShowUser
+                ? "Datos del contratista"
+                : isEdit
+                  ? "Editar Contratista"
+                  : "Crear Contratista"
+                  }
             </DialogHeader>
             <DialogBody>
-              <form
-                onSubmit={handleSubmit(isEdit ? onUpdateItem : onSubmitForm)}
-                method="POST"
-              >
-                <input
-                  type="hidden"
-                  name="id"
-                  {...register("id")}
-                  defaultValue={selectedItem ? selectedItem.id : ""}
-                />
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3 ">
-                    <label
-                      htmlFor="name"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Nombre
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      id="name"
-                      required={true}
-                      defaultValue={selectedItem ? selectedItem.name : ""}
-                      {...register("name")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-3 ">
-                    <label
-                      htmlFor="lastname"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Apellido
-                    </label>
-                    <input
-                      type="text"
-                      name="lastname"
-                      id="lastname"
-                      required={true}
-                      defaultValue={selectedItem ? selectedItem.lastname : ""}
-                      {...register("lastname")}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    />
-                  </div>
-                </div>
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="rut"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      RUT
-                    </label>
-                    <Rut
-                      //value={rut}
-                      onChange={(e) => setRut(e.target.value)}
-                      onValid={setRutValido}
-                    >
+              {!openShowUser ? (
+                <form
+                  onSubmit={handleSubmit(isEdit ? onUpdateItem : onSubmitForm)}
+                  method="POST"
+                >
+                  <input
+                    type="hidden"
+                    name="id"
+                    {...register("id")}
+                    defaultValue={selectedItem ? selectedItem.id : ""}
+                  />
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3 ">
+                      <label
+                        htmlFor="name"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Nombre
+                      </label>
                       <input
                         type="text"
-                        name="rut"
-                        id="rut"
+                        name="name"
+                        id="name"
                         required={true}
-                        {...register("rut")}
-                        defaultValue={selectedItem ? selectedItem.rut : ""}
+                        defaultValue={selectedItem ? selectedItem.name : ""}
+                        {...register("name")}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
-                    </Rut>
-                    {!rutValido && (
-                      <span className="text-red-500 text-xs">
-                        El rut es inválido
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="giro"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Giro
-                    </label>
-                    <div className="relative">
+                    </div>
+                    <div className="flex flex-col gap-3 ">
+                      <label
+                        htmlFor="lastname"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Apellido
+                      </label>
                       <input
                         type="text"
-                        name="giro"
+                        name="lastname"
+                        id="lastname"
                         required={true}
-                        id="giro"
-                        {...register("giro")}
-                        defaultValue={selectedItem ? selectedItem.giro : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                        defaultValue={selectedItem ? selectedItem.lastname : ""}
+                        {...register("lastname")}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       />
                     </div>
                   </div>
-                </div>
-
-                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="phone"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Teléfono
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        name="phone"
-                        id="phone"
-                        {...register("phone")}
-                        defaultValue={selectedItem ? selectedItem.phone : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
+                  <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="rut"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        RUT
+                      </label>
+                      <Rut
+                        //value={rut}
+                        onChange={(e) => setRut(e.target.value)}
+                        onValid={setRutValido}
+                      >
+                        <input
+                          type="text"
+                          name="rut"
+                          id="rut"
+                          required={true}
+                          {...register("rut")}
+                          defaultValue={selectedItem ? selectedItem.rut : ""}
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                        />
+                      </Rut>
+                      {!rutValido && (
+                        <span className="text-red-500 text-xs">
+                          El rut es inválido
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="giro"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Giro
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          name="giro"
+                          required={true}
+                          id="giro"
+                          {...register("giro")}
+                          defaultValue={selectedItem ? selectedItem.giro : ""}
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="email"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Email
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        name="email"
-                        id="email"
-                        {...register("email")}
-                        defaultValue={selectedItem ? selectedItem.email : ""}
-                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
-                      />
+
+                  <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="phone"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Teléfono
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="tel"
+                          name="phone"
+                          id="phone"
+                          {...register("phone")}
+                          defaultValue={selectedItem ? selectedItem.phone : ""}
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="email"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Email
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          name="email"
+                          id="email"
+                          {...register("email")}
+                          defaultValue={selectedItem ? selectedItem.email : ""}
+                          className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white pr-10"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="state"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Región
-                    </label>
-                    <select
-                      name="state"
-                      id="state"
-                      required={true}
-                      {...register("state")}
-                      defaultValue={selectedItem ? selectedItem.state : ""}
-                      onChange={handleRegionChange}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {StateCL.map((state) => (
-                        <option
-                          key={state.region_number}
-                          value={state.region_number}
-                        >
-                          {state.region}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="city"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Ciudad
-                    </label>
-                    <select
-                      name="city"
-                      id="city"
-                      //value={selectedCity}
-                      onChange={(event) => setSelectedCity(event.target.value)}
-                      {...register("city")}
-                      defaultValue={selectedItem ? selectedItem.city : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      {selectedRegion &&
-                        StateCL.find(
-                          (state) => state.region_number === selectedRegion
-                        )?.comunas.map((comuna) => (
-                          <option key={comuna.name} value={comuna.name}>
-                            {comuna.name}
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="state"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Región
+                      </label>
+                      <select
+                        name="state"
+                        id="state"
+                        required={true}
+                        {...register("state")}
+                        defaultValue={selectedItem ? selectedItem.state : ""}
+                        onChange={handleRegionChange}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        {StateCL.map((state) => (
+                          <option
+                            key={state.region_number}
+                            value={state.region_number}
+                          >
+                            {state.region}
                           </option>
                         ))}
-                    </select>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="city"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Ciudad
+                      </label>
+                      <select
+                        name="city"
+                        id="city"
+                        //value={selectedCity}
+                        onChange={(event) => setSelectedCity(event.target.value)}
+                        {...register("city")}
+                        defaultValue={selectedItem ? selectedItem.city : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        {selectedRegion &&
+                          StateCL.find(
+                            (state) => state.region_number === selectedRegion
+                          )?.comunas.map((comuna) => (
+                            <option key={comuna.name} value={comuna.name}>
+                              {comuna.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
                   </div>
+
+                  <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="address"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Dirección
+                      </label>
+                      <input
+                        type="text"
+                        name="address"
+                        id="address"
+                        //required={true}
+                        {...register("address")}
+                        defaultValue={selectedItem ? selectedItem.address : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <label
+                        htmlFor="status"
+                        className="text-sm font-semibold text-gray-800 dark:text-white"
+                      >
+                        Estado
+                      </label>
+                      <select
+                        name="status"
+                        id="status"
+                        required={true}
+                        {...register("status")}
+                        defaultValue={selectedItem ? selectedItem.status : ""}
+                        className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                      >
+                        <option value="0">Inactivo</option>
+                        <option value="1">Activo</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <button
+                        type="submit"
+                        className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+                        //onSubmit={onUpdateItem}
+                        onSubmit={isEdit ? onUpdateItem : onSubmitForm}
+                      >
+                        {isEdit ? "Editar Contratista" : "Crear Contratista"}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex flex-col gap-3">
+
+                  <p className="text-md font-semibold text-gray-800 dark:text-white">
+                    <strong>
+                    {selectedItem ? `${selectedItem.name || ""} ${selectedItem.lastname || ""}` : "Sin información"}
+                    </strong>
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Giro:</strong>{" "}
+                    {selectedItem?.giro || "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>RUT:</strong> {selectedItem?.rut || "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white flex gap-2 align-middle">
+                    <span>
+                      <strong>Teléfono:</strong>{" "}
+                      {selectedItem?.phone ? (
+                        <a
+                          href={`tel:${selectedItem?.phone}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {selectedItem?.phone}
+                        </a>
+                      ) : (
+                        "No registrado"
+                      )}
+                    </span>
+                    <a
+                      href={`tel:${selectedItem?.phone}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-blueQuinary inline-flex align-middle justify-center p-1 text-white"
+                    >
+                      <PhoneIcon className="w-4 h-4" />
+                    </a>
+                    <a
+                      href={`https://api.whatsapp.com/send?phone=${selectedItem?.phone}&text=Buen%20d%C3%ADa!%20${selectedItem?.name} ${selectedItem?.lastname}`}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      className="bg-[#25d366] inline-flex align-middle justify-center p-1 text-white"
+                    >
+                      <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                    </a>
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Email:</strong>{" "}
+                    {selectedItem?.email && selectedItem?.email != ' ' ? (
+                      <a
+                        href={`mailto:${selectedItem.email}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {selectedItem?.email}
+                      </a>
+                    ) : (
+                      "No registrado"
+                    )}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Región:</strong>{" "}
+                    {StateCL.find(
+                      (state) => state?.region_number == selectedItem?.state
+                    )?.region || "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Ciudad:</strong> {selectedItem?.city || "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Dirección:</strong> {selectedItem?.address || "-"}
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    <strong>Estado:</strong>{" "}
+                    {selectedItem?.status == 1 ? "Activo" : "Inactivo"}
+                  </p>
                 </div>
 
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-                  <div className="flex flex-col gap-3">
-                    <label
-                      htmlFor="status"
-                      className="text-sm font-semibold text-gray-800 dark:text-white"
-                    >
-                      Estado
-                    </label>
-                    <select
-                      name="status"
-                      id="status"
-                      required={true}
-                      {...register("status")}
-                      defaultValue={selectedItem ? selectedItem.status : ""}
-                      className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                    >
-                      <option value="0">Inactivo</option>
-                      <option value="1">Activo</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <button
-                      type="submit"
-                      className="linear mt-[30px] w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-navy-500 active:bg-navy-500 dark:bg-navy-500 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-                      //onSubmit={onUpdateItem}
-                      onSubmit={isEdit ? onUpdateItem : onSubmitForm}
-                    >
-                      {isEdit ? "Editar Contratista" : "Crear Contratista"}
-                    </button>
-                  </div>
-                </div>
-              </form>
+              )}
             </DialogBody>
           </Dialog>
 

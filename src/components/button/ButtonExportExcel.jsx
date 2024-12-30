@@ -64,7 +64,7 @@ const ExportarExcel = ({ data, filename, sheetname, titlebutton }) => {
   return (
     <button
       onClick={exportToExcel}
-      className="max-w-[300px] linear mt-2 w-fit px-5 rounded-xl bg-green-600 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-green-900 dark:text-white items-center justify-center flex gap-2 normal-case"
+      className="w-full md:max-w-[300px] max-w-full linear mt-2 md:w-fit px-5 rounded-xl bg-green-600 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-green-900 dark:text-white items-center justify-center flex gap-2 normal-case !flex-1"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
