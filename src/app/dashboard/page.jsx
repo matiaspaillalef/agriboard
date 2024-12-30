@@ -468,7 +468,10 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
             {
               id: 2,
               name: "Kg. Prom.",
-              value: dataKgAvg?.avgKgBoxes || 0,
+              value: 
+                (dataKgSeason?.kg_boxes && dataAllDaysOfHarvest[0]?.dias_cosecha) 
+                  ? (dataKgSeason.kg_boxes / dataAllDaysOfHarvest[0].dias_cosecha).toFixed(1) 
+                  : 0,
             },
           ]}
           isLoading={loadingDataAllDaysOfHarvest && loadingDataKgAvg}
@@ -491,7 +494,10 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
             {
               id: 3,
               name: "Kg. Prom. Día",
-              value: dataKgAvgDay?.avgKgBoxes || 0,
+              value: 
+                (dataKgDay?.kg_boxes && dataWorkers?.workersCount) 
+                  ? (dataKgDay.kg_boxes / dataWorkers.workersCount).toFixed(1)
+                  : 0,
             },
           ]}
           isLoading={loadingDataWorkers && loadingDataWorkersWeek && loadingDataKgAvgDay}
