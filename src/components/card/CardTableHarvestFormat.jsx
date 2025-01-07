@@ -887,7 +887,7 @@ const CardTableHarvestFormat = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay recolecciones</option>
+                          <option value="" disabled>No hay recolecciones</option>
                         )}
                       </select>
                     </div>
@@ -918,7 +918,7 @@ const CardTableHarvestFormat = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay especies</option>
+                          <option value="" disabled>No hay especies</option>
                         )}
                       </select>
                     </div>

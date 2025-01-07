@@ -720,7 +720,7 @@ const CardTableDeals = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay datos</option>
+                          <option value="" disabled>No hay datos</option>
                         )}
                       </select>
                     </div>
@@ -752,7 +752,7 @@ const CardTableDeals = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay datos</option>
+                          <option value="" disabled>No hay datos</option>
                         )}
                       </select>
                     </div>

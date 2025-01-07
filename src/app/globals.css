@@ -134,3 +134,7 @@ body {
 .isEmpty td > div{
   color: rgb(11 20 55 ) !important;
 }
+
+.dark select option {
+  color: rgb(11 20 55 );
+}
