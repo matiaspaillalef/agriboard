@@ -1685,16 +1685,12 @@ const CardTableWorkers = ({
                       >
                         <option value="" disabled>Selecciona un cargo</option>
                         {Array.isArray(dataPosition) &&
-                          dataPosition.length > 0 ? (
+                          dataPosition.length > 0 && (
                           dataPosition.map((position) => (
                             <option key={position.id} value={position.id}>
                               {position.name}
                             </option>
                           ))
-                        ) : (
-                          <option value="" disabled>
-                            No hay posiciones disponibles
-                          </option>
                         )}
                       </select>
                     </div>
@@ -1718,16 +1714,12 @@ const CardTableWorkers = ({
                       >
                         <option value="" disabled>Selecciona un contratista</option>
                         {Array.isArray(dataContractor) &&
-                          dataContractor.length > 0 ? (
+                          dataContractor.length > 0 && (
                           dataContractor.map((contractor) => (
                             <option key={contractor.id} value={contractor.id}>
                               {contractor.name}
                             </option>
                           ))
-                        ) : (
-                          <option value="" disabled>
-                            No hay contratistas disponibles
-                          </option>
                         )}
                       </select>
                     </div>
@@ -1750,16 +1742,12 @@ const CardTableWorkers = ({
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                         >
                           <option value="" disabled>Selecciona una cuadrilla</option>
-                          {Array.isArray(dataSquad) && dataSquad.length > 0 ? (
+                          {Array.isArray(dataSquad) && dataSquad.length > 0 && (
                             dataSquad.map((squad) => (
                               <option key={squad.id} value={squad.id}>
                                 {squad.name}
                               </option>
                             ))
-                          ) : (
-                            <option value="" disabled>
-                              No hay escuadrones disponibles
-                            </option>
                           )}
                         </select>
                       </div>
@@ -1805,14 +1793,12 @@ const CardTableWorkers = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="" disabled>Selecciona un turno</option>
-                        {Array.isArray(dataShift) && dataShift.length > 0 ? (
+                        {Array.isArray(dataShift) && dataShift.length > 0 && (
                           dataShift.map((shift) => (
                             <option key={shift.id} value={shift.id}>
                               {shift.name}
                             </option>
                           ))
-                        ) : (
-                          <option value="" disabled>No hay turnos disponibles</option>
                         )}
                       </select>
                     </div>
@@ -2039,8 +2025,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Rol:</strong>
-                    {selectedItem.is_weigher == 1 ? "Pesador" : "Trabajador"}
+                    <strong>Rol:</strong> {selectedItem.is_weigher == 1 ? "Pesador" : "Trabajador"}
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
@@ -2048,7 +2033,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha de nacimiento:</strong>
+                    <strong>Fecha de nacimiento:</strong>{" "}
                     {selectedItem.born_date
                       ? formatDateView(
                         formatDateToInput(selectedItem.born_date)
@@ -2066,7 +2051,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Región:</strong>
+                    <strong>Región:</strong>{" "}
                     {StateCL.find(
                       (state) => state.region_number == selectedItem.state
                     )?.region || "-"}
@@ -2191,7 +2176,7 @@ const CardTableWorkers = ({
                   <h3 className="font-bold mt-4 bb-2">Información legal</h3>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Banco:</strong>
+                    <strong>Banco:</strong>{" "}
                     {dataBank
                       ? dataBank.find((bank) => bank.bank == selectedItem.bank)
                         ?.bank || "-"
@@ -2214,7 +2199,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>AFP:</strong>
+                    <strong>AFP:</strong>{" "}
                     {dataAFP && selectedItem.afp
                       ? dataAFP.find((afp) => afp.afp == selectedItem.afp)
                         ?.afp || "-"
