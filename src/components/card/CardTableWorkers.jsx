@@ -1027,10 +1027,29 @@ const CardTableWorkers = ({
               <tbody role="rowgroup">
                 {Array.isArray(initialData) && initialData.length > 0 ? (
                   currentItems.map((row, index) => {
+
+                    const excludedKeys = [
+                      "observation",
+                      "phone_company",
+                      "lastname2",
+                      "born_date",
+                      "gender",
+                      "state_civil",
+                      "contractor",
+                      "leader_squad",
+                      "shift",
+                      "bank",
+                      "account_number",
+                      "account_type",
+                      "afp",
+                      "health",
+                      "wristband",
+                    ];
+
                     // Verificar qué datos están vacíos
-                    const emptyFields = Object.keys(row)
-                      .filter((key) => key !== 'observation' && key !== 'phone_company' && (!row[key] && row[key] !== 0)) // Excluimos observation y phone_company
-                      .map((key) => key); // Obtener las claves que están vacías
+                    const emptyFields = Object.keys(row).filter(
+                      (key) => !excludedKeys.includes(key) && (!row[key] && row[key] !== 0)
+                    );
 
                     //console.log(`Campos vacíos en la fila ${index}:`, emptyFields);
 
@@ -1064,24 +1083,24 @@ const CardTableWorkers = ({
                               <div className={`text-base font-medium text-navy-700 dark:text-white ${hasEmptyFields && "flex items-center gap-1"}`}>
 
                                 {key === "rut" && (
-                                
-                           
-                                hasEmptyFields && (
-                                  <Tooltip
-                                    placement="top"
-                                    content="Faltan datos"
-                                    className="bg-red-500 text-white p-1 rounded-md px-3"
-                                  >
+
+
+                                  hasEmptyFields && (
+                                    <Tooltip
+                                      placement="top"
+                                      content="Faltan datos"
+                                      className="bg-red-500 text-white p-1 rounded-md px-3"
+                                    >
                                       <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
-                                  </Tooltip>
-                                    ) 
-                                
+                                    </Tooltip>
+                                  )
+
                                 )
                                 }
 
                                 {key === "status" ? (
                                   row[key] == 1 ? (
-                                    <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 min-w-36 max-w-36">
                                       Activo
                                     </p>
                                   ) : (
@@ -1113,56 +1132,58 @@ const CardTableWorkers = ({
                               : ""
                               }`}
                           >
-                            <Tooltip
-                              placement="bottom"
-                              content="Ver trabajador"
-                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                            >
-                              <button
-                                type="button"
-                                className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                                onClick={() => handleOpenShowUser(row)}
+                            <div className="flex items-center justify-start gap-1">
+                              <Tooltip
+                                placement="bottom"
+                                content="Ver trabajador"
+                                className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                               >
-                                <EyeIcon className="w-6 h-6" />
-                              </button>
-                            </Tooltip>
+                                <button
+                                  type="button"
+                                  className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                                  onClick={() => handleOpenShowUser(row)}
+                                >
+                                  <EyeIcon className="w-6 h-6" />
+                                </button>
+                              </Tooltip>
 
-                            <Tooltip
-                              placement="bottom"
-                              content="Editar trabajador"
-                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                            >
-                              <button
-                                type="button"
-                                className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                                onClick={() => handleOpenEditUser(row)}
+                              <Tooltip
+                                placement="bottom"
+                                content="Editar trabajador"
+                                className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                               >
-                                <PencilSquareIcon className="w-6 h-6" />
-                              </button>
-                            </Tooltip>
+                                <button
+                                  type="button"
+                                  className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                                  onClick={() => handleOpenEditUser(row)}
+                                >
+                                  <PencilSquareIcon className="w-6 h-6" />
+                                </button>
+                              </Tooltip>
 
-                            <Tooltip
-                              placement="bottom"
-                              content="Eliminar trabajador"
-                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                            >
-                              <button
-                                id="remove"
-                                type="button"
-                                onClick={() => {
-                                  handleOpenAlert(
-                                    index,
-                                    row.id,
-                                    row.name ? row.name : "",
-                                    row.lastname ? row.lastname : "",
-                                    row.email ? row.email : "",
-                                    row.squad ? row.squad : ""
-                                  );
-                                }}
+                              <Tooltip
+                                placement="bottom"
+                                content="Eliminar trabajador"
+                                className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                               >
-                                <TrashIcon className="w-6 h-6" />
-                              </button>
-                            </Tooltip>
+                                <button
+                                  id="remove"
+                                  type="button"
+                                  onClick={() => {
+                                    handleOpenAlert(
+                                      index,
+                                      row.id,
+                                      row.name ? row.name : "",
+                                      row.lastname ? row.lastname : "",
+                                      row.email ? row.email : "",
+                                      row.squad ? row.squad : ""
+                                    );
+                                  }}
+                                >
+                                  <TrashIcon className="w-6 h-6" />
+                                </button>
+                              </Tooltip>
+                            </div>
                           </td>
                         )}
                       </tr>

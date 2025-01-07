@@ -629,7 +629,7 @@ const CardTableScale = ({
                               </button>
                             </>
                           )}
-                          {rol != 1 && (
+                          {(rol == 1 || rol == 2) &&  (
                             <button
                               id="message"
                               type="button"

@@ -13,10 +13,13 @@ import {
 import CustomImage from "@/components/customImage/CustomImage";
 
 import { getDataCompanies } from "@/app/api/ConfiguracionApi";
+import { getDataGround } from "@/app/api/ProductionApi";
 
 const Sidebar = ({ open, onClose }) => {
   const [dataCompanies, setDataCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [dataGrounds, setDataGrounds] = useState([]);
+  const [selectedGround, setSelectedGround] = useState("");
   const [idRole, setIdRole] = useState("");
 
   const pathname = usePathname();
@@ -35,6 +38,7 @@ const Sidebar = ({ open, onClose }) => {
     const getStoredCompanyId = () => {
       const storedCompanyId = sessionStorage.getItem('selectedCompanyId');
       const userData = JSON.parse(sessionStorage.getItem('userData'));
+
       if (storedCompanyId) {
         setIdRole(userData?.rol);
         setSelectedCompanyId(storedCompanyId);
@@ -44,6 +48,9 @@ const Sidebar = ({ open, onClose }) => {
           setSelectedCompanyId(userData.idCompany);
         }
       }
+
+
+      
     };
 
     // Obtener datos de empresas
@@ -78,6 +85,42 @@ const Sidebar = ({ open, onClose }) => {
   };
 
   }, []);
+
+
+  useEffect(() => {
+    if (selectedCompanyId) {
+      // Actualizar terrenos cuando cambia la empresa seleccionada
+      const fetchGrounds = async () => {
+        try {
+          const grounds = await getDataGround(selectedCompanyId);
+          setDataGrounds(grounds);
+          //console.log('campito', grounds.grounds[0].id);
+          if (grounds.code === "OK" && grounds.grounds.length > 0) {
+            setSelectedGround(grounds.grounds[0].id);
+            // Actualizar userData en sessionStorage con el nuevo idGround seleccionado
+            const userData = JSON.parse(sessionStorage.getItem('userData')) || {};
+            userData.idGround = grounds.grounds[0].id;
+            sessionStorage.setItem('userData', JSON.stringify(userData));
+            sessionStorage.setItem("selectedGround", userData.idGround);
+
+            document.body.classList.forEach((className) => {
+              if (className.startsWith("ground-")) {
+                document.body.classList.remove(className);
+              }
+            }
+            );
+            //agregar clase con el id ground al body
+            document.body.classList.add(`ground-${grounds.grounds[0].id}`);
+
+          }
+        } catch (error) {
+          console.error("Error al obtener terrenos:", error);
+        }
+      };
+
+      fetchGrounds();
+    }
+  }, [selectedCompanyId]);
   
 
   const handleChange = (e) => {
@@ -96,6 +139,7 @@ const Sidebar = ({ open, onClose }) => {
     document.body.classList.add(`company-${companyId}`);
     // Actualizar la página para mostrar los datos de la empresa seleccionada
     //window.location.reload();
+
   };
 
   useEffect(() => {
@@ -163,7 +207,7 @@ const Sidebar = ({ open, onClose }) => {
       <p className="px-8 pt-8 text-xs mb-0 text-white dark:text-white">
         &copy; {new Date().getFullYear()} Agrisoft Software
       </p>
-      <span className="px-8 text-gray-500 text-xs">v 1.0.0.1</span>
+      <span className="px-8 text-gray-500 text-xs">v 1.25.1.1</span>
     </div>
   );
 };

@@ -745,17 +745,17 @@ const CardTableRegularizationProduction = ({
         setDataSpecies(fetchedDataSpecies);
         setDataQuality(fetchedDataQuality);
         setDataHarvestFormat(fetchedDataHarvestFormat);
-        console.log(fetchedDataUser);
-        console.log(fetchedDataUser.code);
-        console.log(fetchedDataUser.usuarios);
-        console.log(dataUser);
+        //console.log(fetchedDataUser);
+        //console.log(fetchedDataUser.code);
+        //console.log(fetchedDataUser.usuarios);
+        //console.log(dataUser);
         if(fetchedDataUser.code == 'OK'){
-          console.log(fetchedDataUser.usuarios);
+          //console.log(fetchedDataUser.usuarios);
           setDataUserExcel(fetchedDataUser.usuarios);
         }else{
           setDataUserExcel([]);
         }
-        console.log(dataUserExcel);
+        //console.log(dataUserExcel);
         if (fetchedDataGround == 'OK') {
           setDataGround(fetchedDataGround.grounds);
         } else {
@@ -770,7 +770,7 @@ const CardTableRegularizationProduction = ({
           
             // Aseguramos que el tipo de dato sea consistente
             const pesador = fetchedDataUser?.usuarios?.find((user) => {
-              console.log(`Comparando ${Number(item.weigher_rut)} con ${user.id}`);
+              //console.log(`Comparando ${Number(item.weigher_rut)} con ${user.id}`);
               return Number(item.weigher_rut) === user.id;
             });
         
