@@ -781,7 +781,7 @@ const CardTableScale = ({
                           ));
                         }
                         )() : (
-                          <option value="">No hay campos</option>
+                          <option value="" disabled>No hay campos</option>
                         )}
                       </select>
                     </div>

@@ -84,7 +84,7 @@ const CardTableWorkers = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState(data || []);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [idRole, setIdRole] = useState("");
@@ -466,7 +466,7 @@ const CardTableWorkers = ({
           // Creamos al usuario
           const updateUser = await createUser(dataWeigher);
 
-          initialData(newFetchData);
+          setInitialData(newFetchData);
 
         } else {
           // Si no es pesador, buscamos al usuario y lo eliminamos
@@ -1140,7 +1140,7 @@ const CardTableWorkers = ({
                               >
                                 <button
                                   type="button"
-                                  className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                                  className={`text-sm font-semibold text-gray-800 dark:text-white mr-2 ${hasEmptyFields ? "dark:text-gray-800" : ""}`}
                                   onClick={() => handleOpenShowUser(row)}
                                 >
                                   <EyeIcon className="w-6 h-6" />
@@ -1154,7 +1154,7 @@ const CardTableWorkers = ({
                               >
                                 <button
                                   type="button"
-                                  className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
+                                  className={`text-sm font-semibold text-gray-800 dark:text-white mr-2 ${hasEmptyFields ? "dark:text-gray-800" : ""}`}
                                   onClick={() => handleOpenEditUser(row)}
                                 >
                                   <PencilSquareIcon className="w-6 h-6" />
@@ -1462,7 +1462,7 @@ const CardTableWorkers = ({
                           defaultValue={selectedItem ? selectedItem.gender : ""}
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                         >
-                          <option value="Masculino">Masculino</option>
+                          <option value="Masculino" className="text-gray-800">Masculino</option>
                           <option value="Femenino">Femenino</option>
                           <option value="Otro">Otro</option>
                         </select>
@@ -1683,7 +1683,7 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.position : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un cargo</option>
+                        <option value="" disabled>Selecciona un cargo</option>
                         {Array.isArray(dataPosition) &&
                           dataPosition.length > 0 ? (
                           dataPosition.map((position) => (
@@ -1692,7 +1692,7 @@ const CardTableWorkers = ({
                             </option>
                           ))
                         ) : (
-                          <option value="">
+                          <option value="" disabled>
                             No hay posiciones disponibles
                           </option>
                         )}
@@ -1716,7 +1716,7 @@ const CardTableWorkers = ({
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un contratista</option>
+                        <option value="" disabled>Selecciona un contratista</option>
                         {Array.isArray(dataContractor) &&
                           dataContractor.length > 0 ? (
                           dataContractor.map((contractor) => (
@@ -1725,7 +1725,7 @@ const CardTableWorkers = ({
                             </option>
                           ))
                         ) : (
-                          <option value="">
+                          <option value="" disabled>
                             No hay contratistas disponibles
                           </option>
                         )}
@@ -1749,7 +1749,7 @@ const CardTableWorkers = ({
                           defaultValue={selectedItem ? selectedItem.squad : ""}
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                         >
-                          <option value="">Selecciona una cuadrilla</option>
+                          <option value="" disabled>Selecciona una cuadrilla</option>
                           {Array.isArray(dataSquad) && dataSquad.length > 0 ? (
                             dataSquad.map((squad) => (
                               <option key={squad.id} value={squad.id}>
@@ -1757,7 +1757,7 @@ const CardTableWorkers = ({
                               </option>
                             ))
                           ) : (
-                            <option value="">
+                            <option value="" disabled>
                               No hay escuadrones disponibles
                             </option>
                           )}
@@ -1804,7 +1804,7 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.shift : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un turno</option>
+                        <option value="" disabled>Selecciona un turno</option>
                         {Array.isArray(dataShift) && dataShift.length > 0 ? (
                           dataShift.map((shift) => (
                             <option key={shift.id} value={shift.id}>
@@ -1812,7 +1812,7 @@ const CardTableWorkers = ({
                             </option>
                           ))
                         ) : (
-                          <option value="">No hay turnos disponibles</option>
+                          <option value="" disabled>No hay turnos disponibles</option>
                         )}
                       </select>
                     </div>
@@ -1875,7 +1875,7 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.bank : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un banco</option>
+                        <option value="" disabled>Selecciona un banco</option>
                         {dataBank &&
                           dataBank.map((bank) => (
                             <option key={bank.bank} value={bank.bank}>
@@ -1902,7 +1902,7 @@ const CardTableWorkers = ({
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un tipo de cuenta</option>
+                        <option value="" disabled>Selecciona un tipo de cuenta</option>
                         {dataAccountType &&
                           dataAccountType.map((accountType) => (
                             <option
@@ -1951,7 +1951,7 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.afp : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona una AFP</option>
+                        <option value="" disabled>Selecciona una AFP</option>
                         {dataAFP &&
                           dataAFP.map((afp) => (
                             <option key={afp.afp} value={afp.afp}>
@@ -1977,7 +1977,7 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.health : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona una previsión</option>
+                        <option value="" disabled>Selecciona una previsión</option>
                         {dataSalud &&
                           dataSalud.map((health) => (
                             <option key={health.salud} value={health.salud}>

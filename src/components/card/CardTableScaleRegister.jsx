@@ -804,7 +804,7 @@ const CardTableScaleRegister = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay balanzas</option>
+                          <option value="" disabled>No hay balanzas</option>
                         )}
                       </select>
                     </div>
@@ -857,7 +857,7 @@ const CardTableScaleRegister = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay especies</option>
+                          <option value="" disabled>No hay especies</option>
                         )}
                       </select>
                     </div>
@@ -888,7 +888,7 @@ const CardTableScaleRegister = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay variedades</option>
+                          <option value="" disabled>No hay variedades</option>
                         )}
                       </select>
                     </div>
@@ -921,7 +921,7 @@ const CardTableScaleRegister = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay calidades</option>
+                          <option value="" disabled>No hay calidades</option>
                         )}
                       </select>
                     </div>
@@ -951,7 +951,7 @@ const CardTableScaleRegister = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay temporadas</option>
+                          <option value="" disabled>No hay temporadas</option>
                         )}
                       </select>
                     </div>

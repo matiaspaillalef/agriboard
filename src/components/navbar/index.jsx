@@ -209,7 +209,7 @@ const Navbar = (props) => {
                     </option>
                   ))
                 ) : (
-                  <option value="">Sin campos</option>
+                  <option value="" disabled>Sin campos</option>
                 )}
               </select>
             </div>

@@ -847,7 +847,7 @@ const CardTableGround = ({
                       //value={selectedCity}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                     >
-                      <option value="">Seleccione una ciudad</option>{" "}
+                      <option value="" disabled>Seleccione una ciudad</option>{" "}
                       {/* Opción predeterminada */}
                       {filteredComunas.map((comuna) => (
                         <option key={comuna.name} value={comuna.name}>

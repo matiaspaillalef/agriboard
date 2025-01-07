@@ -1249,7 +1249,7 @@ const CardTableManualHarvesting = ({
                             </option>
                           )
                         ) : (
-                          <option value="">No hay sectores</option>
+                          <option value="" disabled>No hay sectores</option>
                         )}
                       </select>
                     </div>
@@ -1274,7 +1274,7 @@ const CardTableManualHarvesting = ({
                         }}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Elige una cuadrilla</option>
+                        <option value="" disabled>Elige una cuadrilla</option>
                         {Array.isArray(dataSqaads) && dataSqaads.length > 0 ? (
                           dataSqaads.map(
                             (squad) =>
@@ -1285,7 +1285,7 @@ const CardTableManualHarvesting = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay cuadrillas</option>
+                          <option value="" disabled>No hay cuadrillas</option>
                         )}
                       </select>
                     </div>
@@ -1308,7 +1308,7 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.batch : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Elige un lote</option>
+                        <option value="" disabled>Elige un lote</option>
 
                         {Array.from({ length: 50 }, (_, i) => i + 1).map(
                           (lote) => (
@@ -1352,7 +1352,7 @@ const CardTableManualHarvesting = ({
                         {dataChangeSquad ? (
                           Array.isArray(dataSqaads) && dataSqaads.length > 0 ? (
                             <>
-                              <option value="">Elige cosechero</option>
+                              <option value="" disabled>Elige cosechero</option>
                               {dataSqaads
                                 .filter((squad) => squad.id == dataChangeSquad)
                                 .map((squad) =>
@@ -1381,11 +1381,11 @@ const CardTableManualHarvesting = ({
                                 )}
                             </>
                           ) : (
-                            <option value="">No hay trabajadores</option>
+                            <option value="" disabled>No hay trabajadores</option>
                           )
                         ) : dataWorkers && dataWorkers.length > 0 ? (
                           <>
-                            <option value="">Elige cosechero</option>
+                            <option value="" disabled>Elige cosechero</option>
                             {Array.isArray(dataWorkers) &&
                               dataWorkers.map((worker) =>
                                 worker.status !== 0 ? (
@@ -1399,7 +1399,7 @@ const CardTableManualHarvesting = ({
                               )}
                           </>
                         ) : (
-                          <option value="">No hay trabajadores</option>
+                          <option value="" disabled>No hay trabajadores</option>
                         )}
                       </select>
                     </div>
@@ -1462,7 +1462,7 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.specie : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Elige una especie</option>
+                        <option value="" disabled>Elige una especie</option>
                         {Array.isArray(filteredSpecies) && filteredSpecies.length > 0 ? (
                           filteredSpecies.map((specie) => (
                             <option key={specie.id} value={specie.id}>
@@ -1470,7 +1470,7 @@ const CardTableManualHarvesting = ({
                             </option>
                           ))
                         ) : (
-                          <option value="">No hay especies</option>
+                          <option value="" disabled>No hay especies</option>
                         )}
                       </select>
                     </div>
@@ -1490,7 +1490,7 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.variety : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Elige una variedad</option>
+                        <option value="" disabled>Elige una variedad</option>
 
                         {Array.isArray(dataSpecies) &&
                           dataSpecies.length > 0 ? (
@@ -1523,7 +1523,7 @@ const CardTableManualHarvesting = ({
                               )
                             )
                         ) : (
-                          <option value="">No hay variedades</option>
+                          <option value="" disabled>No hay variedades</option>
                         )}
                       </select>
                     </div>
@@ -1582,7 +1582,7 @@ const CardTableManualHarvesting = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <>
-                          <option value="">Elige una calidad</option>
+                          <option value="" disabled>Elige una calidad</option>
                           {Array.isArray(dataQuality) &&
                             dataQuality.length > 0 ? (
                             dataQuality.map(
@@ -1594,7 +1594,7 @@ const CardTableManualHarvesting = ({
                                 )
                             )
                           ) : (
-                            <option value="">No hay calidades</option>
+                            <option value="" disabled>No hay calidades</option>
                           )}
                         </>
                       </select>
@@ -1618,7 +1618,7 @@ const CardTableManualHarvesting = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <>
-                          <option value="">Elige un formato de cosecha</option>
+                          <option value="" disabled>Elige un formato de cosecha</option>
                           {Array.isArray(dataHarvestFormat) &&
                             dataHarvestFormat.length > 0 ? (
                             dataHarvestFormat.map(
@@ -1633,7 +1633,7 @@ const CardTableManualHarvesting = ({
                                 )
                             )
                           ) : (
-                            <option value="">No hay formatos de cosecha</option>
+                            <option value="" disabled>No hay formatos de cosecha</option>
                           )}
                         </>
                       </select>
@@ -1657,7 +1657,7 @@ const CardTableManualHarvesting = ({
                       >
                         {dataWorkers && dataWorkers.length > 0 && (
                           <>
-                            <option value="">Elige pesador</option>
+                            <option value="" disabled>Elige pesador</option>
                             {Array.isArray(dataWorkers) && dataWorkers.map((worker) =>
                               worker.status !== 0 && worker.is_weigher == 1 ? (
                                 <option key={worker.id} value={worker.id}>
@@ -1685,7 +1685,7 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.season : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Elige una temporada</option>
+                        <option value="" disabled>Elige una temporada</option>
                         {Array.isArray(dataSeasons) &&
                           dataSeasons.length > 0 ? (
                           dataSeasons.map(
@@ -1697,7 +1697,7 @@ const CardTableManualHarvesting = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay temporadas</option>
+                          <option value="" disabled>No hay temporadas</option>
                         )}
                       </select>
                     </div>
@@ -1716,7 +1716,7 @@ const CardTableManualHarvesting = ({
                         defaultValue={selectedItem ? selectedItem.turns : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Elige un turno</option>
+                        <option value="" disabled>Elige un turno</option>
 
                         {dataShifts.code === "OK" &&
                           Array.isArray(dataShifts.shifts) &&
@@ -1748,7 +1748,7 @@ const CardTableManualHarvesting = ({
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Elige un contratista</option>
+                        <option value="" disabled>Elige un contratista</option>
                         {Array.isArray(dataContractors) &&
                           dataContractors.length > 0 ? (
                           dataContractors.map(
@@ -1763,7 +1763,7 @@ const CardTableManualHarvesting = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay contratistas</option>
+                          <option value="" disabled>No hay contratistas</option>
                         )}
                       </select>
                     </div>
