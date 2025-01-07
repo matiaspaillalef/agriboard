@@ -50,7 +50,7 @@ const Dashboard = () => {
   const [dataKgSeasonQlty, setDataKgSeasonQlty] = useState({});
   const [dataWorkers, setDataWorkers] = useState([]);
   const [dataWorkersWeek, setDataWorkersWeek] = useState([]);
-  const [dataVaritiesDay, setDataVaritiesDay] = useState([]);
+  const [dataVaritiesDayState, setDataVaritiesDay] = useState([]);
   const [dataVaritiesSeason, setDataVaritiesSeason] = useState([]);
   const [dataVarietiesSeasonPercentage, setDataVarietiesSeasonPercentage] =
     useState([]);
@@ -103,7 +103,9 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
       try {
         const dataGround = await getDataGround(Number(companyId ? companyId : userCompantData)); // Aquí haces la llamada a la API
         //console.log(dataGround);
-        setDataGrounds(dataGround); // Aquí actualizas el estado con los datos que recibiste
+        setDataGrounds(dataGround);
+
+        //console.log('dataGround', dataGround);
 
         if (dataGround.code == 'OK') {
           if (dataGround.grounds.length > 0) {
@@ -217,9 +219,10 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
         setDataWorkers(dataWorkers);
         setDataWorkersWeek(dataWorkersWeek);
 
+        //console.log('dataVaritiesDay', dataVaritiesDay);
+
         //Se hace un nuevo orden para no tocar el backend
-        //New orden, first specie, variety, sector, kg_boxes
-        const newOrderDataVarietiesDay = dataVaritiesDay.map((item) => {
+        const newOrderDataVarietiesDay = Array.isArray(dataVaritiesDay) && dataVaritiesDay.map((item) => {
           return {
             specie: item.specie,
             variety: item.variety,
@@ -231,6 +234,8 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
         );
 
         setDataVaritiesDay(newOrderDataVarietiesDay);
+
+        //console.log('dataVaritiesDay', dataVaritiesDay);
         //setDataVaritiesDay(dataVaritiesDay);
 
         setDataVaritiesSeason(dataVaritiesSeason);
@@ -325,6 +330,9 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
         if (grounds.code == 'OK') {
           if (grounds.grounds.length > 0) {
             const firstGroundId = grounds.grounds[0].id;
+
+            console.log('firstGroundId', firstGroundId);
+            console.log('newCompanyId', newCompanyId);
             setSelectedGround(firstGroundId);
             fetchDataDay(newCompanyId, firstGroundId);
             fetchKgDataQlty(newCompanyId, firstGroundId, 1);
@@ -384,6 +392,9 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
 
     const observer = new MutationObserver(checkForCompanyAndGroundChange);
     observer.observe(body, { attributes: true, attributeFilter: ["class"] });
+
+    //console.log('companyId', companyId);
+    //console.log('selectedGround', selectedGround);
 
     checkForCompanyAndGroundChange();
 
@@ -517,7 +528,7 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
           </div>
           {selectedOption === '1' ? (
             <CardTable
-              data={dataVaritiesDay}
+              data={dataVaritiesDayState}
               thead="Especie, Variedad, Sector, Cantidad, Cajas"
               columnsClasses={[
                 "text-left",

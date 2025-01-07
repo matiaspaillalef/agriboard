@@ -7,7 +7,7 @@ import SimpleSlider from "@/components/slide"; // Asegúrate de que el path sea 
 const DynamicChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const PieChart = ({ data, title, loadingData }) => {
-  console.log(data);
+  //console.log(data);
   const [loading, setLoading] = useState(true);
   const [chartsData, setChartsData] = useState([]);
 

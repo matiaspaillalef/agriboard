@@ -130,6 +130,7 @@ const Navbar = (props) => {
     const selectedValue = event.target.value;
     setSelectedGround(selectedValue);
     sessionStorage.setItem("selectedGround", selectedValue);
+    sessionStorage.setItem("userData", JSON.stringify({ ...userData, idGround: selectedValue }));
     // Añadir clase al body
     document.body.classList.forEach((className) => {
       if (className.startsWith("ground-")) {
