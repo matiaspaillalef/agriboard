@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import { get, set, useForm } from "react-hook-form";
+import Select from 'react-select';
 import "@/assets/css/Table.css";
 import {
   XMarkIcon,
@@ -618,13 +619,16 @@ const CardTableProductionReports = ({
   };
 
 
-  const handleFilterChange = (event) => {
-    const { id, value } = event.target;
-    //console.log(`Cambiando ${id} a ${value}`); // Verifica el valor capturado
-    setFilters((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+  const handleFilterChange = (selectedOption, key) => {
+    const { value } = selectedOption;
+  
+    // Solo actualizar el filtro si el valor no es vacío o undefined
+    if (value !== undefined && value !== '') {
+      setFilters((prev) => ({
+        ...prev,
+        [key.name]: value,  // Usar el `key` como identificador
+      }));
+    }
   };
 
   const handleSwitchChange = (event) => {
@@ -641,18 +645,27 @@ const CardTableProductionReports = ({
   };
 
   const handleFilterResults = async () => {
-
+    //console.log("Filtros:", filters);
+  
+    // Filtrar los filtros para evitar valores vacíos o no definidos
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
-      if (key === 'totals' || key === 'from' || key == 'to' || checkedIds.includes(key) || key === 'harvest_date') {
+      // Evitar que el 'undefined' o valores vacíos se incluyan
+      if (
+        key === 'totals' || 
+        key === 'from' || 
+        key === 'to' || 
+        checkedIds.includes(key) || 
+        key === 'harvest_date' || 
+        (filters[key] && filters[key] !== '')
+      ) {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
-
-
+  
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
-
+  
       //console.log("Resultados filtrados:", results);
       setInitialData(results);
       setDataReport(results);
@@ -662,6 +675,7 @@ const CardTableProductionReports = ({
       setCurrentPage(1);
     }
   };
+  
 
   const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
 
@@ -669,33 +683,24 @@ const CardTableProductionReports = ({
     switch (type) {
       case "select":
         return (
-          <select
-            name={key}
-            id={key}
-            disabled={!fields[key].checked}
-            onChange={handleFilterChange}
-            className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""
-              }`}
-          >
-            <option key="empty" value="">
-              Seleccione una opción
-            </option>
-            {Array.isArray(options[key]) && options[key]?.map((option) => (
-              <option
-                key={option.id || option}
-                value={key === "batch" ? option : option.id}
-              >
-                {key === "worker_rut"
+          <Select
+          name={key}
+          id={key}
+          isDisabled={!fields[key].checked}
+          onChange={handleFilterChange}
+          options={Array.isArray(options[key])
+            ? options[key].map(option => ({
+                value: key === "batch" ? option : option.id,
+                label: key === "worker_rut"
                   ? option.rut
                   : key === "batch"
                     ? option
-                    : `${option.name}${key === "worker" || key === "squad_leader"
-                      ? ` ${option.lastname}`
-                      : ""
-                    }`}
-              </option>
-            ))}
-          </select>
+                    : `${option.name}${key === "worker" || key === "squad_leader" ? ` ${option.lastname}` : ""}`,
+              }))
+            : []}
+          className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
+          placeholder="Seleccione una opción"
+        />
         );
 
       case "date":
