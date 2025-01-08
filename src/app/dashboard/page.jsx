@@ -701,7 +701,7 @@ const Dashboard = () => {
               data={filteredData}
               thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
               omitirColumns={["id", "ground_status"]}
-              title="Días de cosecha"
+              title="Rango por horarios"
               loadingData={loadingDataKgGroundAllTemp}
             />
           </div>
