@@ -96,10 +96,12 @@ const Sidebar = ({ open, onClose }) => {
           setDataGrounds(grounds);
           //console.log('campito', grounds.grounds[0].id);
           if (grounds.code === "OK" && grounds.grounds.length > 0) {
-            setSelectedGround(grounds.grounds[0].id);
+            //setSelectedGround(grounds.grounds[0].id);
+            setSelectedGround(0); //Se cambia por todos los campos
             // Actualizar userData en sessionStorage con el nuevo idGround seleccionado
             const userData = JSON.parse(sessionStorage.getItem('userData')) || {};
-            userData.idGround = grounds.grounds[0].id;
+            //userData.idGround = grounds.grounds[0].id;
+            userData.idGround = 0;
             sessionStorage.setItem('userData', JSON.stringify(userData));
             sessionStorage.setItem("selectedGround", userData.idGround);
 
@@ -110,7 +112,8 @@ const Sidebar = ({ open, onClose }) => {
             }
             );
             //agregar clase con el id ground al body
-            document.body.classList.add(`ground-${grounds.grounds[0].id}`);
+            //document.body.classList.add(`ground-${grounds.grounds[0].id}`);
+            document.body.classList.add(`ground-0`);
 
           }
         } catch (error) {

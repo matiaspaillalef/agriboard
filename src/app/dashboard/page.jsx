@@ -21,6 +21,8 @@ import {
   getDataCalcKgAvgDay,
   getDataDaysOfHarvest,
   getDataAllDaysOfHarvest,
+  getDataKgGroundAll,
+  getDataKgGroundAllTemp,
 } from "@/app/api/FilterDashboardApi";
 import { getDataGround } from "../api/ProductionApi";
 import MiniCard from "@/components/card/MiniCard";
@@ -40,6 +42,8 @@ import {
 import { dataMiniCardDashboard } from "../data/dataMiniCard";
 import { data } from "autoprefixer";
 import { set } from "date-fns";
+import { formatNumber } from "@/functions/functions";
+import { all } from "axios";
 
 const fechaActual = new Date();
 
@@ -69,20 +73,30 @@ const Dashboard = () => {
   const [dataGrounds, setDataGrounds] = useState([]);
   const [selectedOption, setSelectedOption] = useState('1'); // Inicialmente seleccionado 'Día'
 
+  //Toda las data de los campos
+  const [dataAllCountries, setDataAllCountries] = useState(true);
+  const [dataKgGroundAllState, setDataKgGroundAll] = useState([]);
+  const [dataKgGroundAllStateTemp, setDataKgGroundAllTemp] = useState([]);
+  const [allChangeDataGround, setAllChangeDataGround] = useState([]);
+  const [dataSelectedGround, setDataSelectedGround] = useState([]);
+  const [allGround, setAllGround] = useState([]);
+
   //Loading data
   const [loadingDataKgDay, setLoadingDataKgDay] = useState(true);
-const [loadingDataKgSeason, setLoadingDataKgSeason] = useState(true);
-const [loadingDataWorkers, setLoadingDataWorkers] = useState(true);
-const [loadingDataWorkersWeek, setLoadingDataWorkersWeek] = useState(true);
-const [loadingDataVaritiesDay, setLoadingDataVaritiesDay] = useState(true);
-const [loadingDataVaritiesSeason, setLoadingDataVaritiesSeason] = useState(true);
-const [loadingDataDispatchGuideDay, setLoadingDataDispatchGuideDay] = useState(true);
-const [loadingDataVarietiesSeasonPercentage, setLoadingDataVarietiesSeasonPercentage] = useState(true);
-const [loadingDataHumidityTemperatureSeason, setLoadingDataHumidityTemperatureSeason] = useState(true);
-const [loadingDataKgAvg, setLoadingDataKgAvg] = useState(true);
-const [loadingDataKgAvgDay, setLoadingDataKgAvgDay] = useState(true);
-const [loadingDataDaysOfHarvest, setLoadingDataDaysOfHarvest] = useState(true);
-const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(true);
+  const [loadingDataKgSeason, setLoadingDataKgSeason] = useState(true);
+  const [loadingDataWorkers, setLoadingDataWorkers] = useState(true);
+  const [loadingDataWorkersWeek, setLoadingDataWorkersWeek] = useState(true);
+  const [loadingDataVaritiesDay, setLoadingDataVaritiesDay] = useState(true);
+  const [loadingDataVaritiesSeason, setLoadingDataVaritiesSeason] = useState(true);
+  const [loadingDataDispatchGuideDay, setLoadingDataDispatchGuideDay] = useState(true);
+  const [loadingDataVarietiesSeasonPercentage, setLoadingDataVarietiesSeasonPercentage] = useState(true);
+  const [loadingDataHumidityTemperatureSeason, setLoadingDataHumidityTemperatureSeason] = useState(true);
+  const [loadingDataKgAvg, setLoadingDataKgAvg] = useState(true);
+  const [loadingDataKgAvgDay, setLoadingDataKgAvgDay] = useState(true);
+  const [loadingDataDaysOfHarvest, setLoadingDataDaysOfHarvest] = useState(true);
+  const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(true);
+  const [loadingDataKgGroundAll, setLoadingDataKgGroundAll] = useState(true);
+  const [loadingDataKgGroundAllTemp, setLoadingDataKgGroundAllTemp] = useState(true);
 
   const handleSelectChange = (event) => {
     setSelectedOption(event.target.value);
@@ -91,7 +105,6 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
   const getSelectedGroundFromSessionStorage = useCallback(() => {
     return sessionStorage.getItem("selectedGround");
   }, []);
-
 
   //Se hace la llamada a la API para obtener los datos de la empresa al cargar la pagina por promera vez y controlar algunos problemas
   useEffect(() => {
@@ -156,6 +169,10 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
 
         setDataKgDayQlty(data);
         setDataKgSeasonQlty(dataKgSeason);
+
+        const grounds = await getDataGround(companyId);
+        setAllGround(grounds.grounds.map((item) => item.name));
+
       } else {
         const grounds = await getDataGround(companyId);
         if (grounds.length > 0) {
@@ -177,11 +194,13 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
 
 
   const fetchDataDay = useCallback(async (companyId, groundId) => {
-    if (!companyId) {
-      setError("Company ID is required.");
+
+    if (!companyId || !groundId) {
+      setError("Company ID y Ground ID son requeridos.");
       return;
     }
 
+    // Verificar si los datos ya están cargados
     setIsLoading(true);
     setLoadingDataKgDay(true);
     setLoadingDataKgSeason(true);
@@ -194,7 +213,8 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
     setLoadingDataDaysOfHarvest(true);
     setLoadingDataAllDaysOfHarvest(true);
     setLoadingDataVarietiesSeasonPercentage(true);
-
+    setLoadingDataKgGroundAll(true);
+    setLoadingDataKgGroundAllTemp(true);
 
     setError(""); // Reset error state
 
@@ -213,6 +233,8 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
         const dataKgAvgDay = await getDataCalcKgAvgDay(companyId, groundId);
         const dataDaysOfHarvest = await getDataDaysOfHarvest(companyId, groundId);
         const dataAllDaysOfHarvest = await getDataAllDaysOfHarvest(companyId, groundId);
+        const dataKgGroundAll = await getDataKgGroundAll(companyId, groundId);
+        const dataKgGroundAllTemp = await getDataKgGroundAllTemp(companyId, groundId);
 
         setDataKgDay(dataDay);
         setDataKgSeason(dataSeason);
@@ -246,6 +268,10 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
         setDataKgAvgDay(dataKgAvgDay);
         setDataDaysOfHarvest(dataDaysOfHarvest);
         setDataAllDaysOfHarvest(dataAllDaysOfHarvest);
+
+        setDataKgGroundAll(dataKgGroundAll);
+        setDataKgGroundAllTemp(dataKgGroundAllTemp);
+
       } else {
         const grounds = await getDataGround(companyId);
 
@@ -268,6 +294,8 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
             const dataKgAvgDay = await getDataCalcKgAvgDay(companyId, firstGroundId);
             const dataDaysOfHarvest = await getDataDaysOfHarvest(companyId, firstGroundId);
             const dataAllDaysOfHarvest = await getDataAllDaysOfHarvest(companyId, firstGroundId);
+            const dataKgGroundAll = await getDataKgGroundAll(companyId, firstGroundId);
+            const dataKgGroundAllTemp = await getDataKgGroundAllTemp(companyId, firstGroundId);
 
             setDataKgDay(dataDay);
             setDataKgSeason(dataSeason);
@@ -282,6 +310,8 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
             setDataKgAvgDay(dataKgAvgDay);
             setDataDaysOfHarvest(dataDaysOfHarvest);
             setDataAllDaysOfHarvest(dataAllDaysOfHarvest);
+            setDataKgGroundAll(dataKgGroundAll);
+            setDataKgGroundAllTemp(dataKgGroundAllTemp);
           } else {
             setError("No grounds found for the company.");
           }
@@ -290,6 +320,12 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
         }
 
       }
+
+      if (dataKgDay && dataKgSeason && dataWorkers) {
+        //console.log("Datos ya cargados, evitando nueva solicitud.");
+        return; // Si ya están cargados, no realizamos la llamada.
+      }
+
     } catch (error) {
       setError("Error al obtener datos: " + error.message);
     } finally {
@@ -306,8 +342,10 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
         setLoadingDataDaysOfHarvest(false);
         setLoadingDataAllDaysOfHarvest(false);
         setLoadingDataVarietiesSeasonPercentage(false);
+        setLoadingDataKgGroundAll(false);
+        setLoadingDataKgGroundAllTemp(false);
 
-      }, 1000);
+      }, 0);
     }
   }, [fetchKgDataQlty]);
 
@@ -320,6 +358,12 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
       className.startsWith("ground-")
     );
 
+    if (groundClass === 'ground-0') {
+      setDataAllCountries(true);
+    } else {
+      setDataAllCountries(false);
+    }
+
     if (companyClass) {
       const newCompanyId = companyClass.split("-")[1];
       if (newCompanyId !== companyId) {
@@ -331,8 +375,6 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
           if (grounds.grounds.length > 0) {
             const firstGroundId = grounds.grounds[0].id;
 
-            console.log('firstGroundId', firstGroundId);
-            console.log('newCompanyId', newCompanyId);
             setSelectedGround(firstGroundId);
             fetchDataDay(newCompanyId, firstGroundId);
             fetchKgDataQlty(newCompanyId, firstGroundId, 1);
@@ -411,6 +453,8 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
     }
   }, [selectedGround, companyId, fetchDataDay]);
 
+
+
   function obtenerNumeroDeSemana(fecha) {
     const primerDiaDelAño = new Date(fecha.getFullYear(), 0, 1);
     const diasTranscurridos = Math.floor(
@@ -421,6 +465,29 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
     );
     return numeroDeSemana;
   }
+
+  //Acciones para bloque de horas consolidado
+  const blocksGround = async (groundId) => {
+    setAllChangeDataGround(groundId);
+  };
+
+  useEffect(() => {
+    // Solo actualizar si `allGround` tiene elementos y `allChangeDataGround` aún no está seteado.
+    if (Array.isArray(allGround)) {
+      setAllChangeDataGround(allGround[0]);
+      allGround.filter((item) => {
+        if (item === allChangeDataGround) {
+          setAllChangeDataGround(allChangeDataGround);
+        }
+      });
+    }
+  }, [allGround, allChangeDataGround]);
+
+  const filteredData = Array.isArray(dataKgGroundAllStateTemp)
+    ? dataKgGroundAllStateTemp.filter(item => item.ground_name === allChangeDataGround)
+    : [];
+
+  //Acciones para bloque de horas consolidado
 
   return (
     <>
@@ -479,9 +546,9 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
             {
               id: 2,
               name: "Kg. Prom.",
-              value: 
-                (dataKgSeason?.kg_boxes && dataAllDaysOfHarvest[0]?.dias_cosecha) 
-                  ? (dataKgSeason.kg_boxes / dataAllDaysOfHarvest[0].dias_cosecha).toFixed(1) 
+              value:
+                (dataKgSeason?.kg_boxes && dataAllDaysOfHarvest[0]?.dias_cosecha)
+                  ? Number((dataKgSeason.kg_boxes / dataAllDaysOfHarvest[0].dias_cosecha).toFixed(1))
                   : 0,
             },
           ]}
@@ -505,9 +572,9 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
             {
               id: 3,
               name: "Kg. Prom. Día",
-              value: 
-                (dataKgDay?.kg_boxes && dataWorkers?.workersCount) 
-                  ? (dataKgDay.kg_boxes / dataWorkers.workersCount).toFixed(1)
+              value:
+                (dataKgDay?.kg_boxes && dataWorkers?.workersCount)
+                  ? Number((dataKgDay.kg_boxes / dataWorkers.workersCount).toFixed(1))
                   : 0,
             },
           ]}
@@ -569,23 +636,70 @@ const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(t
           />
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <PieChart
-            data={dataVarietiesSeasonPercentage}
-            title="Variedad temporada"
-            loadingData={loadingDataVarietiesSeasonPercentage}
-          />
-        </div>
 
-        <div className="lg:col-span-2">
-          <LineChart
-            data={dataHumidityTemperatureSeason}
-            title="Humedad y temperatura"
-            loadingData={loadingDataHumidityTemperatureSeason}
-          />
+      {dataAllCountries !== true ? (
+        <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <PieChart
+              data={dataVarietiesSeasonPercentage}
+              title="Variedad temporada"
+              loadingData={loadingDataVarietiesSeasonPercentage}
+            />
+          </div>
+
+          <div className="lg:col-span-2">
+            <LineChart
+              data={dataHumidityTemperatureSeason}
+              title="Humedad y temperatura"
+              loadingData={loadingDataHumidityTemperatureSeason}
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+            <CardTable
+              data={dataKgGroundAllState}
+              thead="Estado, Campo, Kg totales"
+              omitirColumns={["id"]}
+              title="Kilos totales por campo"
+              loadingData={loadingDataKgGroundAll}
+            />
+          </div>
+
+          <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+
+            {allGround && Array.isArray(allGround) && (
+              <div className="ml-auto mr-0 flex items-center gap-4">
+                <label htmlFor="ground">Campo:</label>
+
+                <select
+                  className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
+                  onChange={(e) => blocksGround(e.target.value)}
+                  //onSelect={allChangeDataGround}
+                  value={allChangeDataGround}
+                >
+                  {allGround && allGround.map((item, index) => (
+                    <option key={index} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <CardTable
+              data={filteredData}
+              thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
+              omitirColumns={["id", "ground_status"]}
+              title="Días de cosecha"
+              loadingData={loadingDataKgGroundAllTemp}
+            />
+          </div>
+        </div>
+      )
+      }
+
     </>
   );
 };

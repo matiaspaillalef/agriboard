@@ -503,3 +503,64 @@ export const getDataDaysOfHarvest = async (company_id, ground) => {
     return {};
   }
 };
+
+//All data ground
+export const getDataKgGroundAll = async (company_id, ground) => {
+  try{
+
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/dataKgGroundAll/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.data;
+      }
+    }
+
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
+
+export const getDataKgGroundAllTemp = async (company_id, ground) => {
+  try{
+
+    const res = await fetch(
+      `${URLAPI}/api/v1/filter/dashboard/dataKgGroundAllTemp/${company_id}/${ground}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.data;
+      }
+    }
+
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
