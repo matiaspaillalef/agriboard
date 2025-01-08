@@ -487,14 +487,14 @@ const Dashboard = () => {
     ? dataKgGroundAllStateTemp.filter(item => item.ground_name === allChangeDataGround)
     : [];
 
-    const [selectedGroundValue, setSelectedGroundValue] = useState(''); // Estado para el valor seleccionado
+  const [selectedGroundValue, setSelectedGroundValue] = useState(''); // Estado para el valor seleccionado
 
-    const handleSelectChangeGround = (e) => {
-      const value = e.target.value;
-      //console.log('value', value);
-      setSelectedGroundValue(value);  // Actualizar el estado con el valor seleccionado
-      blocksGround(value);       // Llamar a tu función (presumiblemente definida en otro lugar)
-    };
+  const handleSelectChangeGround = (e) => {
+    const value = e.target.value;
+    //console.log('value', value);
+    setSelectedGroundValue(value);  // Actualizar el estado con el valor seleccionado
+    blocksGround(value);       // Llamar a tu función (presumiblemente definida en otro lugar)
+  };
 
   //Acciones para bloque de horas consolidado
 
@@ -590,61 +590,65 @@ const Dashboard = () => {
           isLoading={loadingDataWorkers && loadingDataWorkersWeek && loadingDataKgAvgDay}
         />
       </div>
-      <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+      {dataAllCountries !== true && (
+        <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
 
-          <div className="ml-auto mr-0 flex items-center gap-4">
-            <p>Visualizar Kg por:</p>
-            <select className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
-              value={selectedOption}
-              onChange={handleSelectChange}>
-              <option value="1">Día</option>
-              <option value="2">Temporada</option>
-            </select>
+            <div className="ml-auto mr-0 flex items-center gap-4">
+              <p>Visualizar Kg por:</p>
+              <select className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
+                value={selectedOption}
+                onChange={handleSelectChange}>
+                <option value="1">Día</option>
+                <option value="2">Temporada</option>
+              </select>
+            </div>
+            {selectedOption === '1' ? (
+              <CardTable
+                data={dataVaritiesDayState}
+                thead="Especie, Variedad, Sector, Cantidad, Cajas"
+                columnsClasses={[
+                  "text-left",
+                  "text-left",
+                  "text-left",
+                  "text-right",
+                  "text-right",
+                ]}
+                loadingData={loadingDataVaritiesDay}
+                title="Kilos variedad día"
+              />
+            ) : (
+              <CardTable
+                data={dataVaritiesSeason}
+                thead="Especie, Variedad, Cantidad, Cajas"
+                omitirColumns={["sector"]}
+                columnsClasses={[
+                  "text-left",
+                  "text-left",
+                  //"text-left",
+                  "text-right",
+                  "text-right",
+                  "text-right",
+                ]}
+                loadingData={loadingDataVaritiesSeason}
+                title="Kilos variedad temporada"
+              />
+            )}
           </div>
-          {selectedOption === '1' ? (
-            <CardTable
-              data={dataVaritiesDayState}
-              thead="Especie, Variedad, Sector, Cantidad, Cajas"
-              columnsClasses={[
-                "text-left",
-                "text-left",
-                "text-left",
-                "text-right",
-                "text-right",
-              ]}
-              loadingData={loadingDataVaritiesDay}
-              title="Kilos variedad día"
-            />
-          ) : (
-            <CardTable
-              data={dataVaritiesSeason}
-              thead="Especie, Variedad, Cantidad, Cajas"
-              omitirColumns={["sector"]}
-              columnsClasses={[
-                "text-left",
-                "text-left",
-                //"text-left",
-                "text-right",
-                "text-right",
-                "text-right",
-              ]}
-              loadingData={loadingDataVaritiesSeason}
-              title="Kilos variedad temporada"
-            />
-          )}
-        </div>
 
-        <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-          <CardTable
-            data={dataDaysOfHarvest}
-            thead="Especie, Variedad, Días de cosecha"
-            omitirColumns={["id"]}
-            title="Días de cosecha"
-            loadingData={loadingDataDaysOfHarvest}
-          />
+
+          <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+            <CardTable
+              data={dataDaysOfHarvest}
+              thead="Especie, Variedad, Días de cosecha"
+              omitirColumns={["id"]}
+              title="Días de cosecha"
+              loadingData={loadingDataDaysOfHarvest}
+            />
+          </div>
+
         </div>
-      </div>
+      )}
 
       {dataAllCountries !== true ? (
         <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -666,26 +670,90 @@ const Dashboard = () => {
         </div>
       ) : (
         <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-            <CardTable
-              data={dataKgGroundAllState}
-              thead="Estado, Campo, Kg totales"
-              omitirColumns={["id"]}
-              title="Kilos totales por campo"
-              loadingData={loadingDataKgGroundAll}
-            />
+
+          <div className="!z-5 relative flex flex-col rounded-[20px] bg-clip-border dark:!bg-navy-800 dark:text-white gap-5">
+
+            {dataAllCountries !== false && (
+
+              <>
+                <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+
+                  <div className="ml-auto mr-0 flex items-center gap-4">
+                    <p>Visualizar Kg por:</p>
+                    <select className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
+                      value={selectedOption}
+                      onChange={handleSelectChange}>
+                      <option value="1">Día</option>
+                      <option value="2">Temporada</option>
+                    </select>
+                  </div>
+                  {selectedOption === '1' ? (
+                    <CardTable
+                      data={dataVaritiesDayState}
+                      thead="Especie, Variedad, Sector, Cantidad, Cajas"
+                      columnsClasses={[
+                        "text-left",
+                        "text-left",
+                        "text-left",
+                        "text-right",
+                        "text-right",
+                      ]}
+                      loadingData={loadingDataVaritiesDay}
+                      title="Kilos variedad día"
+                    />
+                  ) : (
+                    <CardTable
+                      data={dataVaritiesSeason}
+                      thead="Especie, Variedad, Cantidad, Cajas"
+                      omitirColumns={["sector"]}
+                      columnsClasses={[
+                        "text-left",
+                        "text-left",
+                        //"text-left",
+                        "text-right",
+                        "text-right",
+                        "text-right",
+                      ]}
+                      loadingData={loadingDataVaritiesSeason}
+                      title="Kilos variedad temporada"
+                    />
+                  )}
+                </div>
+
+
+                <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+                  <CardTable
+                    data={dataDaysOfHarvest}
+                    thead="Especie, Variedad, Días de cosecha"
+                    omitirColumns={["id"]}
+                    title="Días de cosecha"
+                    loadingData={loadingDataDaysOfHarvest}
+                  />
+                </div>
+              </>
+
+            )}
+
+            <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+              <CardTable
+                data={dataKgGroundAllState}
+                thead="Estado, Campo, Kg totales"
+                omitirColumns={["id"]}
+                title="Kilos totales por campo"
+                loadingData={loadingDataKgGroundAll}
+              />
+            </div>
           </div>
 
           <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-
-            {allGround && Array.isArray(allGround) && (
+            {allGround && Array.isArray(allGround) && allGround.length > 1 && (
               <div className="ml-auto mr-0 flex items-center gap-4">
                 <label htmlFor="ground">Campo:</label>
 
                 <select
                   className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
                   //onChange={(e) => blocksGround(e.target.value)}
-                  value={selectedGroundValue} 
+                  value={selectedGroundValue}
                   onChange={handleSelectChangeGround}
                 >
                   {allGround && allGround.map((item, index) => (
