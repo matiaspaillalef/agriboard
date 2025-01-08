@@ -487,6 +487,15 @@ const Dashboard = () => {
     ? dataKgGroundAllStateTemp.filter(item => item.ground_name === allChangeDataGround)
     : [];
 
+    const [selectedGroundValue, setSelectedGroundValue] = useState(''); // Estado para el valor seleccionado
+
+    const handleSelectChangeGround = (e) => {
+      const value = e.target.value;
+      //console.log('value', value);
+      setSelectedGroundValue(value);  // Actualizar el estado con el valor seleccionado
+      blocksGround(value);       // Llamar a tu función (presumiblemente definida en otro lugar)
+    };
+
   //Acciones para bloque de horas consolidado
 
   return (
@@ -675,9 +684,9 @@ const Dashboard = () => {
 
                 <select
                   className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
-                  onChange={(e) => blocksGround(e.target.value)}
-                  //onSelect={allChangeDataGround}
-                  value={allChangeDataGround}
+                  //onChange={(e) => blocksGround(e.target.value)}
+                  value={selectedGroundValue} 
+                  onChange={handleSelectChangeGround}
                 >
                   {allGround && allGround.map((item, index) => (
                     <option key={index} value={item}>
