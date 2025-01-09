@@ -698,7 +698,7 @@ const CardTableProductionReports = ({
                     : `${option.name}${key === "worker" || key === "squad_leader" ? ` ${option.lastname}` : ""}`,
               }))
             : []}
-          className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
+          className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-blueTertiary ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
           placeholder="Seleccione una opción"
         />
         );
