@@ -1140,7 +1140,7 @@ const CardTableWorkers = ({
                               >
                                 <button
                                   type="button"
-                                  className={`text-sm font-semibold text-gray-800 dark:text-white mr-2 ${hasEmptyFields ? "dark:text-gray-800" : ""}`}
+                                  className={`text-sm font-semibold text-gray-800  mr-2 ${hasEmptyFields ? "dark:text-gray-800" : "dark:text-white"}`}
                                   onClick={() => handleOpenShowUser(row)}
                                 >
                                   <EyeIcon className="w-6 h-6" />
@@ -1154,10 +1154,10 @@ const CardTableWorkers = ({
                               >
                                 <button
                                   type="button"
-                                  className={`text-sm font-semibold text-gray-800 dark:text-white mr-2 ${hasEmptyFields ? "dark:text-gray-800" : ""}`}
+                                  className={`text-sm font-semibold text-gray-800 mr-2 ${hasEmptyFields ? "dark:text-gray-800" : "dark:text-white"}`}
                                   onClick={() => handleOpenEditUser(row)}
                                 >
-                                  <PencilSquareIcon className="w-6 h-6" />
+                                  <PencilSquareIcon className="w-6 h-6"/>
                                 </button>
                               </Tooltip>
 
