@@ -147,6 +147,9 @@ const Navbar = (props) => {
     if (ultimaRecarga) {
       setUltimaActualizacion(ultimaRecarga);
     }
+    setSelectedGround(0);
+    sessionStorage.setItem("selectedGround", 0);
+    sessionStorage.setItem("userData", JSON.stringify({ ...userData, idGround: 0 }));
   }, []);
 
   const initialDate = new Date().toLocaleString();
@@ -202,6 +205,7 @@ const Navbar = (props) => {
                 value={selectedGround}
                 onChange={handleGroundChange}
               >
+                <option value="0">Todos los campos</option>
                 {dataGrounds && Array.isArray(dataGrounds) && dataGrounds.length > 0 ? (
                   dataGrounds.map((ground) => (
                     <option key={ground.id} value={ground.id}>

@@ -96,9 +96,8 @@ const CardTable = ({
                           className="border-b border-gray-200 px-2 pb-[10px] text-start dark:!border-navy-700"
                         >
                           <p
-                            className={`text-xs tracking-wide text-gray-600 ${
-                              columnsClasses[index] || "text-start"
-                            }`}
+                            className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                              }`}
                           >
                             {label}
                           </p>
@@ -124,26 +123,45 @@ const CardTable = ({
                   data.map((row, index) => (
                     <tr key={index} role="row">
                       {Object.keys(row).map((key, rowIndex) => {
+                        // Omitir las columnas especificadas
                         if (omitirColumns.includes(key)) {
-                          return null; // Omitir la columna si está en omitirColumns
+                          return null;
                         }
+
+                        // Si la columna actual es 'ground_status', mostrar "Activo" o "Inactivo"
+                        if (key === 'ground_status') {
+                          return (
+                            <td
+                              key={rowIndex}
+                              role="cell"
+                              className={`pt-[14px] pb-3 px-2 ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
+                                } ${columnsClasses[rowIndex] || "text-center"}`}
+                            >
+                              {row[key] === '1' ? (
+                                <p className="text-base font-medium bg-lime-500 text-navy-700 dark:text-white text-[12px] w-[15px] h-[15px] rounded-full">
+                                </p>
+                              ) : (
+                                <p className="text-base font-medium bg-red-500 text-red-500 dark:text-white text-[12px] w-[15px] h-[15px] rounded-full">
+                                </p>
+                              )}
+                            </td>
+                          );
+                        }
+
+                        // Para todas las demás columnas, mostrar el valor normal
                         return (
                           <td
                             key={rowIndex}
                             role="cell"
-                            className={`pt-[14px] pb-3 px-2 ${
-                              index % 2 !== 0
-                                ? "bg-lightPrimary dark:bg-navy-900"
-                                : ""
-                            } ${columnsClasses[rowIndex] || "text-left"}`}
+                            className={`pt-[14px] pb-3 px-2 ${index % 2 !== 0 ? "bg-lightPrimary dark:bg-navy-900" : ""
+                              } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
-                            <p className="text-base font-medium text-navy-700 dark:text-white text-[12px]">
-                              {formatNumber(row[key])}
-                            </p>
+                            {formatNumber(row[key])}
                           </td>
                         );
                       })}
                     </tr>
+
                   ))
                 )}
               </tbody>
