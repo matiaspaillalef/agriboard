@@ -134,3 +134,20 @@ body {
 .isEmpty td > div{
   color: rgb(11 20 55 ) !important;
 }
+
+.dark select option {
+  color: rgb(11 20 55 );
+}
+
+[class*="css-13cymwt-control"],
+[class*="css-16xfy0z-control"],
+[class*="css-t3ipsp-control"]{
+  border: none;
+  height: 45px;
+  border-radius: 10px !important;
+  border: none !important;
+}
+
+[type='text']:focus{
+  box-shadow: none !important;
+}

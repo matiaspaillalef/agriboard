@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import { get, set, useForm } from "react-hook-form";
+import Select from 'react-select';
 import "@/assets/css/Table.css";
 import {
   XMarkIcon,
@@ -618,13 +619,16 @@ const CardTableProductionReports = ({
   };
 
 
-  const handleFilterChange = (event) => {
-    const { id, value } = event.target;
-    //console.log(`Cambiando ${id} a ${value}`); // Verifica el valor capturado
-    setFilters((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+  const handleFilterChange = (selectedOption, key) => {
+    const { value } = selectedOption;
+  
+    // Solo actualizar el filtro si el valor no es vacío o undefined
+    if (value !== undefined && value !== '') {
+      setFilters((prev) => ({
+        ...prev,
+        [key.name]: value,  // Usar el `key` como identificador
+      }));
+    }
   };
 
   const handleSwitchChange = (event) => {
@@ -641,27 +645,52 @@ const CardTableProductionReports = ({
   };
 
   const handleFilterResults = async () => {
-
+    //console.log("Filtros:", filters);
+  
+    // Filtrar los filtros para evitar valores vacíos o no definidos
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
-      if (key === 'totals' || key === 'from' || key == 'to' || checkedIds.includes(key) || key === 'harvest_date') {
+      // Evitar que el 'undefined' o valores vacíos se incluyan
+      if (
+        key === 'totals' || 
+        key === 'from' || 
+        key === 'to' || 
+        checkedIds.includes(key) || 
+        key === 'harvest_date' || 
+        (filters[key] && filters[key] !== '')
+      ) {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
-
-
+  
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
+  
+      console.log("Resultados filtrados:", results);
 
-      //console.log("Resultados filtrados:", results);
-      setInitialData(results);
-      setDataReport(results);
+      const filteredData = results.map((item) => {
+        const date = new Date(item.harvest_date);
+        const day = String(date.getDate()).padStart(2, '0'); // Asegura que el día tenga 2 dígitos
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Asegura que el mes tenga 2 dígitos
+        const year = date.getFullYear();
+
+        return {
+          ...item,
+          harvest_date: `${day}-${month}-${year}`, // Formato DD-MM-YYYY
+        };
+      });
+
+      console.log("Datos filtrados:", filteredData);
+        
+      setInitialData(filteredData);
+      setDataReport(filteredData);
     } catch (error) {
       console.error("Error al filtrar los resultados:", error);
     } finally {
       setCurrentPage(1);
     }
   };
+  
 
   const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
 
@@ -669,33 +698,24 @@ const CardTableProductionReports = ({
     switch (type) {
       case "select":
         return (
-          <select
-            name={key}
-            id={key}
-            disabled={!fields[key].checked}
-            onChange={handleFilterChange}
-            className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""
-              }`}
-          >
-            <option key="empty" value="">
-              Seleccione una opción
-            </option>
-            {Array.isArray(options[key]) && options[key]?.map((option) => (
-              <option
-                key={option.id || option}
-                value={key === "batch" ? option : option.id}
-              >
-                {key === "worker_rut"
+          <Select
+          name={key}
+          id={key}
+          isDisabled={!fields[key].checked}
+          onChange={handleFilterChange}
+          options={Array.isArray(options[key])
+            ? options[key].map(option => ({
+                value: key === "batch" ? option : option.id,
+                label: key === "worker_rut"
                   ? option.rut
                   : key === "batch"
                     ? option
-                    : `${option.name}${key === "worker" || key === "squad_leader"
-                      ? ` ${option.lastname}`
-                      : ""
-                    }`}
-              </option>
-            ))}
-          </select>
+                    : `${option.name}${key === "worker" || key === "squad_leader" ? ` ${option.lastname}` : ""}`,
+              }))
+            : []}
+          className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-blueTertiary ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
+          placeholder="Seleccione una opción"
+        />
         );
 
       case "date":
@@ -741,6 +761,8 @@ const CardTableProductionReports = ({
   };
 
   const translations = {
+    harvest_date: "Fecha Cosecha",
+    harvest_time: "Hora Cosecha",
     season: "Temporada",
     boxes: "Cajas",
     kg_boxes: "Kg Cajas",
@@ -751,7 +773,6 @@ const CardTableProductionReports = ({
     wet: "Humedad",
     sync: "Sincronización",
     sync_date: "Fecha Sincronización",
-    harvest_date: "Fecha Cosecha",
     ground: "Campo",
     sector: "Sector",
     squad: "Cuadrilla",
@@ -765,7 +786,6 @@ const CardTableProductionReports = ({
     contractor: "Contratista",
     weigher_rut: "Pesador",
     batch: "Lote",
-    harvest_date: "fecha Cosecha",
   };
 
   return (
@@ -991,11 +1011,7 @@ const CardTableProductionReports = ({
                               } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">
-                              {key === "harvest_date"
-                                ? formatDate(row[key]) // Formatea la fecha aquí
-                                : formatNumber(getNameByKey(key, row[key])) ||
-                                formatNumber(row[key]) ||
-                                "-"}
+                              {formatNumber(getNameByKey(key, row[key]))}
                             </div>
                           </td>
                         );

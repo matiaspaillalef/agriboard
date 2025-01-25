@@ -777,7 +777,7 @@ const CardTableDispatchGuide = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay clientes</option>
+                          <option value="" disabled>No hay clientes</option>
                         )}
                       </select>
                     </div>
@@ -852,7 +852,7 @@ const CardTableDispatchGuide = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay calidades</option>
+                          <option value="" disabled>No hay calidades</option>
                         )}
                       </select>
                     </div>
@@ -882,7 +882,7 @@ const CardTableDispatchGuide = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay temporadas</option>
+                          <option value="" disabled>No hay temporadas</option>
                         )}
                       </select>
                     </div>

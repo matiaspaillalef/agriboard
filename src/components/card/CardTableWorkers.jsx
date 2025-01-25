@@ -84,7 +84,7 @@ const CardTableWorkers = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState(data || []);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [idRole, setIdRole] = useState("");
@@ -466,7 +466,7 @@ const CardTableWorkers = ({
           // Creamos al usuario
           const updateUser = await createUser(dataWeigher);
 
-          initialData(newFetchData);
+          setInitialData(newFetchData);
 
         } else {
           // Si no es pesador, buscamos al usuario y lo eliminamos
@@ -1027,10 +1027,29 @@ const CardTableWorkers = ({
               <tbody role="rowgroup">
                 {Array.isArray(initialData) && initialData.length > 0 ? (
                   currentItems.map((row, index) => {
+
+                    const excludedKeys = [
+                      "observation",
+                      "phone_company",
+                      "lastname2",
+                      "born_date",
+                      "gender",
+                      "state_civil",
+                      "contractor",
+                      "leader_squad",
+                      "shift",
+                      "bank",
+                      "account_number",
+                      "account_type",
+                      "afp",
+                      "health",
+                      "wristband",
+                    ];
+
                     // Verificar qué datos están vacíos
-                    const emptyFields = Object.keys(row)
-                      .filter((key) => key !== 'observation' && key !== 'phone_company' && (!row[key] && row[key] !== 0)) // Excluimos observation y phone_company
-                      .map((key) => key); // Obtener las claves que están vacías
+                    const emptyFields = Object.keys(row).filter(
+                      (key) => !excludedKeys.includes(key) && (!row[key] && row[key] !== 0)
+                    );
 
                     //console.log(`Campos vacíos en la fila ${index}:`, emptyFields);
 
@@ -1064,24 +1083,24 @@ const CardTableWorkers = ({
                               <div className={`text-base font-medium text-navy-700 dark:text-white ${hasEmptyFields && "flex items-center gap-1"}`}>
 
                                 {key === "rut" && (
-                                
-                           
-                                hasEmptyFields && (
-                                  <Tooltip
-                                    placement="top"
-                                    content="Faltan datos"
-                                    className="bg-red-500 text-white p-1 rounded-md px-3"
-                                  >
+
+
+                                  hasEmptyFields && (
+                                    <Tooltip
+                                      placement="top"
+                                      content="Faltan datos"
+                                      className="bg-red-500 text-white p-1 rounded-md px-3"
+                                    >
                                       <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
-                                  </Tooltip>
-                                    ) 
-                                
+                                    </Tooltip>
+                                  )
+
                                 )
                                 }
 
                                 {key === "status" ? (
                                   row[key] == 1 ? (
-                                    <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 max-w-36">
+                                    <p className="activeState bg-lime-500 flex items-center justify-center rounded-md text-white py-2 px-3 min-w-36 max-w-36">
                                       Activo
                                     </p>
                                   ) : (
@@ -1113,56 +1132,58 @@ const CardTableWorkers = ({
                               : ""
                               }`}
                           >
-                            <Tooltip
-                              placement="bottom"
-                              content="Ver trabajador"
-                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                            >
-                              <button
-                                type="button"
-                                className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                                onClick={() => handleOpenShowUser(row)}
+                            <div className="flex items-center justify-start gap-1">
+                              <Tooltip
+                                placement="bottom"
+                                content="Ver trabajador"
+                                className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                               >
-                                <EyeIcon className="w-6 h-6" />
-                              </button>
-                            </Tooltip>
+                                <button
+                                  type="button"
+                                  className={`text-sm font-semibold text-gray-800  mr-2 ${hasEmptyFields ? "dark:text-gray-800" : "dark:text-white"}`}
+                                  onClick={() => handleOpenShowUser(row)}
+                                >
+                                  <EyeIcon className="w-6 h-6" />
+                                </button>
+                              </Tooltip>
 
-                            <Tooltip
-                              placement="bottom"
-                              content="Editar trabajador"
-                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                            >
-                              <button
-                                type="button"
-                                className="text-sm font-semibold text-gray-800 dark:text-white mr-2"
-                                onClick={() => handleOpenEditUser(row)}
+                              <Tooltip
+                                placement="bottom"
+                                content="Editar trabajador"
+                                className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                               >
-                                <PencilSquareIcon className="w-6 h-6" />
-                              </button>
-                            </Tooltip>
+                                <button
+                                  type="button"
+                                  className={`text-sm font-semibold text-gray-800 mr-2 ${hasEmptyFields ? "dark:text-gray-800" : "dark:text-white"}`}
+                                  onClick={() => handleOpenEditUser(row)}
+                                >
+                                  <PencilSquareIcon className="w-6 h-6"/>
+                                </button>
+                              </Tooltip>
 
-                            <Tooltip
-                              placement="bottom"
-                              content="Eliminar trabajador"
-                              className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
-                            >
-                              <button
-                                id="remove"
-                                type="button"
-                                onClick={() => {
-                                  handleOpenAlert(
-                                    index,
-                                    row.id,
-                                    row.name ? row.name : "",
-                                    row.lastname ? row.lastname : "",
-                                    row.email ? row.email : "",
-                                    row.squad ? row.squad : ""
-                                  );
-                                }}
+                              <Tooltip
+                                placement="bottom"
+                                content="Eliminar trabajador"
+                                className="border border-blue-gray-50 bg-white dark:bg-navy-600 dark:border-navy-600 px-4 py-3 shadow-xl shadow-black/10 text-navy-900 dark:text-white"
                               >
-                                <TrashIcon className="w-6 h-6" />
-                              </button>
-                            </Tooltip>
+                                <button
+                                  id="remove"
+                                  type="button"
+                                  onClick={() => {
+                                    handleOpenAlert(
+                                      index,
+                                      row.id,
+                                      row.name ? row.name : "",
+                                      row.lastname ? row.lastname : "",
+                                      row.email ? row.email : "",
+                                      row.squad ? row.squad : ""
+                                    );
+                                  }}
+                                >
+                                  <TrashIcon className="w-6 h-6" />
+                                </button>
+                              </Tooltip>
+                            </div>
                           </td>
                         )}
                       </tr>
@@ -1441,7 +1462,7 @@ const CardTableWorkers = ({
                           defaultValue={selectedItem ? selectedItem.gender : ""}
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                         >
-                          <option value="Masculino">Masculino</option>
+                          <option value="Masculino" className="text-gray-800">Masculino</option>
                           <option value="Femenino">Femenino</option>
                           <option value="Otro">Otro</option>
                         </select>
@@ -1662,18 +1683,14 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.position : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un cargo</option>
+                        <option value="" disabled>Selecciona un cargo</option>
                         {Array.isArray(dataPosition) &&
-                          dataPosition.length > 0 ? (
+                          dataPosition.length > 0 && (
                           dataPosition.map((position) => (
                             <option key={position.id} value={position.id}>
                               {position.name}
                             </option>
                           ))
-                        ) : (
-                          <option value="">
-                            No hay posiciones disponibles
-                          </option>
                         )}
                       </select>
                     </div>
@@ -1695,18 +1712,14 @@ const CardTableWorkers = ({
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un contratista</option>
+                        <option value="" disabled>Selecciona un contratista</option>
                         {Array.isArray(dataContractor) &&
-                          dataContractor.length > 0 ? (
+                          dataContractor.length > 0 && (
                           dataContractor.map((contractor) => (
                             <option key={contractor.id} value={contractor.id}>
                               {contractor.name}
                             </option>
                           ))
-                        ) : (
-                          <option value="">
-                            No hay contratistas disponibles
-                          </option>
                         )}
                       </select>
                     </div>
@@ -1728,17 +1741,13 @@ const CardTableWorkers = ({
                           defaultValue={selectedItem ? selectedItem.squad : ""}
                           className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                         >
-                          <option value="">Selecciona una cuadrilla</option>
-                          {Array.isArray(dataSquad) && dataSquad.length > 0 ? (
+                          <option value="" disabled>Selecciona una cuadrilla</option>
+                          {Array.isArray(dataSquad) && dataSquad.length > 0 && (
                             dataSquad.map((squad) => (
                               <option key={squad.id} value={squad.id}>
                                 {squad.name}
                               </option>
                             ))
-                          ) : (
-                            <option value="">
-                              No hay escuadrones disponibles
-                            </option>
                           )}
                         </select>
                       </div>
@@ -1783,15 +1792,13 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.shift : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un turno</option>
-                        {Array.isArray(dataShift) && dataShift.length > 0 ? (
+                        <option value="" disabled>Selecciona un turno</option>
+                        {Array.isArray(dataShift) && dataShift.length > 0 && (
                           dataShift.map((shift) => (
                             <option key={shift.id} value={shift.id}>
                               {shift.name}
                             </option>
                           ))
-                        ) : (
-                          <option value="">No hay turnos disponibles</option>
                         )}
                       </select>
                     </div>
@@ -1854,7 +1861,7 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.bank : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un banco</option>
+                        <option value="" disabled>Selecciona un banco</option>
                         {dataBank &&
                           dataBank.map((bank) => (
                             <option key={bank.bank} value={bank.bank}>
@@ -1881,7 +1888,7 @@ const CardTableWorkers = ({
                         }
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona un tipo de cuenta</option>
+                        <option value="" disabled>Selecciona un tipo de cuenta</option>
                         {dataAccountType &&
                           dataAccountType.map((accountType) => (
                             <option
@@ -1930,7 +1937,7 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.afp : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona una AFP</option>
+                        <option value="" disabled>Selecciona una AFP</option>
                         {dataAFP &&
                           dataAFP.map((afp) => (
                             <option key={afp.afp} value={afp.afp}>
@@ -1956,7 +1963,7 @@ const CardTableWorkers = ({
                         defaultValue={selectedItem ? selectedItem.health : ""}
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
-                        <option value="">Selecciona una previsión</option>
+                        <option value="" disabled>Selecciona una previsión</option>
                         {dataSalud &&
                           dataSalud.map((health) => (
                             <option key={health.salud} value={health.salud}>
@@ -2018,8 +2025,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Rol:</strong>
-                    {selectedItem.is_weigher == 1 ? "Pesador" : "Trabajador"}
+                    <strong>Rol:</strong> {selectedItem.is_weigher == 1 ? "Pesador" : "Trabajador"}
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
@@ -2027,7 +2033,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Fecha de nacimiento:</strong>
+                    <strong>Fecha de nacimiento:</strong>{" "}
                     {selectedItem.born_date
                       ? formatDateView(
                         formatDateToInput(selectedItem.born_date)
@@ -2045,7 +2051,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Región:</strong>
+                    <strong>Región:</strong>{" "}
                     {StateCL.find(
                       (state) => state.region_number == selectedItem.state
                     )?.region || "-"}
@@ -2170,7 +2176,7 @@ const CardTableWorkers = ({
                   <h3 className="font-bold mt-4 bb-2">Información legal</h3>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>Banco:</strong>
+                    <strong>Banco:</strong>{" "}
                     {dataBank
                       ? dataBank.find((bank) => bank.bank == selectedItem.bank)
                         ?.bank || "-"
@@ -2193,7 +2199,7 @@ const CardTableWorkers = ({
                   </p>
 
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                    <strong>AFP:</strong>
+                    <strong>AFP:</strong>{" "}
                     {dataAFP && selectedItem.afp
                       ? dataAFP.find((afp) => afp.afp == selectedItem.afp)
                         ?.afp || "-"

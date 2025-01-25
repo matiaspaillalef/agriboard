@@ -30,18 +30,25 @@ export default function ForgotPassword() {
 
   const onSubmit = async (data) => {
 
+    //console.log(data);
+
     try {
+
+      const bodyData = { userEmail: data.email };
+
       const response = await fetch(URLAPI + "/api/v1/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(bodyData),
       });
 
       const result = await response.json();
 
       setCodeResponse(result.code);
+
+      console.log(result);
 
       if (result.code == "OK") {
         setMessage(
@@ -49,7 +56,7 @@ export default function ForgotPassword() {
             "Se ha enviado un correo con las instrucciones para restablecer tu contraseña."
         );
       } else {
-        setMessage(result.message || "Hubo un problema. Inténtalo de nuevo.");
+        setMessage(result.mensaje || "Hubo un problema. Inténtalo de nuevo.");
       }
     } catch (error) {
       console.error("Error:", error);

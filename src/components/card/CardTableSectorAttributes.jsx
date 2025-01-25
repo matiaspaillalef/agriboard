@@ -63,7 +63,7 @@ const CardTableSectorAttributes = ({
     formState: { errors },
   } = useForm();
 
-  const [initialData, setInitialData] = useState(data);
+  const [initialData, setInitialData] = useState(data || []);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -410,7 +410,10 @@ const CardTableSectorAttributes = ({
 
   const getNameByKey = (key, value) => {
     const data = dataMap[key];
-    return data?.find((item) => item.id === value)?.name || formatNumber(value);
+    if (Array.isArray(data)) {
+      return data.find((item) => item.id === value)?.name || formatNumber(value);
+    }
+    return formatNumber(value);
   };
 
   const formatDate = (isoDate) => {
@@ -806,7 +809,7 @@ const CardTableSectorAttributes = ({
                             }
                           })()
                         ) : (
-                          <option value="">No hay temporadas</option>
+                          <option value="" disabled>No hay temporadas</option>
                         )}
                       </select>
                     </div>
@@ -837,7 +840,7 @@ const CardTableSectorAttributes = ({
                               )
                           )
                         ) : (
-                          <option value="">No hay sectores</option>
+                          <option value="" disabled>No hay sectores</option>
                         )}
                       </select>
                     </div>
@@ -859,7 +862,7 @@ const CardTableSectorAttributes = ({
                         className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                       >
                         <option value="" disabled>Selecciona una especie</option>
-                        {Array.isArray(dataSpecies) && dataSpecies.length > 0 ? (
+                        {Array.isArray(dataSpecies) && dataSpecies.length > 0 && (
                           dataSpecies.map(
                             (specie) =>
                               specie.status !== 0 && (
@@ -868,8 +871,6 @@ const CardTableSectorAttributes = ({
                                 </option>
                               )
                           )
-                        ) : (
-                          <option value="">No hay especies</option>
                         )}
                       </select>
                     </div>
@@ -898,7 +899,7 @@ const CardTableSectorAttributes = ({
                             ) : null
                           )
                         ) : (
-                          <option value="">No hay variedades</option>
+                          <option value="" disabled>No hay variedades</option>
                         )}
                       </select>
                     </div>

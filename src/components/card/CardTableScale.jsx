@@ -629,7 +629,7 @@ const CardTableScale = ({
                               </button>
                             </>
                           )}
-                          {rol != 1 && (
+                          {(rol == 1 || rol == 2) &&  (
                             <button
                               id="message"
                               type="button"
@@ -781,7 +781,7 @@ const CardTableScale = ({
                           ));
                         }
                         )() : (
-                          <option value="">No hay campos</option>
+                          <option value="" disabled>No hay campos</option>
                         )}
                       </select>
                     </div>

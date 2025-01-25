@@ -418,7 +418,7 @@ const CardTableUsers = ({
                     }
                   }
                   >
-                    <option value="">Filtrar por empresa</option>
+                    <option value="" disabled>Filtrar por empresa</option>
                     {datosCompanies.companies.map((empresa, index) => (
                       <option key={index} value={empresa.id}>
                         {empresa.name_company}
@@ -783,7 +783,7 @@ const CardTableUsers = ({
                           </option>
                         ))
                       ) : (
-                        <option value="">No hay empresas disponibles</option> // Opcional: Mensaje si no hay empresas
+                        <option value="" disabled>No hay empresas disponibles</option> // Opcional: Mensaje si no hay empresas
                       )}
                     </select>
                   </div>

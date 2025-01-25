@@ -816,7 +816,7 @@ const CardTableSquads = ({
                       defaultValue={selectedItem ? selectedItem.group : ""}
                       className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 text-navy-900 dark:text-white"
                     >
-                      <option value="">Selecciona un grupo</option>
+                      <option value="" disabled>Selecciona un grupo</option>
                       {Array.isArray(groups) &&
                         groups.map((group) => (
                           <option key={group.id} value={group.id}>

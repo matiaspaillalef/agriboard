@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import { get, set, useForm } from "react-hook-form";
+import Select from 'react-select';
 import "@/assets/css/Table.css";
 import {
   XMarkIcon,
@@ -773,16 +774,17 @@ const CardTableProductionReports = ({
     });
   };
 
-
-  const handleFilterChange = (event) => {
-    const { id, value } = event.target;
-    //console.log(`Cambiando ${id} a ${value}`); // Verifica el valor capturado
-    setFilters((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+  const handleFilterChange = (selectedOption, key) => {
+    const { value } = selectedOption;
+  
+    // Solo actualizar el filtro si el valor no es vacío o undefined
+    if (value !== undefined && value !== '') {
+      setFilters((prev) => ({
+        ...prev,
+        [key.name]: value,  // Usar el `key` como identificador
+      }));
+    }
   };
-
   const handleSwitchChange = (event) => {
     const isChecked = event.target.checked;
     setSwitchState(isChecked); // Actualiza el estado del switch
@@ -828,33 +830,25 @@ const CardTableProductionReports = ({
     switch (type) {
       case "select":
         return (
-          <select
-            name={key}
-            id={key}
-            disabled={!fields[key].checked}
-            onChange={handleFilterChange}
-            className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""
-              }`}
-          >
-            <option key="empty" value="">
-              Seleccione una opción
-            </option>
-            {Array.isArray(options[key]) && options[key]?.map((option) => (
-              <option
-                key={option.id || option}
-                value={key === "batch" ? option : option.id} // Cambiar esta línea
-              >
-                {key === "worker_rut"
-                  ? option.rut  // Aquí se está utilizando el 'rut' y no el 'id'
+
+<Select
+          name={key}
+          id={key}
+          isDisabled={!fields[key].checked}
+          onChange={handleFilterChange}
+          options={Array.isArray(options[key])
+            ? options[key].map(option => ({
+                value: key === "batch" ? option : option.id,
+                label: key === "worker_rut"
+                  ? option.rut
                   : key === "batch"
                     ? option
-                    : `${option.name}${key === "worker" || key === "squad_leader"
-                      ? ` ${option.lastname}`
-                      : ""
-                    }`}
-              </option>
-            ))}
-          </select>
+                    : `${option.name}${key === "worker" || key === "squad_leader" ? ` ${option.lastname}` : ""}`,
+              }))
+            : []}
+          className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-blueTertiary ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
+          placeholder="Seleccione una opción"
+        />
         );
 
       case "date":
@@ -910,7 +904,6 @@ const CardTableProductionReports = ({
     wet: "Humedad",
     sync: "Sincronización",
     sync_date: "Fecha Sincronización",
-    harvest_date: "Fecha Cosecha",
     ground: "Campo",
     sector: "Sector",
     squad: "Cuadrilla",
@@ -925,6 +918,7 @@ const CardTableProductionReports = ({
     weigher_rut: "Pesador",
     batch: "Lote",
     harvest_date: "Fecha Cosecha",
+    harvest_time: "Hora Cosecha",
   };
 
 
@@ -1209,11 +1203,7 @@ const CardTableProductionReports = ({
                               } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">
-                              {key === "harvest_date"
-                                ? formatDate(row[key]) // Formatea la fecha aquí
-                                : formatNumber(getNameByKey(key, row[key])) ||
-                                formatNumber(row[key]) ||
-                                "-"}
+                              {formatNumber(getNameByKey(key, row[key]))}
                             </div>
                           </td>
                         );
