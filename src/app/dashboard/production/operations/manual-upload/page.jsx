@@ -81,13 +81,13 @@ const ProductionManualHarvesting = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableManualHarvesting
                 data={dataManualHarvesting}
-                thead="Campo, Sector, Rut Cosechero, Fecha cosecha, Hora cosecha, Especie, Variedad, Formato cosecha"    
+                thead="Fecha Cosecha, Hora Cosecha, Campo, Rut Cosechero,  Especie, Variedad, Kilos, Sector, Formato cosecha"    
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
                 companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
                 datosCompanies={dataCompanies}
-                omitirColumns={["id", "company_id", "worker", "zone", "squad", "squad_leader", "batch",  "hilera", "boxes", "kg_boxes", "quality", "season", "sync", "sync_date", "turns", "date_register", "temp", "wet", "contractor", "weigher_rut", "source"]}
+                omitirColumns={["id", "company_id", "worker", "zone", "squad", "squad_leader", "batch",  "hilera", "boxes", "quality", "season", "sync", "sync_date", "turns", "date_register", "temp", "wet", "contractor", "weigher_rut", "source"]}
               />
             </div>
           </div>

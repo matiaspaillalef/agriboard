@@ -81,7 +81,7 @@ const ProductionRegularizationProduction = () => {
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
               <CardTableRegularizationProduction
                 data={dataRegularizationProduction}
-                thead="Campo, Sector, Trabajador, RUT, Fecha cosecha,Hora Cosecha, Kilos, Especie, Variedad"    
+                thead="Fecha Cosecha, Hora Cosecha, Campo, Trabajador, RUT, Especie, Variedad, Kilos, Sector"    
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}

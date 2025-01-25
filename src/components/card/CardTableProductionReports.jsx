@@ -666,9 +666,24 @@ const CardTableProductionReports = ({
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
   
-      //console.log("Resultados filtrados:", results);
-      setInitialData(results);
-      setDataReport(results);
+      console.log("Resultados filtrados:", results);
+
+      const filteredData = results.map((item) => {
+        const date = new Date(item.harvest_date);
+        const day = String(date.getDate()).padStart(2, '0'); // Asegura que el día tenga 2 dígitos
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Asegura que el mes tenga 2 dígitos
+        const year = date.getFullYear();
+
+        return {
+          ...item,
+          harvest_date: `${day}-${month}-${year}`, // Formato DD-MM-YYYY
+        };
+      });
+
+      console.log("Datos filtrados:", filteredData);
+        
+      setInitialData(filteredData);
+      setDataReport(filteredData);
     } catch (error) {
       console.error("Error al filtrar los resultados:", error);
     } finally {
@@ -746,6 +761,8 @@ const CardTableProductionReports = ({
   };
 
   const translations = {
+    harvest_date: "Fecha Cosecha",
+    harvest_time: "Hora Cosecha",
     season: "Temporada",
     boxes: "Cajas",
     kg_boxes: "Kg Cajas",
@@ -756,7 +773,6 @@ const CardTableProductionReports = ({
     wet: "Humedad",
     sync: "Sincronización",
     sync_date: "Fecha Sincronización",
-    harvest_date: "Fecha Cosecha",
     ground: "Campo",
     sector: "Sector",
     squad: "Cuadrilla",
@@ -770,7 +786,6 @@ const CardTableProductionReports = ({
     contractor: "Contratista",
     weigher_rut: "Pesador",
     batch: "Lote",
-    harvest_date: "fecha Cosecha",
   };
 
   return (
@@ -996,11 +1011,7 @@ const CardTableProductionReports = ({
                               } ${columnsClasses[rowIndex] || "text-left"}`}
                           >
                             <div className="text-base font-medium text-navy-700 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">
-                              {key === "harvest_date"
-                                ? formatDate(row[key]) // Formatea la fecha aquí
-                                : formatNumber(getNameByKey(key, row[key])) ||
-                                formatNumber(row[key]) ||
-                                "-"}
+                              {formatNumber(getNameByKey(key, row[key]))}
                             </div>
                           </td>
                         );
