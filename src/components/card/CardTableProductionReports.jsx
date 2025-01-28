@@ -398,7 +398,9 @@ const CardTableProductionReports = ({
           const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
           const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
           const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
-          const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
+          const qualityMap = Array.isArray(fetchedDataQuality) 
+          ? new Map(fetchedDataQuality.map(q => [q.id, q.name])) 
+          : new Map();
           const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
           const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
           const weigherMap = userMap;
@@ -421,6 +423,18 @@ const CardTableProductionReports = ({
                 ? `${item.harvest_time.padStart(5, '0')}:00`
                 : '';
 
+                const splitRut = (rut) => {
+                  if (typeof rut !== 'string') {
+                    return { rutNumber: '', dv: '' }; // Retorna valores vacíos si el RUT no es válido
+                  }
+                
+                  const cleanedRut = rut.replace(/[.\-]/g, '');
+                  const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
+                  const dv = cleanedRut.slice(-1); // Último carácter
+                  return { rutNumber, dv };
+                };
+
+
               return {
                 "Fecha cosecha": formattedHarvestDate ? formattedHarvestDate : '',
                 "Hora cosecha": formattedHarvestTime ? formattedHarvestTime : '',
@@ -430,7 +444,9 @@ const CardTableProductionReports = ({
                 "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
                 Lote: item.batch || '',
                 Cosechero: workerMap.get(item.worker) || '',
-                "RUT Cosechero": item.worker_rut || '',
+                "RUT": item.worker_rut || '',
+                "RUT": splitRut(item.worker_rut).rutNumber || '',
+                "DV": splitRut(item.worker_rut).dv || '',
                 Contratista: contractorMap.get(item.contractor) || '',
                 Especie: specieMap.get(item.specie) || '',
                 Variedad: varietyMap.get(item.variety) || '',
@@ -914,7 +930,7 @@ const CardTableProductionReports = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={formatInitialData}
-                    filename="Reporte de producción"
+                    filename="reporte_de_produccion"
                     sheetname="Reporte de recolección"
                     titlebutton="Exportar a excel"
                   />

@@ -773,6 +773,19 @@ const CardTableRegularizationProduction = ({
               //console.log(`Comparando ${Number(item.weigher_rut)} con ${user.id}`);
               return Number(item.weigher_rut) === user.id;
             });
+
+            const splitRut = (rut) => {
+              // Primero eliminamos puntos y guiones
+              const cleanedRut = rut.replace(/[.\-]/g, '');
+        
+              // Separamos el RUT y el dígito verificador
+              const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
+              const dv = cleanedRut.slice(-1); // Último carácter (el dígito verificador)
+        
+              return { rutNumber, dv };
+            };
+        
+            const { rutNumber, dv } = splitRut(item.worker_rut || "Sin asignar"); 
         
           
             return {
@@ -783,7 +796,8 @@ const CardTableRegularizationProduction = ({
               fetchedDataWorkers?.find((worker) => worker.id === item.worker)?.name +
                 " " +
                 fetchedDataWorkers?.find((worker) => worker.id === item.worker)?.lastname || "Sin asignar",
-              "RUT Cosechero": item.worker_rut || "Sin asignar",
+              "RUT Cosechero": rutNumber,
+              DV: dv || "Sin asignar",
               Especie: fetchedDataSpecies?.find((specie) => specie.id === item.specie)?.name || "Sin asignar",
               Variedad: fetchedDataVarieties?.find((variety) => variety.id === item.variety)?.name || "Sin asignar",
               "Kilos Caja": item.kg_boxes || "Sin asignar",
@@ -863,8 +877,8 @@ const CardTableRegularizationProduction = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={formatInitialData}
-                    filename="Regularización de producción"
-                    sheetname="Regularización de producción"
+                    filename="regularizacion_de_produccion"
+                    sheetname="regularizacion_de_produccion"
                     titlebutton="Exportar a excel"
                   />
                 )}

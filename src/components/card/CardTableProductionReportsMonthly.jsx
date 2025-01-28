@@ -516,12 +516,24 @@ const CardTableProductionReports = ({
               }
           
               const harvestDay = harvestDate.getDate(); // Obtener el día (1-31) de la fecha de cosecha
+
+              const splitRut = (rut) => {
+                if (typeof rut !== 'string') {
+                  return { rutNumber: '', dv: '' }; // Retorna valores vacíos si el RUT no es válido
+                }
+              
+                const cleanedRut = rut.replace(/[.\-]/g, '');
+                const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
+                const dv = cleanedRut.slice(-1); // Último carácter
+                return { rutNumber, dv };
+              };
           
               // Crear una nueva entrada para el trabajador si no existe
               if (!acc[workerName]) {
                 acc[workerName] = {
                   Cosechero: workerName,
-                  RUT: item.worker_rut,
+                  RUT: splitRut(item.worker_rut).rutNumber,
+                  DV: splitRut(item.worker_rut).dv,
                   Especie: specieMap.get(item.specie),
                   ...Array.from({ length: 31 }, (_, i) => `Día ${i + 1}`).reduce((daysAcc, day) => {
                     daysAcc[day] = 0; // Inicializamos todos los días con 0
@@ -562,6 +574,17 @@ const CardTableProductionReports = ({
                         return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`; // Convertir a formato 'YYYY-MM-DD'
                       })()
                     : '';
+
+                    const splitRut = (rut) => {
+                      if (typeof rut !== 'string') {
+                        return { rutNumber: '', dv: '' }; // Retorna valores vacíos si el RUT no es válido
+                      }
+                    
+                      const cleanedRut = rut.replace(/[.\-]/g, '');
+                      const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
+                      const dv = cleanedRut.slice(-1); // Último carácter
+                      return { rutNumber, dv };
+                    };
           
                   return {
                     Campo: groundMap.get(item.ground) || '',
@@ -570,7 +593,8 @@ const CardTableProductionReports = ({
                     "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
                     Lote: item.batch || '',
                     Cosechero: workerMap.get(item.worker) || '',
-                    "RUT Cosechero": item.worker_rut || '',
+                    "RUT": splitRut(item.worker_rut).rutNumber || '',
+                    "DV": splitRut(item.worker_rut).dv || '',
                     "Fecha cosecha": formattedDate,
                     Contratista: contractorMap.get(item.contractor) || '',
                     Especie: specieMap.get(item.specie) || '',
@@ -1229,7 +1253,7 @@ const CardTableProductionReports = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={formatInitialData}
-                    filename="Producción Mensual"
+                    filename="produccion_mensual"
                     sheetname="Producción Mensual"
                     titlebutton="Exportar a excel"
                   />
