@@ -140,7 +140,7 @@ const CardTableRegularizationProduction = ({
         }
       }
 
-      console.log("uniqueDates", uniqueDates);
+      //console.log("uniqueDates", uniqueDates);
 
       // Filtrar los registros que estén dentro de esas fechas únicas
       const filtered = sortedData.filter((item) => {
@@ -148,7 +148,7 @@ const CardTableRegularizationProduction = ({
         return uniqueDates.includes(harvestDate);
       });
 
-      console.log("filtered", filtered);
+      //console.log("filtered", filtered);
 
       setFilteredData(filtered);
     }
@@ -530,7 +530,7 @@ const CardTableRegularizationProduction = ({
 
   // Creación
   const onSubmitForm = async (data) => {
-    console.log(data);
+    //console.log(data);
     try {
       // Preparar los datos transformados
       const transformedData = {
@@ -776,33 +776,34 @@ const CardTableRegularizationProduction = ({
         
           
             return {
-              Zona: item.zone || "Sin asignar",
+              "Fecha cosecha": formatDate(item.harvest_date),
+              "Hora cosecha": item.harvest_time,
               Campo: fetchedDataGround.grounds?.find((ground) => ground.id === item.ground)?.name || "Sin asignar",
+              Cosechero:
+              fetchedDataWorkers?.find((worker) => worker.id === item.worker)?.name +
+                " " +
+                fetchedDataWorkers?.find((worker) => worker.id === item.worker)?.lastname || "Sin asignar",
+              "RUT Cosechero": item.worker_rut || "Sin asignar",
+              Especie: fetchedDataSpecies?.find((specie) => specie.id === item.specie)?.name || "Sin asignar",
+              Variedad: fetchedDataVarieties?.find((variety) => variety.id === item.variety)?.name || "Sin asignar",
+              "Kilos Caja": item.kg_boxes || "Sin asignar",
+              Cajas: item.boxes || "Sin asignar",
               Sector: fetchedDataSector?.find((sector) => sector.id === item.sector)?.name || "Sin asignar",
               Cuadrilla: fetchedDataSquads.squads?.find((squad) => squad.id === item.squad)?.name || "Sin asignar",
               "Jefe cuadrilla":
                 fetchedDataWorkers?.find((worker) => worker.id === item.squad_leader)?.name || "Sin asignar",
               Lote: item.batch || "Sin asignar",
-              Cosechero:
-                fetchedDataWorkers?.find((worker) => worker.id === item.worker)?.name +
-                  " " +
-                  fetchedDataWorkers?.find((worker) => worker.id === item.worker)?.lastname || "Sin asignar",
-              "RUT Cosechero": item.worker_rut || "Sin asignar",
-              "Fecha cosecha": formatDate(item.harvest_date),
-              Especie: fetchedDataSpecies?.find((specie) => specie.id === item.specie)?.name || "Sin asignar",
-              Variedad: fetchedDataVarieties?.find((variety) => variety.id === item.variety)?.name || "Sin asignar",
-              Cajas: item.boxes || "Sin asignar",
-              "Kilos Caja": item.kg_boxes || "Sin asignar",
+              Zona: item.zone || "Sin asignar",
               Calidad: fetchedDataQuality?.find((quality) => quality.id === item.quality)?.name || "Sin asignar",
               Hilera: item.hilera || "Sin asignar",
               "Formato cosecha": fetchedDataHarvestFormat?.find((format) => format.id === item.harvest_format)?.name || "Sin asignar",
               Pesador: pesador ? `${pesador.name} ${pesador.lastname}` : "Sin asignar",
               //"ID Pesador": item.weigher_rut,
               Sincronizado: item.sync || "Sin asignar",
-              "Fecha sincronización": item.sync_date || "Sin asignar",
+              "Fecha sincronización": formatDate(item.sync_date) || "Sin asignar",
               Temporada: fetchedDataSeasons?.find((season) => season.id === item.season)?.name || "Sin asignar",
               Turnos: item.turns || "Sin asignar",
-              "Fecha registro": item.date_register || "Sin asignar",
+              "Fecha registro": formatDate(item.date_register) || "Sin asignar",
               Temp: item.temp || "Sin asignar",
               Humedad: item.wet || "Sin asignar",
               Contratista: fetchedDataContractors?.find((contractor) => contractor.id === item.contractor)?.name || "Sin asignar",

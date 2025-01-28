@@ -386,13 +386,15 @@ const CardTableProductionReports = ({
         const shiftsMap = new Map(fetchedDataTurns.shifts.map(t => [t.id, t.name])); // Si 'fetchedDataTurns' contiene 'id' y 'name'
 
 
-        if (switchState === false) {
+        /*if (switchState === false) {
           // Formateamos los datos de cosecha
           const formattedData = harvestData.reduce((acc, item) => {
             const workerName = workerMap.get(item.worker);
 
             // Parsear la fecha correctamente desde 'YYYY-MM-DD HH:MM:SS'
             let harvestDate;
+
+            console.log('Harvestdate',item.harvest_date);
             if (item.harvest_date) {
               // Tomar solo la parte de la fecha antes del espacio
               const dateString = item.harvest_date.split(' ')[0]; // "2024-12-02"
@@ -424,7 +426,7 @@ const CardTableProductionReports = ({
 
             // Verificar que el campo 'kg_boxes' esté disponible y asignarlo
             const kgBoxes = item.kg_boxes || 0; // Si no hay kg_boxes, asignamos 0
-            console.log(`Cosechero: ${workerName}, Día: ${harvestDay}, Kg Cajas: ${kgBoxes}`); // Depuración
+            //console.log(`Cosechero: ${workerName}, Día: ${harvestDay}, Kg Cajas: ${kgBoxes}`); // Depuración
 
             // Asignar los kilos al día correspondiente
             const dayKey = `Día ${harvestDay}`;
@@ -492,7 +494,120 @@ const CardTableProductionReports = ({
           } catch (error) {
             console.error("Error en procesamiento de datos en else:", error);
           }
-        }
+        }*/
+
+          if (switchState === false) {
+            // Formateamos los datos de cosecha
+            const formattedData = harvestData.reduce((acc, item) => {
+              const workerName = workerMap.get(item.worker);
+          
+              // Parsear la fecha correctamente desde 'DD-MM-YYYY'
+              let harvestDate;
+              //console.log('Harvestdate', item.harvest_date);
+              if (item.harvest_date) {
+                // Convertir la fecha de 'DD-MM-YYYY' a un objeto Date
+                const [day, month, year] = item.harvest_date.split('-').map(Number);
+                harvestDate = new Date(year, month - 1, day); // Crear el objeto Date (meses en Date son 0-indexados)
+              }
+          
+              // Si la fecha no es válida, omitir el registro
+              if (!harvestDate || isNaN(harvestDate.getTime())) {
+                return acc; // Ignorar este item si la fecha es inválida
+              }
+          
+              const harvestDay = harvestDate.getDate(); // Obtener el día (1-31) de la fecha de cosecha
+          
+              // Crear una nueva entrada para el trabajador si no existe
+              if (!acc[workerName]) {
+                acc[workerName] = {
+                  Cosechero: workerName,
+                  RUT: item.worker_rut,
+                  Especie: specieMap.get(item.specie),
+                  ...Array.from({ length: 31 }, (_, i) => `Día ${i + 1}`).reduce((daysAcc, day) => {
+                    daysAcc[day] = 0; // Inicializamos todos los días con 0
+                    return daysAcc;
+                  }, {})
+                };
+              }
+          
+              // Verificar que el campo 'kg_boxes' esté disponible y asignarlo
+              const kgBoxes = item.kg_boxes || 0; // Si no hay kg_boxes, asignamos 0
+          
+              // Asignar los kilos al día correspondiente
+              const dayKey = `Día ${harvestDay}`;
+              acc[workerName][dayKey] += kgBoxes; // Acumular los kg_boxes para el día correspondiente
+          
+              return acc;
+            }, {});
+          
+            // Convertimos los datos a un array para ser renderizado
+            const finalData = Object.values(formattedData);
+          
+            // Guardamos los datos finales formateados
+            setFormatInitialData(finalData);
+          } else {
+            // Función para filtrar valores undefined o null
+            const filterUndefinedValues = (obj) => {
+              return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+            };
+          
+            try {
+              // Procesar datos y construir cabeceras dinámicamente
+              const rawData = await Promise.all(
+                initialData.map(async (item) => {
+                  // Formatear fecha si existe
+                  const formattedDate = item.harvest_date
+                    ? (() => {
+                        const [day, month, year] = item.harvest_date.split('-').map(Number);
+                        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`; // Convertir a formato 'YYYY-MM-DD'
+                      })()
+                    : '';
+          
+                  return {
+                    Campo: groundMap.get(item.ground) || '',
+                    Sector: sectorMap.get(item.sector) || '',
+                    Cuadrilla: squadMap.get(item.squad) || '',
+                    "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
+                    Lote: item.batch || '',
+                    Cosechero: workerMap.get(item.worker) || '',
+                    "RUT Cosechero": item.worker_rut || '',
+                    "Fecha cosecha": formattedDate,
+                    Contratista: contractorMap.get(item.contractor) || '',
+                    Especie: specieMap.get(item.specie) || '',
+                    Variedad: varietyMap.get(item.variety) || '',
+                    Cajas: item.boxes || '',
+                    "Kilos Caja": item.kg_boxes || '',
+                    Calidad: qualityMap.get(item.quality) || '',
+                    "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
+                    Pesador: userMap.get(item.weigher_rut) || '',
+                    Temporada: seasonMap.get(item.season) || '',
+                    Turno: shiftsMap.get(item.turns) || '',
+                  };
+                })
+              );
+          
+              // Determinar cabeceras basadas en datos reales
+              const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
+          
+              // Crear los datos finales con cabeceras dinámicas
+              const formatData = rawData.map(item => {
+                const filteredItem = filterUndefinedValues(item);
+                return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
+              });
+          
+              // Remover las columnas que no se quieren mostrar
+              const omitColumns = ["Zona", "Hilera", "Turno"];
+              const formData = formatData.map((item) => {
+                return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
+              });
+          
+              // Guardamos los datos procesados
+              setFormatInitialData(formData);
+            } catch (error) {
+              console.error("Error en procesamiento de datos en else:", error);
+            }
+          }
+          
 
       } catch (error) {
         console.error("Error fetching data:", error);

@@ -625,13 +625,13 @@ const CardTableProductionReports = ({
   };
 
   const handleFilterResults = async () => {
-    console.log("Filtros:", filters);
+    //console.log("Filtros:", filters);
 
     // Filtrar los filtros para evitar valores vacíos o no definidos
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
       // Evitar que el 'undefined' o valores vacíos se incluyan
 
-      console.log("Key:", key);
+      console.log("Key:", key === 'harvest_date');
       if (
         key === 'totals' ||
         key === 'from' ||
@@ -648,18 +648,29 @@ const CardTableProductionReports = ({
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
 
-      console.log("Resultados filtrados:", results);
+      //console.log("Resultados filtrados:", results);
 
       const filteredData = results.map((item) => {
         const date = new Date(item.harvest_date);
-        const day = String(date.getDate()).padStart(2, '0'); // Asegura que el día tenga 2 dígitos
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Asegura que el mes tenga 2 dígitos
-        const year = date.getFullYear();
-
-        return {
-          ...item,
-          harvest_date: `${day}-${month}-${year}`, // Formato DD-MM-YYYY
-        };
+        let formattedDate = '';
+  
+        // Verifica si el objeto Date es válido
+        if (item.harvest_date && !isNaN(date)) {
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          formattedDate = `${day}-${month}-${year}`; // Formato DD-MM-YYYY
+        }
+  
+        // Si harvest_date es válido, se lo dejamos en el objeto, si no, lo excluimos
+        const resultItem = { ...item };
+        if (formattedDate) {
+          resultItem.harvest_date = formattedDate; // Asignamos la fecha formateada
+        } else {
+          delete resultItem.harvest_date; // Eliminamos la propiedad si no es válida
+        }
+  
+        return resultItem;
       });
 
 
