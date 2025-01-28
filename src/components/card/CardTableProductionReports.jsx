@@ -416,7 +416,9 @@ const CardTableProductionReports = ({
 
 
               // Convertir la fecha (si existe) al formato adecuado para Excel
-              const formattedHarvestDate = item.harvest_date ? new Date(item.harvest_date.split('-').reverse().join('-')) : '';
+              const formattedHarvestDate = item.harvest_date
+              ? item.harvest_date.replace(/-/g, "/")
+              : '';
 
               // Convertir la hora (si existe) al formato adecuado para Excel (como HH:mm)
               const formattedHarvestTime = item.harvest_time
@@ -436,8 +438,8 @@ const CardTableProductionReports = ({
 
 
               return {
-                "Fecha cosecha": formattedHarvestDate ? formattedHarvestDate : '',
-                "Hora cosecha": formattedHarvestTime ? formattedHarvestTime : '',
+                "Fecha cosecha": formattedHarvestDate || '',
+                "Hora cosecha":  formattedHarvestTime || '',
                 Campo: groundMap.get(item.ground) || '',
                 Sector: sectorMap.get(item.sector) || '',
                 Cuadrilla: squadMap.get(item.squad) || '',
@@ -606,6 +608,8 @@ const CardTableProductionReports = ({
           updatedFilters.harvest_date = ""; // Agregar harvest_date vacío
         }
 
+        console.log("Updated filters:", updatedFilters);
+
         return updatedFilters;
       }
     });
@@ -615,14 +619,17 @@ const CardTableProductionReports = ({
   };
 
 
-  const handleFilterChange = (selectedOption, key) => {
-    const { value } = selectedOption;
-
+  const handleFilterChange = (event) => {
+    const { name, value } = event.target;
+  
+    //console.log(value); // El valor del input (fecha seleccionada)
+    //console.log(name);  // El atributo "name" del input (por ejemplo, "from" o "to")
+  
     // Solo actualizar el filtro si el valor no es vacío o undefined
     if (value !== undefined && value !== '') {
       setFilters((prev) => ({
         ...prev,
-        [key.name]: value,  // Usar el `key` como identificador
+        [name]: value,  // Usar el `name` del input como clave
       }));
     }
   };
@@ -647,7 +654,7 @@ const CardTableProductionReports = ({
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
       // Evitar que el 'undefined' o valores vacíos se incluyan
 
-      console.log("Key:", key === 'harvest_date');
+      
       if (
         key === 'totals' ||
         key === 'from' ||
@@ -660,6 +667,8 @@ const CardTableProductionReports = ({
       }
       return acc;
     }, {});
+
+    //console.log("Filtros con IDs:", filtrosConIds);
 
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
