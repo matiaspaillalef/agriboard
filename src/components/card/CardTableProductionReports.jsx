@@ -310,186 +310,157 @@ const CardTableProductionReports = ({
     return dateString.substring(0, 10);
   }
 
-  //Exportar Excel datas de front
-  useEffect(() => {
-    if (!companyID) {
-      //console.log("Company ID is not available yet");
-      return;
-    }
+// Exportar Excel datas de front
+useEffect(() => {
+  if (!companyID) {
+    return;
+  }
 
-    const fetchData = async () => {
-      try {
-        // Aquí llamamos a cada función solo una vez
-        const [
-          fetchedDataSector,
-          fetchedDataSquads,
-          fetchedDataWorkers,
-          fetchedDataVarieties,
-          fetchedDataSpecies,
-          fetchedDataQuality,
-          fetchedDataHarvestFormat,
-          fetchedDataGround,
-          fetchedDataSeasons,
-          fetchedDataTurns,
-          fetchedDataContractors,
-          fetchedDataUsers,
-        ] = await Promise.all([
-          getDataSectorBarracks(companyID),
-          getDataSquads(companyID),
-          getDataWorkers(companyID),
-          getDataVarieties(companyID),
-          getDataSpecies(companyID),
-          getDataQuality(companyID),
-          getDataHarvestFormat(companyID),
-          getDataGround(companyID),
-          getDataSeasons(companyID),
-          getDataShifts(companyID),
-          getDataContractors(companyID),
-          getDataUser(companyID),
-        ]);
+  const fetchData = async () => {
+    try {
+      // Llamadas a las funciones para obtener los datos
+      const [
+        fetchedDataSector,
+        fetchedDataSquads,
+        fetchedDataWorkers,
+        fetchedDataVarieties,
+        fetchedDataSpecies,
+        fetchedDataQuality,
+        fetchedDataHarvestFormat,
+        fetchedDataGround,
+        fetchedDataSeasons,
+        fetchedDataTurns,
+        fetchedDataContractors,
+        fetchedDataUsers,
+      ] = await Promise.all([
+        getDataSectorBarracks(companyID),
+        getDataSquads(companyID),
+        getDataWorkers(companyID),
+        getDataVarieties(companyID),
+        getDataSpecies(companyID),
+        getDataQuality(companyID),
+        getDataHarvestFormat(companyID),
+        getDataGround(companyID),
+        getDataSeasons(companyID),
+        getDataShifts(companyID),
+        getDataContractors(companyID),
+        getDataUser(companyID),
+      ]);
 
-        // Aquí puedes guardar los datos en el estado si es necesario
-        setDataSector(fetchedDataSector);
-        setDataWorkers(fetchedDataWorkers);
-        setDataVarieties(fetchedDataVarieties);
-        setDataSpecies(fetchedDataSpecies);
-        setDataQuality(fetchedDataQuality);
-        setDataHarvestFormat(fetchedDataHarvestFormat);
-
-        if (fetchedDataGround.code === "OK") {
-          const groundData = fetchedDataGround.grounds;
-          setDataGround(groundData);
-        }
-
-        if (fetchedDataSquads.code === "OK") {
-          const squadsData = fetchedDataSquads.squads;
-          setDataSquads(squadsData);
-        }
-
-        if (fetchedDataTurns.code === "OK") {
-          const turnsData = fetchedDataTurns.shifts;
-          setDataTurns(turnsData);
-        }
-
-        setDataSeasons(fetchedDataSeasons);
-        setDataTurns(fetchedDataTurns);
-        setDataContractors(fetchedDataContractors);
-
-
-        if (fetchedDataUsers.code === "OK") {
-          const Users = fetchedDataUsers.usuarios;
-          setDataUsers(Users);
-        }
-
-        if (Array.isArray(initialData) && initialData.length > 0) {
-          // Crear mapas para búsquedas rápidas
-          let groundMap = new Map();
-          let squadMap = new Map();
-          let shiftsMap = new Map();
-          let userMap = new Map();
-
-          if (fetchedDataGround.code === "OK") {
-            const groundData = fetchedDataGround.grounds;
-            if (Array.isArray(groundData)) {
-              groundMap = new Map(groundData.map(g => [g.id, g.name]));
-            } else {
-              console.error('La propiedad grounds no es un array:', groundData);
-            }
-          }
-
-          if (fetchedDataSquads.code === "OK") {
-            const squadData = fetchedDataSquads.squads;
-            if (Array.isArray(squadData)) {
-              squadMap = new Map(squadData.map(s => [s.id, s.name]));
-            } else {
-              console.error('La propiedad squads no es un array:', squadData);
-            }
-          }
-
-          if (fetchedDataTurns.code === "OK") {
-            const shiftsData = fetchedDataTurns.shifts;
-            if (Array.isArray(shiftsData)) {
-              shiftsMap = new Map(shiftsData.map(s => [s.id, s.name]));
-            } else {
-              console.error('La propiedad shifts no es un array:', shiftsData);
-            }
-          }
-
-          if (fetchedDataUsers.code === "OK") {
-            const Users = fetchedDataUsers.usuarios;
-            if (Array.isArray(Users)) {
-              userMap = new Map(Users.map(u => [u.id, `${u.name} ${u.lastname}`]));
-            } else {
-              console.error('La propiedad users no es un array:', Users);
-            }
-          }
-
-          const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
-          const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
-          const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
-          const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
-          const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
-          const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
-          const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
-          const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
-          const weigherMap = new Map(fetchedDataUsers.usuarios.map(u => [u.id, `${u.name} ${u.lastname}`]));
-
-
-          // Función para filtrar valores undefined o null
-          const filterUndefinedValues = (obj) => {
-            return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
-          };
-
-          // Procesar datos y construir cabeceras dinámicamente
-          const rawData = await Promise.all(
-            initialData.map(async (item) => {
-              return {
-                Campo: groundMap.get(item.ground) || '',
-                Sector: sectorMap.get(item.sector) || '',
-                Cuadrilla: squadMap.get(item.squad) || '',
-                "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
-                Lote: item.batch || '',
-                Cosechero: workerMap.get(item.worker) || '',
-                "RUT Cosechero": item.worker_rut || '',
-                "Fecha cosecha": item.harvest_date ? formatDate(item.harvest_date) : '',
-                Contratista: contractorMap.get(item.contractor) || '',
-                Especie: specieMap.get(item.specie) || '',
-                Variedad: varietyMap.get(item.variety) || '',
-                Cajas: item.boxes || '',
-                "Kilos Caja": item.kg_boxes || '',
-                Calidad: qualityMap.get(item.quality) || '',
-                "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
-                Pesador: weigherMap.get(Number(item.weigher_rut)) || '',
-                Temporada: seasonMap.get(item.season) || '',
-                Turno: shiftsMap.get(item.turns) || '',
-              };
-            })
-          );
-
-          // Determinar cabeceras basadas en datos reales
-          const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
-
-          // Crear los datos finales con cabeceras dinámicas
-          const formatData = rawData.map(item => {
-            const filteredItem = filterUndefinedValues(item);
-            return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
-          });
-
-          // Remover las columnas que no se quieren mostrar
-          const omitColumns = ["Zona", "Hilera", "Turno"];
-          const formData = formatData.map((item) => {
-            return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
-          });
-
-          setFormatInitialData(formData);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      // Validación de datos y almacenamiento en estado
+      setDataSector(Array.isArray(fetchedDataSector) ? fetchedDataSector : []);
+      setDataWorkers(Array.isArray(fetchedDataWorkers) ? fetchedDataWorkers : []);
+      setDataVarieties(Array.isArray(fetchedDataVarieties) ? fetchedDataVarieties : []);
+      setDataSpecies(Array.isArray(fetchedDataSpecies) ? fetchedDataSpecies : []);
+      setDataQuality(Array.isArray(fetchedDataQuality) ? fetchedDataQuality : []);
+      setDataHarvestFormat(Array.isArray(fetchedDataHarvestFormat) ? fetchedDataHarvestFormat : []);
+      
+      if (fetchedDataGround.code === "OK" && Array.isArray(fetchedDataGround.grounds)) {
+        setDataGround(fetchedDataGround.grounds);
       }
-    };
 
-    fetchData();
-  }, [initialData, companyID]);
+      if (fetchedDataSquads.code === "OK" && Array.isArray(fetchedDataSquads.squads)) {
+        setDataSquads(fetchedDataSquads.squads);
+      }
+
+      if (fetchedDataTurns.code === "OK" && Array.isArray(fetchedDataTurns.shifts)) {
+        setDataTurns(fetchedDataTurns.shifts);
+      }
+
+      setDataSeasons(Array.isArray(fetchedDataSeasons) ? fetchedDataSeasons : []);
+      setDataContractors(Array.isArray(fetchedDataContractors) ? fetchedDataContractors : []);
+
+      if (fetchedDataUsers.code === "OK" && Array.isArray(fetchedDataUsers.usuarios)) {
+        setDataUsers(fetchedDataUsers.usuarios);
+      }
+
+      // Validación adicional para initialData
+      if (Array.isArray(initialData) && initialData.length > 0) {
+        // Crear mapas para búsquedas rápidas
+        const groundMap = fetchedDataGround.code === "OK" && Array.isArray(fetchedDataGround.grounds)
+          ? new Map(fetchedDataGround.grounds.map(g => [g.id, g.name]))
+          : new Map();
+
+        const squadMap = fetchedDataSquads.code === "OK" && Array.isArray(fetchedDataSquads.squads)
+          ? new Map(fetchedDataSquads.squads.map(s => [s.id, s.name]))
+          : new Map();
+
+        const shiftsMap = fetchedDataTurns.code === "OK" && Array.isArray(fetchedDataTurns.shifts)
+          ? new Map(fetchedDataTurns.shifts.map(s => [s.id, s.name]))
+          : new Map();
+
+        const userMap = fetchedDataUsers.code === "OK" && Array.isArray(fetchedDataUsers.usuarios)
+          ? new Map(fetchedDataUsers.usuarios.map(u => [u.id, `${u.name} ${u.lastname}`]))
+          : new Map();
+
+        const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
+        const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
+        const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
+        const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
+        const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
+        const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
+        const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
+        const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
+        const weigherMap = userMap;
+
+        // Función para filtrar valores undefined o null
+        const filterUndefinedValues = (obj) => {
+          return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+        };
+
+        // Procesar datos y construir cabeceras dinámicamente
+        const rawData = await Promise.all(
+          initialData.map(async (item) => {
+            return {
+              Campo: groundMap.get(item.ground) || '',
+              Sector: sectorMap.get(item.sector) || '',
+              Cuadrilla: squadMap.get(item.squad) || '',
+              "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
+              Lote: item.batch || '',
+              Cosechero: workerMap.get(item.worker) || '',
+              "RUT Cosechero": item.worker_rut || '',
+              "Fecha cosecha": item.harvest_date || '',
+              "Hora cosecha": item.harvest_time || '',
+              Contratista: contractorMap.get(item.contractor) || '',
+              Especie: specieMap.get(item.specie) || '',
+              Variedad: varietyMap.get(item.variety) || '',
+              Cajas: item.boxes || '',
+              "Kilos Caja": item.kg_boxes || '',
+              Calidad: qualityMap.get(item.quality) || '',
+              "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
+              Pesador: weigherMap.get(Number(item.weigher_rut)) || '',
+              Temporada: seasonMap.get(item.season) || '',
+              Turno: shiftsMap.get(item.turns) || '',
+            };
+          })
+        );
+
+        // Determinar cabeceras basadas en datos reales
+        const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
+
+        // Crear los datos finales con cabeceras dinámicas
+        const formatData = rawData.map(item => {
+          const filteredItem = filterUndefinedValues(item);
+          return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
+        });
+
+        // Remover columnas no deseadas
+        const omitColumns = ["Zona", "Hilera", "Turno"];
+        const formData = formatData.map((item) => {
+          return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
+        });
+
+        //console.log("Format Data:", formData);
+        setFormatInitialData(formData);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  fetchData();
+}, [initialData, companyID]);
+
 
 
   //Nuevos
@@ -680,7 +651,6 @@ const CardTableProductionReports = ({
         };
       });
 
-      console.log("Datos filtrados:", filteredData);
         
       setInitialData(filteredData);
       setDataReport(filteredData);
