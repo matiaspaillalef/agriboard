@@ -608,7 +608,7 @@ const CardTableProductionReports = ({
           updatedFilters.harvest_date = ""; // Agregar harvest_date vacío
         }
 
-        console.log("Updated filters:", updatedFilters);
+        //console.log("Updated filters:", updatedFilters);
 
         return updatedFilters;
       }
@@ -619,18 +619,29 @@ const CardTableProductionReports = ({
   };
 
 
-  const handleFilterChange = (event) => {
-    const { name, value } = event.target;
+  const handleFilterChange = (selectedOption, actionMeta) => {
+    // Para inputs normales (event.target)
+    if (selectedOption.target) {
+      const { name, value } = selectedOption.target;
+      
+      if (value !== undefined && value !== '') {
+        setFilters((prev) => ({
+          ...prev,
+          [name]: value,  
+        }));
+      }
+    } 
+    // Para Select de react-select
+    else {
+      const { name } = actionMeta;  // `actionMeta` contiene el `name` del Select
+      const { value } = selectedOption;  // `value` es el valor seleccionado
   
-    //console.log(value); // El valor del input (fecha seleccionada)
-    //console.log(name);  // El atributo "name" del input (por ejemplo, "from" o "to")
-  
-    // Solo actualizar el filtro si el valor no es vacío o undefined
-    if (value !== undefined && value !== '') {
-      setFilters((prev) => ({
-        ...prev,
-        [name]: value,  // Usar el `name` del input como clave
-      }));
+      if (value !== undefined && value !== '') {
+        setFilters((prev) => ({
+          ...prev,
+          [name]: value,  
+        }));
+      }
     }
   };
 
