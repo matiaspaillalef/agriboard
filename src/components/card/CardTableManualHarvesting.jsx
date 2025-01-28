@@ -723,10 +723,29 @@ const CardTableManualHarvesting = ({
             Array.isArray(initialData) &&
             initialData.map(async (item) => {
               return {
+                "Fecha cosecha": formatDate(item.harvest_date),
+                "Hora cosecha": item.harvest_time,
                 //Zona: item.zone,
                 Campo: fetchedDataGround.grounds.find(
                   (ground) => ground.id === item.ground
                 )?.name,
+                Cosechero:
+                  fetchedDataWorkers.find(
+                    (worker) => worker.id === item.worker
+                  )?.name +
+                  " " +
+                  fetchedDataWorkers.find(
+                    (worker) => worker.id === item.worker
+                  )?.lastname,
+                "RUT Cosechero": item.worker_rut,
+                Especie: fetchedDataSpecies.find(
+                  (specie) => specie.id === item.specie
+                )?.name,
+                Variedad: fetchedDataVarieties.find(
+                  (variety) => variety.id === item.variety
+                )?.name,
+                "Kilos Caja": item.kg_boxes,
+                Cajas: item.boxes,
                 Sector: fetchedDataSector.find(
                   (sector) => sector.id === item.sector
                 )?.name,
@@ -737,24 +756,6 @@ const CardTableManualHarvesting = ({
                 (worker) => worker.id === item.squad_leader
               )?.name,*/
                 Lote: item.batch,
-                Cosechero:
-                  fetchedDataWorkers.find(
-                    (worker) => worker.id === item.worker
-                  )?.name +
-                  " " +
-                  fetchedDataWorkers.find(
-                    (worker) => worker.id === item.worker
-                  )?.lastname,
-                "RUT Cosechero": item.worker_rut,
-                "Fecha cosecha": formatDate(item.harvest_date),
-                Especie: fetchedDataSpecies.find(
-                  (specie) => specie.id === item.specie
-                )?.name,
-                Variedad: fetchedDataVarieties.find(
-                  (variety) => variety.id === item.variety
-                )?.name,
-                Cajas: item.boxes,
-                "Kilos Caja": item.kg_boxes,
                 Calidad: fetchedDataQuality.find(
                   (quality) => quality.id === item.quality
                 )?.name,
@@ -764,12 +765,12 @@ const CardTableManualHarvesting = ({
               )?.name,*/
                 "RUT Pesador": item.weigher_rut,
                 Sincronizado: item.sync,
-                "Fecha sincronización": item.sync_date,
+                "Fecha sincronización": formatDate(item.sync_date),
                 Temporada: fetchedDataSeasons.find(
                   (season) => season.id === item.season
                 )?.name,
                 Turnos: item.turns,
-                "Fecha registro": item.date_register,
+                "Fecha registro": formatDate(item.date_register),
                 //Temp: item.temp,
                 //Humedad: item.wet,
                 Contratista: fetchedDataContractors.find(
@@ -846,8 +847,8 @@ const CardTableManualHarvesting = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={formatInitialData}
-                    filename="Tipos de recolección"
-                    sheetname="Tipos de recolección"
+                    filename="Producción Manual"
+                    sheetname="Producción Manual"
                     titlebutton="Exportar a excel"
                   />
                 )}
