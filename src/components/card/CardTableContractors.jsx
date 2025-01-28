@@ -63,6 +63,7 @@ const CardTableContractors = ({
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [openShowUser, setOpenShowUser] = useState(false);
+  const [formatInitialData, setFormatInitialData] = useState([]);
 
   const [selectedItem, setSelectedItem] = useState(null); // Estado para almacenar los datos del item seleccionado para editar
   const [updateMessage, setUpdateMessage] = useState(null); // Estado para manejar el mensaje de actualización
@@ -321,6 +322,50 @@ const CardTableContractors = ({
     return <div>No hay datos disponibles.</div>;
   }*/
 
+    //Exportar Excel datas de front
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          // Función para separar el RUT y su dígito verificador
+          const splitRut = (rut) => {
+            // Primero eliminamos puntos y guiones
+            const cleanedRut = rut.replace(/[.\-]/g, '');
+    
+            // Separamos el RUT y el dígito verificador
+            const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
+            const dv = cleanedRut.slice(-1); // Último carácter (el dígito verificador)
+    
+            return { rutNumber, dv };
+          };
+    
+          // Mapeamos los datos iniciales y formateamos los resultados
+          const data = initialData.map((item) => {
+            const { rutNumber, dv } = splitRut(item.rut || "Sin asignar");
+    
+            return {
+              Nombre: item.name,
+              Apellido: item.lastname,
+              Rut: rutNumber,
+              DV: dv,
+              Giro: item.giro,
+              Teléfono: item.phone,
+              Email: item.email,
+              Región: StateCL.find((state) => state.region_number == item.state)?.region || "-",
+              Ciudad: item.city,
+              Dirección: item.address,
+              Estado: item.status == 1 ? "Activo" : "Inactivo",
+            };
+          });
+    
+          setFormatInitialData(data); // Guardamos los datos formateados en el estado
+        } catch (error) {
+          console.error("Error al procesar los datos:", error);
+        }
+      };
+    
+      fetchData(); // Llamamos a la función fetchData
+    }, [initialData]);
+
   return (
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
@@ -365,9 +410,9 @@ const CardTableContractors = ({
               <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
                 {downloadBtn && (
                   <ExportarExcel
-                    data={initialData}
-                    filename="empresas"
-                    sheetname="empresas"
+                    data={formatInitialData}
+                    filename="contratistas"
+                    sheetname="conrtatistas"
                     titlebutton="Exportar a excel"
                   />
                 )}
