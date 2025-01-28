@@ -310,157 +310,166 @@ const CardTableProductionReports = ({
     return dateString.substring(0, 10);
   }
 
-// Exportar Excel datas de front
-useEffect(() => {
-  if (!companyID) {
-    return;
-  }
-
-  const fetchData = async () => {
-    try {
-      // Llamadas a las funciones para obtener los datos
-      const [
-        fetchedDataSector,
-        fetchedDataSquads,
-        fetchedDataWorkers,
-        fetchedDataVarieties,
-        fetchedDataSpecies,
-        fetchedDataQuality,
-        fetchedDataHarvestFormat,
-        fetchedDataGround,
-        fetchedDataSeasons,
-        fetchedDataTurns,
-        fetchedDataContractors,
-        fetchedDataUsers,
-      ] = await Promise.all([
-        getDataSectorBarracks(companyID),
-        getDataSquads(companyID),
-        getDataWorkers(companyID),
-        getDataVarieties(companyID),
-        getDataSpecies(companyID),
-        getDataQuality(companyID),
-        getDataHarvestFormat(companyID),
-        getDataGround(companyID),
-        getDataSeasons(companyID),
-        getDataShifts(companyID),
-        getDataContractors(companyID),
-        getDataUser(companyID),
-      ]);
-
-      // Validación de datos y almacenamiento en estado
-      setDataSector(Array.isArray(fetchedDataSector) ? fetchedDataSector : []);
-      setDataWorkers(Array.isArray(fetchedDataWorkers) ? fetchedDataWorkers : []);
-      setDataVarieties(Array.isArray(fetchedDataVarieties) ? fetchedDataVarieties : []);
-      setDataSpecies(Array.isArray(fetchedDataSpecies) ? fetchedDataSpecies : []);
-      setDataQuality(Array.isArray(fetchedDataQuality) ? fetchedDataQuality : []);
-      setDataHarvestFormat(Array.isArray(fetchedDataHarvestFormat) ? fetchedDataHarvestFormat : []);
-      
-      if (fetchedDataGround.code === "OK" && Array.isArray(fetchedDataGround.grounds)) {
-        setDataGround(fetchedDataGround.grounds);
-      }
-
-      if (fetchedDataSquads.code === "OK" && Array.isArray(fetchedDataSquads.squads)) {
-        setDataSquads(fetchedDataSquads.squads);
-      }
-
-      if (fetchedDataTurns.code === "OK" && Array.isArray(fetchedDataTurns.shifts)) {
-        setDataTurns(fetchedDataTurns.shifts);
-      }
-
-      setDataSeasons(Array.isArray(fetchedDataSeasons) ? fetchedDataSeasons : []);
-      setDataContractors(Array.isArray(fetchedDataContractors) ? fetchedDataContractors : []);
-
-      if (fetchedDataUsers.code === "OK" && Array.isArray(fetchedDataUsers.usuarios)) {
-        setDataUsers(fetchedDataUsers.usuarios);
-      }
-
-      // Validación adicional para initialData
-      if (Array.isArray(initialData) && initialData.length > 0) {
-        // Crear mapas para búsquedas rápidas
-        const groundMap = fetchedDataGround.code === "OK" && Array.isArray(fetchedDataGround.grounds)
-          ? new Map(fetchedDataGround.grounds.map(g => [g.id, g.name]))
-          : new Map();
-
-        const squadMap = fetchedDataSquads.code === "OK" && Array.isArray(fetchedDataSquads.squads)
-          ? new Map(fetchedDataSquads.squads.map(s => [s.id, s.name]))
-          : new Map();
-
-        const shiftsMap = fetchedDataTurns.code === "OK" && Array.isArray(fetchedDataTurns.shifts)
-          ? new Map(fetchedDataTurns.shifts.map(s => [s.id, s.name]))
-          : new Map();
-
-        const userMap = fetchedDataUsers.code === "OK" && Array.isArray(fetchedDataUsers.usuarios)
-          ? new Map(fetchedDataUsers.usuarios.map(u => [u.id, `${u.name} ${u.lastname}`]))
-          : new Map();
-
-        const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
-        const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
-        const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
-        const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
-        const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
-        const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
-        const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
-        const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
-        const weigherMap = userMap;
-
-        // Función para filtrar valores undefined o null
-        const filterUndefinedValues = (obj) => {
-          return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
-        };
-
-        // Procesar datos y construir cabeceras dinámicamente
-        const rawData = await Promise.all(
-          initialData.map(async (item) => {
-            return {
-              Campo: groundMap.get(item.ground) || '',
-              Sector: sectorMap.get(item.sector) || '',
-              Cuadrilla: squadMap.get(item.squad) || '',
-              "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
-              Lote: item.batch || '',
-              Cosechero: workerMap.get(item.worker) || '',
-              "RUT Cosechero": item.worker_rut || '',
-              "Fecha cosecha": item.harvest_date || '',
-              "Hora cosecha": item.harvest_time || '',
-              Contratista: contractorMap.get(item.contractor) || '',
-              Especie: specieMap.get(item.specie) || '',
-              Variedad: varietyMap.get(item.variety) || '',
-              Cajas: item.boxes || '',
-              "Kilos Caja": item.kg_boxes || '',
-              Calidad: qualityMap.get(item.quality) || '',
-              "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
-              Pesador: weigherMap.get(Number(item.weigher_rut)) || '',
-              Temporada: seasonMap.get(item.season) || '',
-              Turno: shiftsMap.get(item.turns) || '',
-            };
-          })
-        );
-
-        // Determinar cabeceras basadas en datos reales
-        const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
-
-        // Crear los datos finales con cabeceras dinámicas
-        const formatData = rawData.map(item => {
-          const filteredItem = filterUndefinedValues(item);
-          return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
-        });
-
-        // Remover columnas no deseadas
-        const omitColumns = ["Zona", "Hilera", "Turno"];
-        const formData = formatData.map((item) => {
-          return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
-        });
-
-        //console.log("Format Data:", formData);
-        setFormatInitialData(formData);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
+  // Exportar Excel datas de front
+  useEffect(() => {
+    if (!companyID) {
+      return;
     }
-  };
 
-  fetchData();
-}, [initialData, companyID]);
+    const fetchData = async () => {
+      try {
+        // Llamadas a las funciones para obtener los datos
+        const [
+          fetchedDataSector,
+          fetchedDataSquads,
+          fetchedDataWorkers,
+          fetchedDataVarieties,
+          fetchedDataSpecies,
+          fetchedDataQuality,
+          fetchedDataHarvestFormat,
+          fetchedDataGround,
+          fetchedDataSeasons,
+          fetchedDataTurns,
+          fetchedDataContractors,
+          fetchedDataUsers,
+        ] = await Promise.all([
+          getDataSectorBarracks(companyID),
+          getDataSquads(companyID),
+          getDataWorkers(companyID),
+          getDataVarieties(companyID),
+          getDataSpecies(companyID),
+          getDataQuality(companyID),
+          getDataHarvestFormat(companyID),
+          getDataGround(companyID),
+          getDataSeasons(companyID),
+          getDataShifts(companyID),
+          getDataContractors(companyID),
+          getDataUser(companyID),
+        ]);
 
+        // Validación de datos y almacenamiento en estado
+        setDataSector(Array.isArray(fetchedDataSector) ? fetchedDataSector : []);
+        setDataWorkers(Array.isArray(fetchedDataWorkers) ? fetchedDataWorkers : []);
+        setDataVarieties(Array.isArray(fetchedDataVarieties) ? fetchedDataVarieties : []);
+        setDataSpecies(Array.isArray(fetchedDataSpecies) ? fetchedDataSpecies : []);
+        setDataQuality(Array.isArray(fetchedDataQuality) ? fetchedDataQuality : []);
+        setDataHarvestFormat(Array.isArray(fetchedDataHarvestFormat) ? fetchedDataHarvestFormat : []);
+
+        if (fetchedDataGround.code === "OK" && Array.isArray(fetchedDataGround.grounds)) {
+          setDataGround(fetchedDataGround.grounds);
+        }
+
+        if (fetchedDataSquads.code === "OK" && Array.isArray(fetchedDataSquads.squads)) {
+          setDataSquads(fetchedDataSquads.squads);
+        }
+
+        if (fetchedDataTurns.code === "OK" && Array.isArray(fetchedDataTurns.shifts)) {
+          setDataTurns(fetchedDataTurns.shifts);
+        }
+
+        setDataSeasons(Array.isArray(fetchedDataSeasons) ? fetchedDataSeasons : []);
+        setDataContractors(Array.isArray(fetchedDataContractors) ? fetchedDataContractors : []);
+
+        if (fetchedDataUsers.code === "OK" && Array.isArray(fetchedDataUsers.usuarios)) {
+          setDataUsers(fetchedDataUsers.usuarios);
+        }
+
+        // Validación adicional para initialData
+        if (Array.isArray(initialData) && initialData.length > 0) {
+          // Crear mapas para búsquedas rápidas
+          const groundMap = fetchedDataGround.code === "OK" && Array.isArray(fetchedDataGround.grounds)
+            ? new Map(fetchedDataGround.grounds.map(g => [g.id, g.name]))
+            : new Map();
+
+          const squadMap = fetchedDataSquads.code === "OK" && Array.isArray(fetchedDataSquads.squads)
+            ? new Map(fetchedDataSquads.squads.map(s => [s.id, s.name]))
+            : new Map();
+
+          const shiftsMap = fetchedDataTurns.code === "OK" && Array.isArray(fetchedDataTurns.shifts)
+            ? new Map(fetchedDataTurns.shifts.map(s => [s.id, s.name]))
+            : new Map();
+
+          const userMap = fetchedDataUsers.code === "OK" && Array.isArray(fetchedDataUsers.usuarios)
+            ? new Map(fetchedDataUsers.usuarios.map(u => [u.id, `${u.name} ${u.lastname}`]))
+            : new Map();
+
+          const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
+          const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
+          const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
+          const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
+          const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
+          const qualityMap = new Map(fetchedDataQuality.map(q => [q.id, q.name]));
+          const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
+          const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
+          const weigherMap = userMap;
+
+          // Función para filtrar valores undefined o null
+          const filterUndefinedValues = (obj) => {
+            return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+          };
+
+          // Procesar datos y construir cabeceras dinámicamente
+          const rawData = await Promise.all(
+            initialData.map(async (item) => {
+
+
+              // Convertir la fecha (si existe) al formato adecuado para Excel
+              const formattedHarvestDate = item.harvest_date ? new Date(item.harvest_date.split('-').reverse().join('-')) : '';
+
+              // Convertir la hora (si existe) al formato adecuado para Excel (como HH:mm)
+              const formattedHarvestTime = item.harvest_time
+                ? `${item.harvest_time.padStart(5, '0')}:00`
+                : '';
+
+              return {
+                "Fecha cosecha": formattedHarvestDate ? formattedHarvestDate : '',
+                "Hora cosecha": formattedHarvestTime ? formattedHarvestTime : '',
+                Campo: groundMap.get(item.ground) || '',
+                Sector: sectorMap.get(item.sector) || '',
+                Cuadrilla: squadMap.get(item.squad) || '',
+                "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
+                Lote: item.batch || '',
+                Cosechero: workerMap.get(item.worker) || '',
+                "RUT Cosechero": item.worker_rut || '',
+                Contratista: contractorMap.get(item.contractor) || '',
+                Especie: specieMap.get(item.specie) || '',
+                Variedad: varietyMap.get(item.variety) || '',
+                Cajas: item.boxes || '',
+                "Kilos Caja": item.kg_boxes || '',
+                Calidad: qualityMap.get(item.quality) || '',
+                "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
+                Pesador: weigherMap.get(Number(item.weigher_rut)) || '',
+                Temporada: seasonMap.get(item.season) || '',
+                Turno: shiftsMap.get(item.turns) || '',
+              };
+            })
+          );
+
+          // Determinar cabeceras basadas en datos reales
+          const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
+
+          // Crear los datos finales con cabeceras dinámicas
+          const formatData = rawData.map(item => {
+            const filteredItem = filterUndefinedValues(item);
+            return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
+          });
+
+          // Remover columnas no deseadas
+          const omitColumns = ["Zona", "Hilera", "Turno"];
+          const formData = formatData.map((item) => {
+            return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
+          });
+
+          //console.log("Format Data:", formData);
+          setFormatInitialData(formData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [initialData, companyID]);
 
 
   //Nuevos
@@ -592,7 +601,7 @@ useEffect(() => {
 
   const handleFilterChange = (selectedOption, key) => {
     const { value } = selectedOption;
-  
+
     // Solo actualizar el filtro si el valor no es vacío o undefined
     if (value !== undefined && value !== '') {
       setFilters((prev) => ({
@@ -616,27 +625,29 @@ useEffect(() => {
   };
 
   const handleFilterResults = async () => {
-    //console.log("Filtros:", filters);
-  
+    console.log("Filtros:", filters);
+
     // Filtrar los filtros para evitar valores vacíos o no definidos
     const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
       // Evitar que el 'undefined' o valores vacíos se incluyan
+
+      console.log("Key:", key);
       if (
-        key === 'totals' || 
-        key === 'from' || 
-        key === 'to' || 
-        checkedIds.includes(key) || 
-        key === 'harvest_date' || 
+        key === 'totals' ||
+        key === 'from' ||
+        key === 'to' ||
+        checkedIds.includes(key) ||
+        key === 'harvest_date' ||
         (filters[key] && filters[key] !== '')
       ) {
         acc[key] = filters[key];
       }
       return acc;
     }, {});
-  
+
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
-  
+
       console.log("Resultados filtrados:", results);
 
       const filteredData = results.map((item) => {
@@ -651,7 +662,7 @@ useEffect(() => {
         };
       });
 
-        
+
       setInitialData(filteredData);
       setDataReport(filteredData);
     } catch (error) {
@@ -660,7 +671,7 @@ useEffect(() => {
       setCurrentPage(1);
     }
   };
-  
+
 
   const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
 
@@ -669,12 +680,12 @@ useEffect(() => {
       case "select":
         return (
           <Select
-          name={key}
-          id={key}
-          isDisabled={!fields[key].checked}
-          onChange={handleFilterChange}
-          options={Array.isArray(options[key])
-            ? options[key].map(option => ({
+            name={key}
+            id={key}
+            isDisabled={!fields[key].checked}
+            onChange={handleFilterChange}
+            options={Array.isArray(options[key])
+              ? options[key].map(option => ({
                 value: key === "batch" ? option : option.id,
                 label: key === "worker_rut"
                   ? option.rut
@@ -682,10 +693,10 @@ useEffect(() => {
                     ? option
                     : `${option.name}${key === "worker" || key === "squad_leader" ? ` ${option.lastname}` : ""}`,
               }))
-            : []}
-          className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-blueTertiary ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
-          placeholder="Seleccione una opción"
-        />
+              : []}
+            className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-blueTertiary ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
+            placeholder="Seleccione una opción"
+          />
         );
 
       case "date":
