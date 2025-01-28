@@ -719,9 +719,24 @@ const CardTableManualHarvesting = ({
         setDataContractors(fetchedDataContractors);
 
         if (initialData && Array.isArray(initialData)) {
+
           const formatData = await Promise.all(
             Array.isArray(initialData) &&
             initialData.map(async (item) => {
+
+              const splitRut = (rut) => {
+                // Primero eliminamos puntos y guiones
+                const cleanedRut = rut.replace(/[.\-]/g, '');
+
+                // Separamos el RUT y el dígito verificador
+                const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
+                const dv = cleanedRut.slice(-1); // Último carácter (el dígito verificador)
+
+                return { rutNumber, dv };
+              };
+
+              const { rutNumber, dv } = splitRut(item.worker_rut || "Sin asignar");
+
               return {
                 "Fecha cosecha": formatDate(item.harvest_date),
                 "Hora cosecha": item.harvest_time,
@@ -737,7 +752,8 @@ const CardTableManualHarvesting = ({
                   fetchedDataWorkers.find(
                     (worker) => worker.id === item.worker
                   )?.lastname,
-                "RUT Cosechero": item.worker_rut,
+                "RUT": rutNumber,
+                DV: dv,
                 Especie: fetchedDataSpecies.find(
                   (specie) => specie.id === item.specie
                 )?.name,
@@ -847,8 +863,8 @@ const CardTableManualHarvesting = ({
                 downloadBtn && (
                   <ExportarExcel
                     data={formatInitialData}
-                    filename="Producción Manual"
-                    sheetname="Producción Manual"
+                    filename="produccion_manual"
+                    sheetname="Produccion_manual"
                     titlebutton="Exportar a excel"
                   />
                 )}
@@ -1290,9 +1306,6 @@ const CardTableManualHarvesting = ({
                         )}
                       </select>
                     </div>
-
-
-
 
                     <div className="flex flex-col gap-3">
                       <label
