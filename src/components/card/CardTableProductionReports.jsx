@@ -684,7 +684,7 @@ const CardTableProductionReports = ({
     try {
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
 
-      console.log("Resultados filtrados:", results);
+      //console.log("Resultados filtrados:", results);
 
       const filteredData = results.map((item) => {
         const date = new Date(item.harvest_date);
@@ -708,7 +708,7 @@ const CardTableProductionReports = ({
           resultItem.harvest_time = formattedTime;
         }
       
-        console.log("Result Item:", resultItem);
+        //console.log("Result Item:", resultItem);
         return resultItem;
       });
 
