@@ -689,25 +689,26 @@ const CardTableProductionReports = ({
       const filteredData = results.map((item) => {
         const date = new Date(item.harvest_date);
         let formattedDate = '';
-  
-        // Verifica si el objeto Date es válido
+        let formattedTime = '';
+      
         if (item.harvest_date && !isNaN(date)) {
           const day = String(date.getDate()).padStart(2, '0');
           const month = String(date.getMonth() + 1).padStart(2, '0');
           const year = date.getFullYear();
           formattedDate = `${day}-${month}-${year}`; // Formato DD-MM-YYYY
+      
+          // Extraer la hora y los minutos respetando la zona horaria original
+          const originalHours = item.harvest_date.substring(11, 16); // "14:27"
+          formattedTime = originalHours;
         }
-  
-        // Si harvest_date es válido, se lo dejamos en el objeto, si no, lo excluimos
-        const resultItem = { ...item };
-        if (formattedDate) {
-          resultItem.harvest_date = formattedDate; // Asignamos la fecha formateada
-        } else {
-          delete resultItem.harvest_date; // Eliminamos la propiedad si no es válida
+      
+        const resultItem = { ...item, harvest_date: formattedDate };
+      
+        if (formattedTime) {
+          resultItem.harvest_time = formattedTime;
         }
-
+      
         console.log("Result Item:", resultItem);
-  
         return resultItem;
       });
 
