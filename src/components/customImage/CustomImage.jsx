@@ -23,7 +23,13 @@ function CustomImage({ companyID }) {
 
           //console.log("Empresa seleccionada:", data);
           if (data && data.logo) {
-            setImagenUsuario("/" + data.logo.replace("public/", ""));
+
+            let logoPath = data.logo.includes("https://")
+            ? data.logo
+            : `/${data.logo.replace("public/", "")}`;
+
+
+            setImagenUsuario(logoPath);
             setCompany(data);
           } else {
             setImagenUsuario(null); // O una imagen por defecto si prefieres
