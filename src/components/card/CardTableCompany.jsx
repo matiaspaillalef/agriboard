@@ -57,6 +57,10 @@ const CardTableCompany = ({
     formState: { errors },
   } = useForm();
 
+
+  const IMGBB_API = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+  const [uploadCloud, setUploadCloud] = useState("");
+
   const [initialData, setInitialData] = useState(data);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -138,12 +142,15 @@ const CardTableCompany = ({
   const onUpdateItem = async (data) => {
     let logoPath = selectedItem.logo; // Conservar la imagen existente
 
+    console.log(data);
+    console.log(file);
+
     if (file) {
       try {
         const formDataFile = new FormData();
         formDataFile.set("logo", file);
 
-        const res = await fetch("/api/upload", {
+        /*const res = await fetch("/api/upload", {
           method: "POST",
           body: formDataFile,
         });
@@ -155,6 +162,8 @@ const CardTableCompany = ({
 
         const dataLogo = await res.json();
         logoPath = dataLogo.path; // Actualiza el logo solo si se ha subido uno nuevo
+        */
+       logoPath = uploadCloud || '';
       } catch (error) {
         console.error(error);
         setUpdateMessage("Error al intentar subir la imagen");
@@ -254,10 +263,11 @@ const CardTableCompany = ({
   };
 
   const onClickFileInput = () => {
-    fileInputRef.current.click();
+    fileInputRef.current?.click();
   };
+  
 
-  const handleFileChange = (e) => {
+  /*const handleFileChange = (e) => {
     const file = e.target.files[0];
 
     if (file) {
@@ -271,7 +281,58 @@ const CardTableCompany = ({
       };
       reader.readAsDataURL(file);
     }
+  };*/
+
+
+  // Función para manejar el cambio de archivo
+  const handleFileChange = async (event) => {
+    const selectedFile = event.target.files[0];
+    if (!selectedFile) return;
+
+    setFile(selectedFile); // Guarda el archivo en el estado
+
+    // Subir imagen a Imgbb (o cualquier otro servicio)
+    const formData = new FormData();
+    formData.append("image", selectedFile);
+
+    try {
+      const response = await fetch("https://api.imgbb.com/1/upload?key="+ IMGBB_API , {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      console.log("Imagen subida:", data.data.url);
+
+      setUploadCloud(data.data.url); // Guarda la URL en el estado para actualizar la vista
+    } catch (error) {
+      console.error("Error al subir la imagen:", error);
+    }
   };
+
+ 
+
+  /*const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append("image", file);
+  
+    try {
+      const response = await fetch("https://api.imgbb.com/1/upload?key=" + IMGBB_API, {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await response.json();
+      //console.log("Imagen subida:", data.data.url);
+  
+      // Guarda la URL en el estado o base de datos
+    } catch (error) {
+      console.error("Error al subir la imagen:", error);
+    }
+  };*/
 
   // Creación de empresa
   const onSubmitForm = async (data) => {
@@ -283,7 +344,7 @@ const CardTableCompany = ({
         const formDataFile = new FormData();
         formDataFile.set("logo", file);
 
-        const res = await fetch("/api/upload", {
+        /*const res = await fetch("/api/upload", {
           method: "POST",
           body: formDataFile,
         });
@@ -295,6 +356,8 @@ const CardTableCompany = ({
 
         const dataLogo = await res.json();
         logoPath = dataLogo.path; // Actualizamos la ruta con la respuesta del servidor
+        */
+       logoPath = uploadCloud || '';
       } catch (error) {
         console.error("Error al subir el archivo:", error);
         setUpdateMessage(
@@ -692,21 +755,23 @@ const CardTableCompany = ({
                 >
                   <div className="flex flex-col gap-3">
                     <div className="relative max-h-[150px] max-w-[150px]">
-                      <Image
-                        src={
-                          selectedItem && itemImages[selectedItem.id]
-                            ? itemImages[selectedItem.id]
-                            : selectedItem?.logo
-                            ? `/${selectedItem.logo.replace("public/", "")}`
-                            : isEdit
-                            ? LogoNormal
-                            : (file && URL.createObjectURL(file)) || uploadCloud
-                        }
-                        width={200}
-                        height={200}
-                        className="rounded-xl border border-gray-200 dark:border-white/10 dark:bg-white min-h-[150px] min-w-[150px] object-contain p-4"
-                        alt="Logo"
-                      />
+                    <Image
+          src={
+            uploadCloud // Usa la URL de la imagen subida si existe
+              ? uploadCloud
+              : file // Si hay un archivo seleccionado, usa la previsualización
+              ? URL.createObjectURL(file)
+              : selectedItem?.logo // Si hay un logo previo, mostrarlo
+              ? selectedItem?.logo.includes("https://") ? selectedItem.logo : `/${selectedItem.logo.replace("public/", "")}`
+              : isEdit // Si está en modo edición, mostrar el logo por defecto
+              ? "/agrisoft_logo.png"
+              : "/agrisoft_logo.png"
+          }
+          width={200}
+          height={200}
+          className="rounded-xl border border-gray-200 dark:border-white/10 dark:bg-white min-h-[150px] min-w-[150px] object-contain p-4"
+          alt="Logo"
+        />
 
                       <button
                         type="button"
