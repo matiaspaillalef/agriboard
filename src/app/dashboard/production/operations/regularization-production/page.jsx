@@ -1,100 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import CardTableRegularizationProduction from "@/components/card/CardTableRegularizationProduction";
-import { getDataGround, getDataRegularizationProduction } from "@/app/api/ProductionApi";
-import { getDataCompanies } from "@/app/api/ConfiguracionApi";
-import { useEffect, useState, useCallback } from "react";
 
-import LoadingData from "@/components/loadingData/loadingData";
-import { set } from "react-hook-form";
+const ProductionProductionReports = () => {
+    const [companyId, setCompanyId] = useState("");
 
-const ProductionRegularizationProduction = () => {
-  const [dataRegularizationProduction, setDataRegularizationProduction] = useState([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState("");
-  const [dataCompanies, setDataCompanies] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        const getCompanyIdFromSessionStorage = () => {
+            const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
+            if (storedCompanyId) {
+                return storedCompanyId;
+            } else {
+                const userData = JSON.parse(sessionStorage.getItem("userData"));
+                return userData?.idCompany || "";
+            }
+        };
 
-  const getCompanyIdFromSessionStorage = useCallback(() => {
-    const storedCompanyId = sessionStorage.getItem("selectedCompanyId");
-    if (storedCompanyId) {
-      return storedCompanyId;
-    } else {
-      const userData = JSON.parse(sessionStorage.getItem("userData"));
-      return userData?.idCompany || "";
-    }
-  }, []);
+        const companyIdFromSessionStorage = getCompanyIdFromSessionStorage();
+        setCompanyId(companyIdFromSessionStorage);
+    }, []);
 
-  const fetchData = useCallback(async (companyId) => {
-    setIsLoading(true);
-    try {
-      const data = await  getDataRegularizationProduction(companyId);
-      const companies = await getDataCompanies();
-      
-      setDataRegularizationProduction(data);
-      setDataCompanies(companies);
-
-    } catch (error) {
-      console.error("Error al obtener datos:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const companyId = getCompanyIdFromSessionStorage();
-    setSelectedCompanyId(companyId);
-    if (companyId) {
-      fetchData(companyId);
-    }
-  }, [getCompanyIdFromSessionStorage, fetchData]);
-
-  useEffect(() => {
-    if (!selectedCompanyId) return;
-
-    const observer = new MutationObserver(() => {
-      const companyId = getCompanyIdFromSessionStorage();
-      if (companyId !== selectedCompanyId) {
-        setSelectedCompanyId(companyId);
-        fetchData(companyId);
-      }
-    });
-
-    observer.observe(document.body, {
-      attributes: true,
-      subtree: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
-
-
-  return (
-    <>
-      {isLoading ? (
-        <LoadingData />
-      ) : (
+    return (
         <div className="flex w-full flex-col gap-5 mt-3">
-          <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
-            <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-              <CardTableRegularizationProduction
-                data={dataRegularizationProduction}
-                thead="Fecha Cosecha, Hora Cosecha, Campo, Trabajador, RUT, Especie, Variedad, Kilos, Sector"    
-                downloadBtn={true}
-                SearchInput={true}
-                actions={true}
-                companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
-                datosCompanies={dataCompanies}
-                omitirColumns={["id", "company_id", "zone", "squad", "squad_leader", "batch", "hilera", "boxes", "quality", "season", "sync", "sync_date", "turns", "date_register", "temp", "wet", "contractor", "weigher_rut", "source", "harvest_format"]}
-              />
+            <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
+                <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
+                    <CardTableRegularizationProduction
+                        data="[]"
+                        thead=""
+                        downloadBtn={true}
+                        SearchInput={true}
+                        actions={true}
+                        companyID={companyId}
+                        omitirColumns={["id", "company_id", "sync", "sync_date", "turns", "temp", "wet", "date_register", "contractor", "source", 'zone', 'hilera', 'squad', 'squad_leader', 'batch','quality', 'harvest_format', 'weigher_rut', 'sector', 'season']}
+                    />
+                </div>
             </div>
-          </div>
         </div>
-      )}
-    </>
-  );
+    );
 };
 
-export default ProductionRegularizationProduction;
+export default ProductionProductionReports;

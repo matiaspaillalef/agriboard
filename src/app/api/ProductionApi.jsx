@@ -2228,3 +2228,31 @@ export const filterResultsMonthly = async (filters, id_company) => {
     console.error(err);
   }
 };
+
+export const filterRegularizationResults = async (filters, id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/filterRegularizationResults/${id_company}`, // Asumiendo que tu endpoint para filtrar es similar
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify(filters), // Envía los filtros como cuerpo de la solicitud
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+
+      if (data.code === "OK") {
+        return data.results; // Devuelve los resultados filtrados
+      } else if (data.code === "ERROR") {
+        return data.mensaje; // Maneja el error según tu lógica
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
