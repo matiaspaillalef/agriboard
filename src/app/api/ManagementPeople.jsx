@@ -993,3 +993,60 @@ export const deleteAllBand = async (data) => {
     console.error(err);
   }
 };
+
+
+export const importWorker = async (data) => {
+
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/workers/importWorker",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          rut: data.rut,
+          name: data.name,
+          lastname: data.lastname,
+          lastname2: data.lastname2,
+          born_date: data.born_date,
+          gender: data.gender,
+          state_civil: data.state_civil,
+          state: data.state,
+          city: data.city,
+          address: data.address,
+          phone: data.phone,
+          email: data.email,
+          //phone_company: data.phone_company,
+          date_admission: data.date_admission,
+          status: data.status,
+          position: data.position,
+          contractor: data.contractor,
+          squad: data.squad,
+          leader_squad: data.leader_squad,
+          shift: data.shift,
+          wristband: data.wristband,
+          observation: data.observation,
+          bank: data.bank,
+          account_type: data.account_type,
+          account_number: data.account_number,
+          afp: data.afp,
+          health: data.health,
+          company_id: Number(data.company_id),
+          is_weigher: Number(data.is_weigher),
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const workerData = await res.json();
+      return workerData;
+    }
+  }
+  catch (err) {
+    console.error(err);
+  }
+}
