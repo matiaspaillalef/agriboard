@@ -26,6 +26,8 @@
     "crypto": "^1.0.1",
     "cryptr": "^6.3.0",
     "date-fns": "^3.6.0",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
     "framer-motion": "^11.0.28",
     "html2canvas": "^1.4.1",
     "jsonwebtoken": "^8.5.1",

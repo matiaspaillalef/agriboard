@@ -62,8 +62,6 @@ const CardTableSeasons = ({
     formState: { errors },
   } = useForm();
 
-console.log(data);
-
   const [initialData, setInitialData] = useState(() => {
     return Array.isArray(data) && data.sort((a, b) => {
       if (a.status === 1 && b.status !== 1) return -1; // `a` va primero
@@ -80,7 +78,7 @@ console.log(data);
 
   //Estado para la paginación
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
@@ -358,12 +356,12 @@ console.log(data);
 const handlerRemove = async () => {
   const { index, id } = itemToDelete;
 
-  console.log(itemToDelete);
+  //console.log(itemToDelete);
 
   try {
     const deleteItem = await deleteSeason(id);
 
-    console.log(deleteItem);
+    //console.log(deleteItem);
 
     // Elimina la fila del front-end si la eliminación fue exitosa
     if (deleteItem === "OK") {
@@ -418,6 +416,31 @@ const handlerRemove = async () => {
       if (cloneItem === "OK") {
         // Actualizamos la lista de datos con el nuevo registro clonado
         const updatedData = [...initialData, clonedItem]; // Usamos clonedItem en lugar de itemToClone
+
+        //console.log('checked', checkSect);
+
+        if (checkSect == true) {
+          const allAttributes = await getDataAttributesSector(companyID); // Obtener todos los atributos
+          const allSeasons = await getDataSeasons(companyID); // Obtener todas las temporadas
+          const lastSeasonId = allSeasons.length > 0 ? Math.max(...allSeasons.map(season => season.id)) : 0;
+          const newSeasonId = lastSeasonId ; // Nuevo ID de la temporada
+  
+          const lastAttribute = allAttributes[allAttributes.length - 1]; // Obtener el último atributo
+  
+          if (lastAttribute) {
+            const clonedData = {
+              ...lastAttribute,
+              season: newSeasonId // Asignar el nuevo ID de la temporada
+            };
+
+            setTimeout(async () => {
+              await createAttributesSector(clonedData); // Crear el nuevo atributo clonado
+              console.log("Atributo clonado creado correctamente");
+            }, 3000); 
+          }
+        }
+
+
         setInitialData(updatedData);
         setInitialData(dataNew); // Esto podría ser redundante, considera dejar solo uno de los setInitialData
         setOpenAlertClone(false);
@@ -439,7 +462,20 @@ const handlerRemove = async () => {
 
   const handleModalConfirm = async () => {
     setIsModalOpen(false);
-    await submitForm();
+    await submitForm(formData);
+  };
+
+  const onSubmitForm = async (data) => {
+    // Guardar los datos del formulario en el estado
+    //console.log(data);
+    setFormData(data);
+
+    // Verificar si el estado es 1 y mostrar el modal si es necesario
+    if (data.status == 1 && Array.isArray(initialData) && initialData.find((season) => season.status === 1)) {
+      setIsModalOpen(true);
+    } else {
+      await submitForm(data);
+    }
   };
 
   const submitForm = async (data) => {
@@ -448,7 +484,7 @@ const handlerRemove = async () => {
     //console.log(data);
     try {
       const transformedData = {
-        id: Number(data.id) || null,
+        //id: Number(data.id) || null,
         name: data.name ? data.name.trim() : "", // Verifica que no sea undefined
         period: data.period ? data.period.trim() : "", // Verifica que no sea undefined
         date_from: data.date_from ? data.date_from.trim() : "", // Verifica que no sea undefined
@@ -475,7 +511,7 @@ const handlerRemove = async () => {
         if (data.clone == true) {
           const allAttributes = await getDataAttributesSector(companyID); // Obtener todos los atributos
           const allSeasons = await getDataSeasons(companyID); // Obtener todas las temporadas
-          const lastSeasonId = allSeasons.length > 0 ? Math.max(...allSeasons.map(season => season.id)) : 0; // Obtener el último ID de temporada y sumarle 1
+          const lastSeasonId = allSeasons.length > 0 ? Math.max(...allSeasons.map(season => season.id)) : 0;
           const newSeasonId = lastSeasonId ; // Nuevo ID de la temporada
   
           const lastAttribute = allAttributes[allAttributes.length - 1]; // Obtener el último atributo
@@ -488,8 +524,9 @@ const handlerRemove = async () => {
 
             setTimeout(async () => {
               await createAttributesSector(clonedData); // Crear el nuevo atributo clonado
-              console.log("Atributo clonado creado correctamente");
-            }, 30000); 
+              //console.log("Atributo clonado creado correctamente");
+              setUpdateMessage("Atributo clonado correctamente");
+            },  3000); 
           }
         }
 
@@ -504,19 +541,6 @@ const handlerRemove = async () => {
     }
   };
 
-  const onSubmitForm = async (data) => {
-    // Guardar los datos del formulario en el estado
-    console.log(data);
-    setFormData(data);
-
-    // Verificar si el estado es 1 y mostrar el modal si es necesario
-    if (data.status == 1 && Array.isArray(initialData) && initialData.find((season) => season.status === 1)) {
-      setIsModalOpen(true);
-    } else {
-      await submitForm(data);
-    }
-  };
-  
 
   useEffect(() => {
     if (updateMessage) {
@@ -578,6 +602,13 @@ const handlerRemove = async () => {
     const month = String(date.getMonth() + 1).padStart(2, "0"); // `getMonth()` devuelve 0-11, así que sumamos 1
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+  };
+
+  //Para duplicar atributos al momento de clonar uuna temporada
+  const [checkSect, setCheckSect] = useState(false);
+
+  const handleCheckboxChangeAttrSect = () => {
+    setCheckSect((prevCheck) => !prevCheck)
   };
 
   return (
@@ -1058,7 +1089,6 @@ const handlerRemove = async () => {
                       >
                         Estado
                       </label>
-                      {console.log(selectedItem)}
                       <select
                         name="status"
                         id="status"
@@ -1169,12 +1199,19 @@ const handlerRemove = async () => {
             <>
               <h2 className="text-center mb-7 text-xl mt-5 dark:text-white">
                 ¿Seguro que desea {openAlert ? "eliminar" : "clonar"} la
-                temporada{" "}
+                temporadadd{" "}
                 <strong className="font-bold">
                   {openAlert ? itemToDelete.name_item : itemToClone.name}
                 </strong>
                 ?
               </h2>
+
+              {!openAlert && (
+              <div className="flex items-center justify-center gap-1 mb-5">
+                    <input type="checkbox" id="clone" name="clone" {...register("clone")} checked={checkSect} onChange={handleCheckboxChangeAttrSect} /><label>Desea duplicar los últimos atributos de sector</label>
+              </div>
+              )}
+
               <button
                 type="button"
                 onClick={handleCloseAlert}

@@ -5,6 +5,7 @@ import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import { get, set, useForm } from "react-hook-form";
 import Select from 'react-select';
+//import SwitchTailwind from "@material-tailwind/react";
 import "@/assets/css/Table.css";
 import {
     XMarkIcon,
@@ -14,7 +15,8 @@ import {
     AdjustmentsHorizontalIcon,
     PencilSquareIcon,
     TrashIcon,
-    DocumentDuplicateIcon
+    DocumentDuplicateIcon,
+    ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 import {
     Button,
@@ -35,8 +37,9 @@ import {
     getDataRegularizationProduction,
     updateRegularizationProduction,
     deleteRegularizationProduction,
+    updateBulkRegularizationProduction,
+    deleteBulkRegularizationProduction
 } from "@/app/api/ProductionApi";
-
 
 import { getDataUser } from "@/app/api/ConfiguracionApi";
 
@@ -1150,24 +1153,30 @@ const CardTableProductionReports = ({
                             : []}
                         className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-blueTertiary ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
                         placeholder="Seleccione una opción"
-                    //onReset={!fields[key].checked && ""}
+                        //onReset={!fields[key].checked && ""}
+                        menuPortalTarget={document.body} // Renderiza el menú en el body
+                        //menuPosition="fixed" // Asegura que no se recorte dentro del contenedor
+                        styles={{
+                            menuPortal: base => ({ ...base, zIndex: 9 }) // Ajusta el z-index
+                        }}
+                        isClearable
                     />
                 );
 
-                case "date":
-                    const today = new Date().toISOString().split("T")[0]; // Obtenemos la fecha de hoy en formato yyyy-mm-dd
-                    return (
-                        <input
-                            type="date"
-                            id={key}
-                            name={key}
-                            onChange={handleFilterChange}
-                            className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""
-                                }`}
-                            disabled={!fields[key].checked}
-                            max={today} // Limitar la fecha a hoy
-                        />
-                    );
+            case "date":
+                const today = new Date().toISOString().split("T")[0]; // Obtenemos la fecha de hoy en formato yyyy-mm-dd
+                return (
+                    <input
+                        type="date"
+                        id={key}
+                        name={key}
+                        onChange={handleFilterChange}
+                        className={`flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""
+                            }`}
+                        disabled={!fields[key].checked}
+                        max={today} // Limitar la fecha a hoy
+                    />
+                );
 
             case "text":
                 return (
@@ -1239,10 +1248,169 @@ const CardTableProductionReports = ({
         return `${formattedDate}T${formattedTime}`;
     };
 
+
+    //Switch Bulk Update
+    const [bulkUpdate, setBulkUpdate] = useState(false);
+    const [bulkDelete, setBulkDelete] = useState(false);
+
+    const [bulkValues, setBulkValues] = useState({
+        bulkVariety: null,
+        bulkQuality: null,
+        bulkWorker: null,
+    });
+
+
+    const handleBulkUpdateSwitch = () => {
+        setBulkUpdate(!bulkUpdate);
+        setBulkDelete(false);
+    };
+
+    const handleBulkDeleteSwitch = () => {
+        setBulkDelete(!bulkDelete);
+        setBulkUpdate(false);
+    };
+
+    const handleBulkChange = (selectedOption, actionMeta) => {
+        setBulkValues(prev => ({
+            ...prev,
+            [actionMeta.name]: selectedOption ? selectedOption.value : null
+        }));
+    };
+
+    const handleBulkUpdate = async () => {
+        const { bulkVariety, bulkQuality, bulkWorker } = bulkValues;
+        const selectedIds = checkedIds;
+
+        //setBulkUpdate(!bulkUpdate);
+
+        if (selectedIds.length === 0) {
+            return;
+        }
+
+        const updateData = {
+            variety: bulkVariety,
+            quality: bulkQuality,
+            worker: bulkWorker,
+        };
+
+        try {
+            const updateBulk = await updateBulkRegularizationProduction(companyID, filtrosIds, updateData);
+
+            if (updateBulk === "OK") {
+                const results = await filterRegularizationResults(filtrosIds, companyID) || [];
+
+                const updatedList = initialData.map((item) =>
+                    selectedIds.includes(item.id)
+                        ? {
+                            ...item,
+                            variety: bulkVariety,
+                            quality: bulkQuality,
+                            worker: bulkWorker,
+                        }
+                        : item
+                );
+
+                const filteredData = results && results.map((item) => {
+                    const date = new Date(item.harvest_date);
+                    let formattedDate = '';
+                    let formattedTime = '';
+
+                    if (item.harvest_date && !isNaN(date)) {
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = date.getFullYear();
+                        formattedDate = `${day}-${month}-${year}`; // Formato DD-MM-YYYY
+
+                        // Extraer la hora y los minutos respetando la zona horaria original
+                        const originalHours = item.harvest_date.substring(11, 16); // "14:27"
+                        formattedTime = originalHours;
+                    }
+
+                    const resultItem = { ...item, harvest_date: formattedDate };
+
+                    if (formattedTime) {
+                        resultItem.harvest_time = formattedTime;
+                    }
+
+                    return resultItem;
+                });
+
+                setInitialData(updatedList);
+                setInitialData(filteredData || []);
+                //setBulkUpdate(false);
+                setUpdateMessage("Registros masivos actualizados con correctamente.");
+            }
+        } catch (error) {
+            console.error("Error al actualizar en bloque:", error);
+            setUpdateMessage("No se pudo actualizar los registros masivamente.");
+        }
+    };
+
+    const handleBulkDelete = async () => {
+
+        const selectedIds = checkedIds;
+
+        if (selectedIds.length === 0) {
+            return;
+        }
+
+        try {
+            const deleteBulk = await deleteBulkRegularizationProduction(companyID, filtrosIds);
+
+            if (deleteBulk === "OK") {
+                const results = await filterRegularizationResults(filtrosIds, companyID) || [];
+
+                const updatedList = initialData.filter((item) => !selectedIds.includes(item.id));
+
+                const filteredData = results && results.map((item) => {
+                    const date = new Date(item.harvest_date);
+                    let formattedDate = '';
+                    let formattedTime = '';
+
+                    if (item.harvest_date && !isNaN(date)) {
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = date.getFullYear();
+                        formattedDate = `${day}-${month}-${year}`; // Formato DD-MM-YYYY
+
+                        // Extraer la hora y los minutos respetando la zona horaria original
+                        const originalHours = item.harvest_date.substring(11, 16); // "14:27"
+                        formattedTime = originalHours;
+                    }
+
+                    const resultItem = { ...item, harvest_date: formattedDate };
+
+                    if (formattedTime) {
+                        resultItem.harvest_time = formattedTime;
+                    }
+
+                    return resultItem;
+                });
+
+                setInitialData(updatedList);
+                setInitialData(filteredData || []);
+                //setBulkUpdate(false);
+                setUpdateMessage("Registros masivos eliminados correctamente.");
+            }
+
+        } catch (error) {
+            console.error("Error al eliminar en bloque:", error);
+            setUpdateMessage("No se pudo eliminar los registros masivamente.");
+        }
+    };
+
     return (
         <>
             <div className="mb-3 filters">
-
+                {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
+                    <div
+                        className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+                            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+                        style={{ zIndex: 999999 }}
+                    >
+                        {updateMessage}
+                    </div>
+                )}
                 {/*
                 <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-3 w-full">
                     <div className="dates block items-center gap-2">
@@ -1342,6 +1510,144 @@ const CardTableProductionReports = ({
                 >
                     Filtrar resultados
                 </button>
+            </div>
+
+            <div className="bulkActions">
+                <div className="flex items-center gap-5">
+                    <div className="bulkUpdate my-5">
+                        <h2 className="text-md font-semibold text-gray-800 dark:text-white mb-1">Editar masivamente</h2>
+                        <Switch id="switchRead" defaultChecked={0} onChange={handleBulkUpdateSwitch} checked={bulkUpdate} />
+
+                    </div>
+
+                    <div className="bulkDelete my-5">
+                        <h2 className="text-md font-semibold text-gray-800 dark:text-white mb-1">Eliminar masivamente</h2>
+                        <Switch id="switchRead" defaultChecked={0} onChange={handleBulkDeleteSwitch} checked={bulkDelete} />
+                    </div>
+                </div>
+
+                {bulkUpdate && (
+                    <div className="mb-3 mt-5 bg-lightPrimary dark:bg-navy-900 p-[35px] rounded-md">
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 w-full">
+                            <div className="dates block items-center gap-5">
+                                <label
+                                    htmlFor="bulkVariety"
+                                    className="text-sm block font-semibold mb-3 text-gray-800 dark:text-white"
+                                >
+                                    Variedad
+                                </label>
+                                <Select
+                                    name="bulkVariety"
+
+                                    options={Array.isArray(options.variety)
+                                        ? options.variety.map(option => ({
+                                            value: option.id,
+                                            label: option.name,
+                                        }))
+                                        : []}
+                                    className="h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                                    placeholder="Seleccione una opción"
+                                    onChange={handleBulkChange}
+                                    isClearable
+                                />
+                            </div>
+                            <div className="dates block items-center gap-5">
+                                <label
+                                    htmlFor="bulkQuality"
+                                    className="text-sm block font-semibold mb-3 text-gray-800 dark:text-white"
+                                >
+                                    Calidad
+                                </label>
+                                <Select
+                                    name="bulkQuality"
+                                    options={Array.isArray(options.quality)
+                                        ? options.quality.map(option => ({
+                                            value: option.id,
+                                            label: option.name,
+                                        }))
+                                        : []}
+                                    className="h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                                    placeholder="Seleccione una opción"
+                                    onChange={handleBulkChange}
+                                    isClearable
+                                />
+                            </div>
+                            <div className="dates block items-center gap-5">
+                                <label
+                                    htmlFor="bulkWorker"
+                                    className="text-sm block font-semibold mb-3 text-gray-800 dark:text-white"
+                                >
+                                    Cosechero
+                                </label>
+                                <Select
+                                    name="bulkWorker"
+                                    options={Array.isArray(options.worker)
+                                        ? options.worker.map(option => ({
+                                            value: option.id,
+                                            label: `${option.rut} (${option.name} ${option.lastname})`,
+                                        }))
+                                        : []}
+                                    className="h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                                    placeholder="Seleccione una opción"
+                                    onChange={handleBulkChange}
+                                    isClearable
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 w-full">
+
+                            <div className="dates block items-center gap-5">
+
+                                <input
+                                    type="submit"
+                                    value="Actualizar"
+                                    className="align-middle font-sans text-center disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none px-6 shadow-md shadow-gray-900/10 hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none max-w-[300px] linear mt-4 w-[170px] rounded-md bg-blueTertiary py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-blueQuinary active:bg-blueTertiary dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200 items-center justify-center flex gap-2 normal-case "
+                                    onClick={handleBulkUpdate}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-5 w-full">
+                            <div className="dates block items-center gap- bg-orange-500 p-3 mt-4 rounded-md text-white block5">
+                                <ul>
+                                    <li className="text-[12px] "><ExclamationTriangleIcon className="w-5 h-5 inline-block" />  Esta acción modificará los registros seleccionados.</li>
+
+                                    <li className="text-[12px] "><ExclamationTriangleIcon className="w-5 h-5 inline-block" />  Una vez actualice ya no podrá deshacer los cambios, si actualiza por error deberá corregir manualmente. </li>
+                                    <li className="text-[12px] "><ExclamationTriangleIcon className="w-5 h-5 inline-block" />  Si actualiza el cosechero, se actualizará el RUT del cosechero en todos los registros seleccionados y debera generar una nueva buqueda en los filtros para visualizar los cambios.</li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {bulkDelete && (
+                    <div className="mb-3 mt-5 bg-lightPrimary dark:bg-navy-900 p-[35px] rounded-md">
+
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 w-full">
+
+                            <div className="dates block items-center gap-5">
+
+                                <input
+                                    type="submit"
+                                    value="Borrar registros"
+                                    className="align-middle font-sans text-center disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none px-6 shadow-md shadow-red-500/10 hover:shadow-lg hover:shadow-red-500/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none max-w-[300px] linear mt-4 w-[170px] rounded-md bg-red-500 py-[12px] text-base font-medium text-white transition duration-200 hover:!bg-red-700 active:bg-red-500 dark:bg-red-500 dark:text-white dark:hover:bg-red-700 dark:active:bg-red-500 items-center justify-center flex gap-2 normal-case "
+                                    onClick={handleBulkDelete}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-5 w-full">
+                            <div className="dates block items-center gap- bg-red-500 p-3 mt-4 rounded-md text-white block5">
+                                <ul>
+                                    <li className="text-[12px] "><ExclamationTriangleIcon className="w-5 h-5 inline-block" />  Esta acción eliminará los registros seleccionados (filtrados).</li>
+                                    <li className="text-[12px] "><ExclamationTriangleIcon className="w-5 h-5 inline-block" />  Una vez elimine los registros, ya no podrá deshacer los cambios. </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
             </div>
 
             {loading ? (

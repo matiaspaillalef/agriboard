@@ -832,119 +832,66 @@ const CardTableWorkers = ({
 
   const generateExcel = async () => {
     const workbook = new ExcelJS.Workbook();
-
-    // Crear la hoja principal
     const sheet = workbook.addWorksheet("Trabajadores");
-
-    // Crear la hoja de opciones
     const optionsSheet = workbook.addWorksheet("Opciones");
 
-    // ================================
-    // HOJA PRINCIPAL "Trabajadores"
-    // ================================
     const headers = [
-      "Rut", "Dv", "Nombre", "Apellido", "Apellido materno", "Fecha de nacimiento", "Género",
-      "Estado civil", "Región", "Ciudad", "Dirección", "Teléfono", "Correo", "Teléfono empresa",
-      "Fecha de ingreso", "Cargo", "Contratista", "Cuadrilla", "Líder de Cuadrilla", "Turno",
-      "Pulsera", "Observación", "Banco", "Tipo de cuenta", "Número de cuenta", "AFP", "Salud", "status"
+        "Rut", "Dv", "Nombre", "Apellido", "Apellido materno", "Fecha de nacimiento", "Género",
+        "Estado civil", "Región", "Ciudad", "Dirección", "Teléfono", "Correo", "Teléfono empresa",
+        "Fecha de ingreso", "Cargo", "Contratista", "Cuadrilla", "Líder de Cuadrilla", "Turno",
+        "Pulsera", "Observación", "Banco", "Tipo de cuenta", "Número de cuenta", "AFP", "Salud", "status"
     ];
-    
+
     sheet.addRow(headers).font = { bold: true };
-
-    // Fijar las primeras 4 columnas
     sheet.views = [{ state: 'frozen', xSplit: 4 }];
-
-    // Ajustar anchos de columnas
     sheet.columns = headers.map(() => ({ width: 15 }));
 
     // ================================
     // HOJA "Opciones" - Listas de datos
     // ================================
-
-    // Insertar Género
-    optionsSheet.getCell('A1').value = "Género";
     const generoValues = ["Masculino", "Femenino", "Otro"];
-    generoValues.forEach((value, index) => optionsSheet.getCell(`A${index + 2}`).value = value);
-
-    // Insertar Estado Civil
-    optionsSheet.getCell('B1').value = "Estado Civil";
     const estadoCivilValues = ["Soltero", "Casado", "Divorciado", "Viudo"];
-    estadoCivilValues.forEach((value, index) => optionsSheet.getCell(`B${index + 2}`).value = value);
-
-    // Insertar Regiones
-    optionsSheet.getCell('C1').value = "Región";
-    const StateCL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-    StateCL.forEach((value, index) => optionsSheet.getCell(`C${index + 2}`).value = value);
-
-    // Insertar Ciudades
-    optionsSheet.getCell('D1').value = "Ciudad";
+    const StateCL = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"];
     const comunas = ["Santiago", "Viña del Mar", "Concepción", "Temuco", "Antofagasta"];
-    comunas.forEach((value, index) => optionsSheet.getCell(`D${index + 2}`).value = value);
+
+    optionsSheet.getColumn(1).values = ["Género", ...generoValues];
+    optionsSheet.getColumn(2).values = ["Estado Civil", ...estadoCivilValues];
+    optionsSheet.getColumn(3).values = ["Región", ...StateCL];
+    optionsSheet.getColumn(4).values = ["Ciudad", ...comunas];
 
     // ================================
     // ASIGNAR VALIDACIÓN PARA MOSTRAR LISTAS
     // ================================
+    const applyValidation = (colIndex, rangeStart, rangeEnd) => {
+        sheet.getColumn(colIndex).eachCell((cell, rowNumber) => {
+            if (rowNumber > 1 && rowNumber <= 100) {
+                // Asignar validación de datos usando los valores de la hoja "Opciones"
+                cell.dataValidation = {
+                    type: 'list',
+                    allowBlank: true,
+                    formula1: `'Opciones'!$${rangeStart}$2:$${rangeEnd}$${rangeEnd === 'A' ? generoValues.length + 1 : rangeEnd === 'B' ? estadoCivilValues.length + 1 : rangeEnd === 'C' ? StateCL.length + 1 : comunas.length + 1}`,
+                    showDropDown: true
+                };
+            }
+        });
+    };
 
-    // "Género" (Columna G - Índice 7)
-    sheet.getColumn(7).eachCell((cell, rowNumber) => {
-        if (rowNumber > 1) { 
-            cell.dataValidation = {
-                type: 'list',
-                formula1: "=Opciones!A2:A100",
-                showDropDown: true,
-                allowBlank: true
-            };
-        }
-    });
-
-sheet.getColumn(8).eachCell((cell, rowNumber) => {
-    if (rowNumber > 1) { // Evita la cabecera
-        cell.dataValidation = {
-            type: 'list',
-            allowBlank: true,
-            formula1: "'Opciones'!$B$2:$B$5", // IMPORTANTE: Agregar comillas a la hoja
-            showDropDown: true,
-            errorStyle: 'stop', // Opcional pero recomendado
-            errorTitle: 'Valor no permitido',
-            error: 'Por favor, selecciona un valor de la lista desplegable.'
-        };
-    }
-});
-
-    // "Región" (Columna I - Índice 9)
-    sheet.getColumn(9).eachCell((cell, rowNumber) => {
-        if (rowNumber > 1) { 
-            cell.dataValidation = {
-                type: 'list',
-                formula1: 'Opciones!$C$2:$C$17',
-                showDropDown: true,
-                allowBlank: true
-            };
-        }
-    });
-
-    // "Ciudad" (Columna J - Índice 10)
-    sheet.getColumn(10).eachCell((cell, rowNumber) => {
-        if (rowNumber > 1) { 
-            cell.dataValidation = {
-                type: 'list',
-                formula1: 'Opciones!$D$2:$D$6',
-                showDropDown: true,
-                allowBlank: true
-            };
-        }
-    });
+    // Aplicar la validación de listas usando las celdas en "Opciones"
+    applyValidation(7, "A", "A"); // Género - Referencia a la columna A de Opciones
+    applyValidation(8, "B", "B"); // Estado Civil - Referencia a la columna B de Opciones
+    applyValidation(9, "C", "C"); // Región - Referencia a la columna C de Opciones
+    applyValidation(10, "D", "D"); // Ciudad - Referencia a la columna D de Opciones
 
     // ================================
-    // EJEMPLO DE DATOS
+    // DATOS DE EJEMPLO
     // ================================
     const exampleData = [
-      ["16874117", "0", "Prueba", "Prueba", "Fernanda", "04-02-1987", "Femenino",
-        "Soltero", "8", "San Ignacio", "Calle Falsa 123", "987654321", "correo@ejemplo.com", "987654321",
+        ["16874117", "0", "Prueba", "Prueba", "Fernanda", "04-02-1987", "Femenino",
+        "Soltero", "8", "Santiago", "Calle Falsa 123", "987654321", "correo@ejemplo.com", "987654321",
         "01-01-2020", "Agricultor", "Empresa X", "Cuadrilla 1", "Juan Pérez", "Diurno",
         "Pulsera123", "Observación", "Banco Estado", "Cuenta RUT", "21366539", "AFP Uno", "Fonasa", "Activo"]
     ];
-    
+
     exampleData.forEach(row => sheet.addRow(row));
 
     // ================================
@@ -954,7 +901,6 @@ sheet.getColumn(8).eachCell((cell, rowNumber) => {
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     saveAs(blob, "template-trabajadores-agrisoft.xlsx");
 };
-
 
   const getCurrentDate = () => {
     const today = new Date();

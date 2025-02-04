@@ -2172,6 +2172,58 @@ export const deleteRegularizationProduction = async (id) => {
   }
 }
 
+export const updateBulkRegularizationProduction = async (id_company, filtrosIds, bulkValues) => {
+  try {
+      const response = await fetch(URLAPI + `/api/v1/configuracion/production/updateRegularizationResults/${id_company}`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            "x-api-key": token
+           },
+          body: JSON.stringify({
+              filtrosIds, // Datos de filtrado
+              updates: bulkValues, // Valores a actualizar
+          }),
+      });
+
+      const result = await response.json();
+     console.log(result);
+      if (result.success) {
+         // alert("Datos actualizados correctamente");
+          return "OK";
+      } else {
+          //alert("Error al actualizar los datos");
+      }
+  } catch (error) {
+      console.error("Error al actualizar:", error);
+  }
+};
+
+export const deleteBulkRegularizationProduction = async (id_company, filtrosIds) => {
+  try {
+      const response = await fetch(URLAPI + `/api/v1/configuracion/production/deleteRegularizationResults/${id_company}`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            "x-api-key": token
+           },
+          body: JSON.stringify({
+              filtrosIds, // Datos de filtrado
+          }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+          //alert("Datos eliminados correctamente");
+          return "OK";
+      } else {
+          //alert("Error al eliminar los datos");
+      }
+  } catch (error) {
+      console.error("Error al eliminar:", error);
+  }
+};
+
 //Results Filter
 export const filterResults = async (filters, id_company) => {
   try {
