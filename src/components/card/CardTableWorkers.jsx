@@ -7,6 +7,8 @@ import * as XLSX from "xlsx";
 import { get, useForm } from "react-hook-form";
 import Link from "next/link";
 import "@/assets/css/Table.css";
+import { saveAs } from "file-saver";
+import ExcelJS from "exceljs";
 import {
   PlusIcon,
   XMarkIcon,
@@ -40,7 +42,8 @@ import {
   deleteAllBand,
   addWorkerToSquad,
   deleteWorkerFromSquad,
-  updateWorkerFromSquad
+  updateWorkerFromSquad,
+  importWorker
 } from "@/app/api/ManagementPeople";
 
 import {
@@ -327,7 +330,8 @@ const CardTableWorkers = ({
       const worker = transformedData[i];
       try {
         console.log("Creando trabajador:", worker);
-        const createWorkerResult = await createWorker(worker);
+        //const createWorkerResult = await createWorker(worker);
+        const createWorkerResult = await importWorker(worker);
 
         if (createWorkerResult.code !== "OK") {
           //console.error(`Error al procesar trabajador ${worker.rut}:`, createWorkerResult);
@@ -826,6 +830,132 @@ const CardTableWorkers = ({
 
   };
 
+  const generateExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+
+    // Crear la hoja principal
+    const sheet = workbook.addWorksheet("Trabajadores");
+
+    // Crear la hoja de opciones
+    const optionsSheet = workbook.addWorksheet("Opciones");
+
+    // ================================
+    // HOJA PRINCIPAL "Trabajadores"
+    // ================================
+    const headers = [
+      "Rut", "Dv", "Nombre", "Apellido", "Apellido materno", "Fecha de nacimiento", "Género",
+      "Estado civil", "Región", "Ciudad", "Dirección", "Teléfono", "Correo", "Teléfono empresa",
+      "Fecha de ingreso", "Cargo", "Contratista", "Cuadrilla", "Líder de Cuadrilla", "Turno",
+      "Pulsera", "Observación", "Banco", "Tipo de cuenta", "Número de cuenta", "AFP", "Salud", "status"
+    ];
+    
+    sheet.addRow(headers).font = { bold: true };
+
+    // Fijar las primeras 4 columnas
+    sheet.views = [{ state: 'frozen', xSplit: 4 }];
+
+    // Ajustar anchos de columnas
+    sheet.columns = headers.map(() => ({ width: 15 }));
+
+    // ================================
+    // HOJA "Opciones" - Listas de datos
+    // ================================
+
+    // Insertar Género
+    optionsSheet.getCell('A1').value = "Género";
+    const generoValues = ["Masculino", "Femenino", "Otro"];
+    generoValues.forEach((value, index) => optionsSheet.getCell(`A${index + 2}`).value = value);
+
+    // Insertar Estado Civil
+    optionsSheet.getCell('B1').value = "Estado Civil";
+    const estadoCivilValues = ["Soltero", "Casado", "Divorciado", "Viudo"];
+    estadoCivilValues.forEach((value, index) => optionsSheet.getCell(`B${index + 2}`).value = value);
+
+    // Insertar Regiones
+    optionsSheet.getCell('C1').value = "Región";
+    const StateCL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    StateCL.forEach((value, index) => optionsSheet.getCell(`C${index + 2}`).value = value);
+
+    // Insertar Ciudades
+    optionsSheet.getCell('D1').value = "Ciudad";
+    const comunas = ["Santiago", "Viña del Mar", "Concepción", "Temuco", "Antofagasta"];
+    comunas.forEach((value, index) => optionsSheet.getCell(`D${index + 2}`).value = value);
+
+    // ================================
+    // ASIGNAR VALIDACIÓN PARA MOSTRAR LISTAS
+    // ================================
+
+    // "Género" (Columna G - Índice 7)
+    sheet.getColumn(7).eachCell((cell, rowNumber) => {
+        if (rowNumber > 1) { 
+            cell.dataValidation = {
+                type: 'list',
+                formula1: "=Opciones!A2:A100",
+                showDropDown: true,
+                allowBlank: true
+            };
+        }
+    });
+
+sheet.getColumn(8).eachCell((cell, rowNumber) => {
+    if (rowNumber > 1) { // Evita la cabecera
+        cell.dataValidation = {
+            type: 'list',
+            allowBlank: true,
+            formula1: "'Opciones'!$B$2:$B$5", // IMPORTANTE: Agregar comillas a la hoja
+            showDropDown: true,
+            errorStyle: 'stop', // Opcional pero recomendado
+            errorTitle: 'Valor no permitido',
+            error: 'Por favor, selecciona un valor de la lista desplegable.'
+        };
+    }
+});
+
+    // "Región" (Columna I - Índice 9)
+    sheet.getColumn(9).eachCell((cell, rowNumber) => {
+        if (rowNumber > 1) { 
+            cell.dataValidation = {
+                type: 'list',
+                formula1: 'Opciones!$C$2:$C$17',
+                showDropDown: true,
+                allowBlank: true
+            };
+        }
+    });
+
+    // "Ciudad" (Columna J - Índice 10)
+    sheet.getColumn(10).eachCell((cell, rowNumber) => {
+        if (rowNumber > 1) { 
+            cell.dataValidation = {
+                type: 'list',
+                formula1: 'Opciones!$D$2:$D$6',
+                showDropDown: true,
+                allowBlank: true
+            };
+        }
+    });
+
+    // ================================
+    // EJEMPLO DE DATOS
+    // ================================
+    const exampleData = [
+      ["16874117", "0", "Prueba", "Prueba", "Fernanda", "04-02-1987", "Femenino",
+        "Soltero", "8", "San Ignacio", "Calle Falsa 123", "987654321", "correo@ejemplo.com", "987654321",
+        "01-01-2020", "Agricultor", "Empresa X", "Cuadrilla 1", "Juan Pérez", "Diurno",
+        "Pulsera123", "Observación", "Banco Estado", "Cuenta RUT", "21366539", "AFP Uno", "Fonasa", "Activo"]
+    ];
+    
+    exampleData.forEach(row => sheet.addRow(row));
+
+    // ================================
+    // EXPORTAR Y DESCARGAR
+    // ================================
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    saveAs(blob, "template-trabajadores-agrisoft.xlsx");
+};
+
+
   const getCurrentDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -892,7 +1022,6 @@ const CardTableWorkers = ({
       status: item.status == 1 ? "Activo" : "Inactivo",
     };
   });
-
 
   return (
     <>
@@ -1032,7 +1161,6 @@ const CardTableWorkers = ({
                       "observation",
                       "phone_company",
                       "lastname2",
-                      "born_date",
                       "gender",
                       "state_civil",
                       "contractor",
@@ -1051,7 +1179,7 @@ const CardTableWorkers = ({
                       (key) => !excludedKeys.includes(key) && (!row[key] && row[key] !== 0)
                     );
 
-                    //console.log(`Campos vacíos en la fila ${index}:`, emptyFields);
+                    console.log(`Campos vacíos en la fila ${index}:`, initialData);
 
                     // Verificar si hay campos vacíos en la fila
                     const hasEmptyFields = emptyFields.length > 0;
@@ -1157,7 +1285,7 @@ const CardTableWorkers = ({
                                   className={`text-sm font-semibold text-gray-800 mr-2 ${hasEmptyFields ? "dark:text-gray-800" : "dark:text-white"}`}
                                   onClick={() => handleOpenEditUser(row)}
                                 >
-                                  <PencilSquareIcon className="w-6 h-6"/>
+                                  <PencilSquareIcon className="w-6 h-6" />
                                 </button>
                               </Tooltip>
 
@@ -1686,12 +1814,12 @@ const CardTableWorkers = ({
                         <option value="" disabled>Selecciona un cargo</option>
                         {Array.isArray(dataPosition) &&
                           dataPosition.length > 0 && (
-                          dataPosition.map((position) => (
-                            <option key={position.id} value={position.id}>
-                              {position.name}
-                            </option>
-                          ))
-                        )}
+                            dataPosition.map((position) => (
+                              <option key={position.id} value={position.id}>
+                                {position.name}
+                              </option>
+                            ))
+                          )}
                       </select>
                     </div>
 
@@ -1715,12 +1843,12 @@ const CardTableWorkers = ({
                         <option value="" disabled>Selecciona un contratista</option>
                         {Array.isArray(dataContractor) &&
                           dataContractor.length > 0 && (
-                          dataContractor.map((contractor) => (
-                            <option key={contractor.id} value={contractor.id}>
-                              {contractor.name}
-                            </option>
-                          ))
-                        )}
+                            dataContractor.map((contractor) => (
+                              <option key={contractor.id} value={contractor.id}>
+                                {contractor.name}
+                              </option>
+                            ))
+                          )}
                       </select>
                     </div>
 
@@ -2267,16 +2395,15 @@ const CardTableWorkers = ({
               </h2>
               <p className="text-center mb-5 dark:text-white text-sm">
                 {" "}
-                Recuerda que si ya esxiste el trabajador por RUT, no se creará
+                Recuerda que si ya existe el trabajador por RUT, no se creará
                 nuevamente. Descarga el excel de ejemplo para subir los
                 trabajadores{" "}
-                <Link
-                  href="/template-trabajadores-agrisoft.xlsx"
-                  download
+                <button
+                  onClick={generateExcel}
                   className="underline font-semibold"
                 >
                   aquí
-                </Link>
+                </button>
               </p>
               <button
                 type="button"
