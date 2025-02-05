@@ -688,7 +688,18 @@ const CardTableProductionReports = ({
           [name]: value,
         }));
       }
+
+      if(selectedOption.target.name == 'to' || selectedOption.target.name == 'from'){
+        if(selectedOption.target.value == ''){
+          setFilters((prev) => ({
+            ...prev,
+            [name]: '',
+          }));
+        }
     }
+  
+    }
+    
     // Para Select de react-select
     else {
       const { name } = actionMeta;  // `actionMeta` contiene el `name` del Select
@@ -740,7 +751,7 @@ const CardTableProductionReports = ({
     // Filtrar los filtros para evitar valores vacíos o no definidos
     let filtrosConIds = Object.keys(filters).reduce((acc, key) => {
       const value = filters[key];
-
+  
       // Agregar solo si el valor no es undefined, null o una cadena vacía
       if (
         key === 'totals' ||
@@ -752,60 +763,70 @@ const CardTableProductionReports = ({
       ) {
         acc[key] = value;
       }
-
+  
       return acc;
     }, {});
-
+  
     // Aquí reemplazamos 'worker_rut' por 'worker' si 'worker_rut' está presente
     if (filtrosConIds.worker_rut && !filtrosConIds.worker) {
       filtrosConIds.worker = filtrosConIds.worker_rut;  // Asignamos el valor de 'worker_rut' a 'worker'
-      //delete filtrosConIds.worker_rut;  // Eliminamos 'worker_rut'
       filtrosConIds.worker_rut = '';  // Asignamos un valor vacío a 'worker_rut'
     }
-
+  
     // Si 'worker' está presente, podemos actualizar su valor aquí
     if (filtrosConIds.worker) {
       filtrosConIds.worker = Number(filtrosConIds.worker);  // Convertimos a número
       filtrosConIds.worker_rut = '';
-      //delete filtrosConIds.worker_rut;
     }
-
+  
     try {
+
+      let filtersFiltered = { ...filtrosConIds };
+
+      if (Object.keys(filtrosConIds).length === 1 && filtrosConIds.hasOwnProperty('totals')) {
+        filtersFiltered = { ...filtrosConIds, harvest_date: '' };
+      }else if(filtrosConIds.hasOwnProperty('from') || filtrosConIds.hasOwnProperty('to')){
+        filtersFiltered = { ...filtrosConIds, harvest_date: '' };
+      }else{
+        filtersFiltered = { ...filtrosConIds };
+      }
+
       // Pasamos el filtro ya modificado a la función 'filterResults'
-      const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
+      const results = await filterResults(filtersFiltered, companyID); // Pasas los filtros y el ID de la compañía
 
       const filteredData = results.map((item) => {
         const date = new Date(item.harvest_date);
         let formattedDate = '';
         let formattedTime = '';
-
+  
         if (item.harvest_date && !isNaN(date)) {
           const day = String(date.getDate()).padStart(2, '0');
           const month = String(date.getMonth() + 1).padStart(2, '0');
           const year = date.getFullYear();
           formattedDate = `${day}-${month}-${year}`; // Formato DD-MM-YYYY
-
+  
           // Extraer la hora y los minutos respetando la zona horaria original
           const originalHours = item.harvest_date.substring(11, 16); // "14:27"
           formattedTime = originalHours;
         }
+  
+        let resultItem = { ...item }; // Por defecto, tomamos el item original
 
-
-
-        const resultItem = { ...item };
-
-        // Solo agregar `harvest_date` si tiene un valor válido
-        if (formattedDate) {
-          resultItem.harvest_date = formattedDate;
-        }
-
-        // Solo agregar `harvest_time` si tiene un valor válido
-        if (formattedTime) {
-          resultItem.harvest_time = formattedTime;
-        }
+       
+          // Si la fecha está disponible, asignamos el valor formateado
+          if (formattedDate) {
+            resultItem.harvest_date = formattedDate;
+          }
+  
+          // Solo agregar `harvest_time` si tiene un valor válido
+          if (formattedTime) {
+            resultItem.harvest_time = formattedTime;
+          }
+        
         return resultItem;
       });
-
+    
+  
       setInitialData(filteredData);
       setDataReport(filteredData);
     } catch (error) {
@@ -814,9 +835,7 @@ const CardTableProductionReports = ({
       setCurrentPage(1);
     }
   };
-
-
-
+  
 
   const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
 
