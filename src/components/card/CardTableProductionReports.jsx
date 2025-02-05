@@ -5,6 +5,8 @@ import { formatNumber } from "@/functions/functions";
 import ExportarExcel from "@/components/button/ButtonExportExcel";
 import { get, set, useForm } from "react-hook-form";
 import Select from 'react-select';
+//import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import "@/assets/css/Table.css";
 import {
   XMarkIcon,
@@ -12,6 +14,7 @@ import {
   ChevronLeftIcon,
   EyeIcon,
   AdjustmentsHorizontalIcon,
+  ArrowDownTrayIcon
 } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -57,6 +60,7 @@ const CardTableProductionReports = ({
   downloadBtn,
   SearchInput,
   datosCompanies,
+  filterTotal,
 }) => {
   const columnLabels = thead
     ? thead.split(",").map((label) => label.trim())
@@ -79,7 +83,7 @@ const CardTableProductionReports = ({
 
   //Estado para la paginación
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
   const [formData, setFormData] = useState({}); // Guarda los datos del item al editar
 
@@ -310,7 +314,8 @@ const CardTableProductionReports = ({
     return dateString.substring(0, 10);
   }
 
-  // Exportar Excel datas de front
+  // Exportar Excel datas de front/ Asegúrate de usar 'xlsx-style'
+
   useEffect(() => {
     if (!companyID) {
       return;
@@ -374,113 +379,6 @@ const CardTableProductionReports = ({
           setDataUsers(fetchedDataUsers.usuarios);
         }
 
-        // Validación adicional para initialData
-        if (Array.isArray(initialData) && initialData.length > 0) {
-          // Crear mapas para búsquedas rápidas
-          const groundMap = fetchedDataGround.code === "OK" && Array.isArray(fetchedDataGround.grounds)
-            ? new Map(fetchedDataGround.grounds.map(g => [g.id, g.name]))
-            : new Map();
-
-          const squadMap = fetchedDataSquads.code === "OK" && Array.isArray(fetchedDataSquads.squads)
-            ? new Map(fetchedDataSquads.squads.map(s => [s.id, s.name]))
-            : new Map();
-
-          const shiftsMap = fetchedDataTurns.code === "OK" && Array.isArray(fetchedDataTurns.shifts)
-            ? new Map(fetchedDataTurns.shifts.map(s => [s.id, s.name]))
-            : new Map();
-
-          const userMap = fetchedDataUsers.code === "OK" && Array.isArray(fetchedDataUsers.usuarios)
-            ? new Map(fetchedDataUsers.usuarios.map(u => [u.id, `${u.name} ${u.lastname}`]))
-            : new Map();
-
-          const sectorMap = new Map(fetchedDataSector.map(s => [s.id, s.name]));
-          const workerMap = new Map(fetchedDataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
-          const contractorMap = new Map(fetchedDataContractors.map(c => [c.id, c.name]));
-          const specieMap = new Map(fetchedDataSpecies.map(s => [s.id, s.name]));
-          const varietyMap = new Map(fetchedDataVarieties.map(v => [v.id, v.name]));
-          const qualityMap = Array.isArray(fetchedDataQuality) 
-          ? new Map(fetchedDataQuality.map(q => [q.id, q.name])) 
-          : new Map();
-          const harvestFormatMap = new Map(fetchedDataHarvestFormat.map(f => [f.id, f.name]));
-          const seasonMap = new Map(fetchedDataSeasons.map(s => [s.id, s.name]));
-          const weigherMap = userMap;
-
-          // Función para filtrar valores undefined o null
-          const filterUndefinedValues = (obj) => {
-            return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
-          };
-
-          // Procesar datos y construir cabeceras dinámicamente
-          const rawData = await Promise.all(
-            initialData.map(async (item) => {
-
-
-              // Convertir la fecha (si existe) al formato adecuado para Excel
-              const formattedHarvestDate = item.harvest_date
-              ? item.harvest_date.replace(/-/g, "/")
-              : '';
-
-              // Convertir la hora (si existe) al formato adecuado para Excel (como HH:mm)
-              const formattedHarvestTime = item.harvest_time
-                ? `${item.harvest_time.padStart(5, '0')}:00`
-                : '';
-
-                const splitRut = (rut) => {
-                  if (typeof rut !== 'string') {
-                    return { rutNumber: '', dv: '' }; // Retorna valores vacíos si el RUT no es válido
-                  }
-                
-                  const cleanedRut = rut.replace(/[.\-]/g, '');
-                  const rutNumber = cleanedRut.slice(0, -1); // Todo menos el último carácter
-                  const dv = cleanedRut.slice(-1); // Último carácter
-                  return { rutNumber, dv };
-                };
-
-
-              return {
-                "Fecha cosecha": formattedHarvestDate || '',
-                "Hora cosecha":  formattedHarvestTime || '',
-                Campo: groundMap.get(item.ground) || '',
-                Sector: sectorMap.get(item.sector) || '',
-                Cuadrilla: squadMap.get(item.squad) || '',
-                "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
-                Lote: item.batch || '',
-                Cosechero: workerMap.get(item.worker) || '',
-                "RUT": item.worker_rut || '',
-                "RUT": splitRut(item.worker_rut).rutNumber || '',
-                "DV": splitRut(item.worker_rut).dv || '',
-                Contratista: contractorMap.get(item.contractor) || '',
-                Especie: specieMap.get(item.specie) || '',
-                Variedad: varietyMap.get(item.variety) || '',
-                Cajas: item.boxes || '',
-                "Kilos Caja": item.kg_boxes || '',
-                Calidad: qualityMap.get(item.quality) || '',
-                "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
-                Pesador: weigherMap.get(Number(item.weigher_rut)) || '',
-                Temporada: seasonMap.get(item.season) || '',
-                Turno: shiftsMap.get(item.turns) || '',
-              };
-            })
-          );
-
-          // Determinar cabeceras basadas en datos reales
-          const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
-
-          // Crear los datos finales con cabeceras dinámicas
-          const formatData = rawData.map(item => {
-            const filteredItem = filterUndefinedValues(item);
-            return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
-          });
-
-          // Remover columnas no deseadas
-          const omitColumns = ["Zona", "Hilera", "Turno"];
-          const formData = formatData.map((item) => {
-            return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
-          });
-
-          //console.log("Format Data:", formData);
-          setFormatInitialData(formData);
-        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -490,34 +388,194 @@ const CardTableProductionReports = ({
   }, [initialData, companyID]);
 
 
+  const handlerDownloadExcel = async (filenamme, namesheet) => {
+    // Validar que los datos iniciales no estén vacíos
+
+    // Validación adicional para initialData
+    if (Array.isArray(initialData) && initialData.length > 0) {
+      // Crear mapas para búsquedas rápidas
+      const groundMap = dataGround && Array.isArray(dataGround)
+        ? new Map(dataGround.map(g => [g.id, g.name]))
+        : new Map();
+
+      const squadMap = dataSqaads && Array.isArray(dataSqaads)
+        ? new Map(dataSqaads.map(s => [s.id, s.name]))
+        : new Map();
+
+      const shiftsMap = dataTurns && Array.isArray(dataTurns)
+        ? new Map(dataTurns.map(s => [s.id, s.name]))
+        : new Map();
+
+      const userMap = dataUsers && Array.isArray(dataUsers)
+        ? new Map(dataUsers.map(u => [u.id, `${u.name} ${u.lastname}`]))
+        : new Map();
+
+      const sectorMap = new Map(dataSector.map(s => [s.id, s.name]));
+      const workerMap = new Map(dataWorkers.map(w => [w.id, `${w.name} ${w.lastname}`]));
+      const contractorMap = new Map(dataContractors.map(c => [c.id, c.name]));
+      const specieMap = new Map(dataSpecies.map(s => [s.id, s.name]));
+      const varietyMap = new Map(dataVarieties.map(v => [v.id, v.name]));
+      const qualityMap = Array.isArray(dataQuality)
+        ? new Map(dataQuality.map(q => [q.id, q.name]))
+        : new Map();
+      const harvestFormatMap = new Map(dataHarvestFormat.map(f => [f.id, f.name]));
+      const seasonMap = new Map(dataSeasons.map(s => [s.id, s.name]));
+      const weigherMap = userMap;
+
+      // Función para filtrar valores undefined o null
+      const filterUndefinedValues = (obj) => {
+        return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+      };
+
+      // Procesar datos y construir cabeceras dinámicamente
+      const rawData = await Promise.all(
+        initialData.map(async (item) => {
+          const formattedHarvestDate = item.harvest_date
+            ? item.harvest_date.replace(/-/g, "/")
+            : '';
+          const formattedHarvestTime = item.harvest_time
+            ? `${item.harvest_time.padStart(5, '0')}:00`
+            : '';
+
+          const splitRut = (rut) => {
+            if (typeof rut !== 'string') {
+              return { rutNumber: '', dv: '' };
+            }
+            const cleanedRut = rut.replace(/[.\-]/g, '');
+            const rutNumber = cleanedRut.slice(0, -1);
+            const dv = cleanedRut.slice(-1);
+            return { rutNumber, dv };
+          };
+
+          return {
+            "Fecha cosecha": formattedHarvestDate || '',
+            "Hora cosecha": formattedHarvestTime || '',
+            Campo: groundMap.get(item.ground) || '',
+            Sector: sectorMap.get(item.sector) || '',
+            Cuadrilla: squadMap.get(item.squad) || '',
+            "Jefe cuadrilla": workerMap.get(item.squad_leader) || '',
+            Lote: item.batch || '',
+            Cosechero: workerMap.get(item.worker) || '',
+            "RUT": splitRut(item.worker_rut).rutNumber || '',
+            "DV": splitRut(item.worker_rut).dv || '',
+            Contratista: contractorMap.get(item.contractor) || '',
+            Especie: specieMap.get(item.specie) || '',
+            Variedad: varietyMap.get(item.variety) || '',
+            Cajas: item.boxes || 0,
+            "Kilos Caja": item.kg_boxes || 0,
+            Calidad: qualityMap.get(item.quality) || '',
+            "Formato cosecha": harvestFormatMap.get(item.harvest_format) || '',
+            Pesador: weigherMap.get(Number(item.weigher_rut)) || '',
+            Temporada: seasonMap.get(item.season) || '',
+            Turno: shiftsMap.get(item.turns) || '',
+          };
+        })
+      );
+
+      // Determinar cabeceras basadas en datos reales
+      const headers = Object.keys(rawData[0]).filter(header => rawData.some(item => item[header]));
+
+      // Crear los datos finales con cabeceras dinámicas
+      const formatData = rawData.map(item => {
+        const filteredItem = filterUndefinedValues(item);
+        return Object.fromEntries(Object.entries(filteredItem).filter(([key]) => headers.includes(key)));
+      });
+
+      // Remover columnas no deseadas
+      const omitColumns = ["Zona", "Hilera", "Turno"];
+      const formData = formatData.map((item) => {
+        return Object.fromEntries(Object.entries(item).filter(([key]) => !omitColumns.includes(key)));
+      });
+
+      const finalData = [...formData];
+      // Crear el libro y la hoja de Excel
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet(namesheet || 'Datos');
+
+      // Establecer las cabeceras
+      worksheet.addRow(headers);
+
+      finalData.forEach((row) => {
+        worksheet.addRow(Object.values(row));
+      });
+
+      // Establecer el estilo para las cabeceras
+      worksheet.getRow(1).eachCell((cell) => {
+        cell.style = {
+          fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: '132C6D' } },
+          font: { bold: true, color: { argb: 'FFFFFF' } },
+          alignment: { horizontal: 'left', vertical: 'middle' },
+        };
+      });
+
+      // Habilitar los filtros en las cabeceras
+      worksheet.autoFilter = {
+        from: 'A1',
+        to: `${String.fromCharCode(65 + headers.length - 1)}1`,
+      };
+
+      // Obtener la fecha y hora actual en la zona horaria de Chile
+      const now = new Date().toLocaleString("es-CL", {
+        timeZone: "America/Santiago",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false, // Evita que aparezca "a. m." o "p. m."
+      }).replace(/\//g, "-").replace(/:/g, "-").replace(",", "").replace(" ", "_");
+
+      // Asegurar que `filenamme` sea un string válido
+      let filename = (typeof filenamme === "string" ? filenamme : "export_data") + "_" + now + ".xlsx";
+
+      // Descargar el archivo
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+      });
+
+    }
+
+  };
+
   //Nuevos
   const [showFilter, setShowFilter] = useState(false);
   const [filters, setFilters] = useState({});
   const [filteredData, setFilteredData] = useState([]);
   const [dataReport, setDataReport] = useState([]);
   const [checkedIds, setCheckedIds] = useState([]);
-  const [switchState, setSwitchState] = useState(false);
+  const [switchState, setSwitchState] = useState(filterTotal);
 
-  const [fields, setFields] = useState({
-    ground: { checked: false, type: "select", label: "Campo" },
-    sector: { checked: false, type: "select", label: "Sector" },
-    squad: { checked: false, type: "select", label: "Cuadrilla" },
-    //squad_leader: { checked: false, type: "select", label: "Jefe cuadrilla" },
-    worker: { checked: false, type: "select", label: "Cosechero" },
-    worker_rut: { checked: false, type: "select", label: "RUT Cosechero" },
-    specie: { checked: false, type: "select", label: "Especie" },
-    quality: { checked: false, type: "select", label: "Calidad" },
-    variety: { checked: false, type: "select", label: "Variedad" },
-    harvest_format: {
-      checked: false,
-      type: "select",
-      label: "Formato cosecha",
-    },
-    contractor: { checked: false, type: "select", label: "Contratista" },
-    harvest_date: { checked: false, type: "date", label: "Fecha Cosecha" },
-    weigher_rut: { checked: false, type: "select", label: "Pesador" },
-    season: { checked: false, type: "select", label: "Temporada" },
-    batch: { checked: false, type: "select", label: "Lote" },
+  const [fields, setFields] = useState(() => {
+
+    const baseFields = {
+      ground: { checked: false, type: "select", label: "Campo" },
+      sector: { checked: false, type: "select", label: "Sector" },
+      squad: { checked: false, type: "select", label: "Cuadrilla" },
+      // squad_leader: { checked: false, type: "select", label: "Jefe cuadrilla" },
+      worker: { checked: false, type: "select", label: "Cosechero" },
+      worker_rut: { checked: false, type: "select", label: "RUT Cosechero" },
+      specie: { checked: false, type: "select", label: "Especie" },
+      quality: { checked: false, type: "select", label: "Calidad" },
+      variety: { checked: false, type: "select", label: "Variedad" },
+      harvest_format: { checked: false, type: "select", label: "Formato cosecha" },
+      contractor: { checked: false, type: "select", label: "Contratista" },
+      weigher_rut: { checked: false, type: "select", label: "Pesador" },
+      season: { checked: false, type: "select", label: "Temporada" },
+      batch: { checked: false, type: "select", label: "Lote" },
+    };
+
+    // Si filterTotal es verdadero, añade la propiedad harvest_date
+    if (!filterTotal) {
+      baseFields.harvest_date = { checked: false, type: "date", label: "Fecha Cosecha" };
+    }
+
+    return baseFields;
   });
 
 
@@ -570,7 +628,7 @@ const CardTableProductionReports = ({
 
         setFilters((prev) => ({
           ...prev,
-          worker_rut: "",
+          worker: "",
         }));
       }
 
@@ -621,27 +679,38 @@ const CardTableProductionReports = ({
 
   const handleFilterChange = (selectedOption, actionMeta) => {
     // Para inputs normales (event.target)
-    if (selectedOption.target) {
+    if (selectedOption?.target) {
       const { name, value } = selectedOption.target;
-      
+
       if (value !== undefined && value !== '') {
         setFilters((prev) => ({
           ...prev,
-          [name]: value,  
+          [name]: value,
         }));
       }
-    } 
+    }
     // Para Select de react-select
     else {
       const { name } = actionMeta;  // `actionMeta` contiene el `name` del Select
-      const { value } = selectedOption;  // `value` es el valor seleccionado
-  
+      const { value } = selectedOption && selectedOption.value ? selectedOption : { value: '' };
+
       if (value !== undefined && value !== '') {
         setFilters((prev) => ({
           ...prev,
-          [name]: value,  
+          [name]: value,
         }));
       }
+
+      //console.log("Selected Option:", selectedOption);
+      //console.log("Action Meta:", actionMeta);
+
+      if (actionMeta.action === 'clear') {
+        setFilters((prev) => ({
+          ...prev,
+          [name]: '',
+        }));
+      }
+
     }
   };
 
@@ -654,64 +723,88 @@ const CardTableProductionReports = ({
       totals: isChecked ? 1 : 0, // Convierte el estado del switch a 1 o 0
       harvest_date: "", // Asegura que harvest_date esté vacío
     }));
-
-
   };
 
+  useEffect(() => {
+    if (filterTotal) {
+      setFilters((prev) => ({
+        ...prev,
+        totals: 1,
+        harvest_date: "",
+      }));
+    }
+  }, []);
+
+
   const handleFilterResults = async () => {
-    //console.log("Filtros:", filters);
-
     // Filtrar los filtros para evitar valores vacíos o no definidos
-    const filtrosConIds = Object.keys(filters).reduce((acc, key) => {
-      // Evitar que el 'undefined' o valores vacíos se incluyan
+    let filtrosConIds = Object.keys(filters).reduce((acc, key) => {
+      const value = filters[key];
 
-      
+      // Agregar solo si el valor no es undefined, null o una cadena vacía
       if (
         key === 'totals' ||
         key === 'from' ||
         key === 'to' ||
         checkedIds.includes(key) ||
-        key === 'harvest_date' ||
-        (filters[key] && filters[key] !== '')
+        (key === 'harvest_date' && value) ||  // Ahora solo se agrega si tiene valor
+        (value !== undefined && value !== null && value !== '')
       ) {
-        acc[key] = filters[key];
+        acc[key] = value;
       }
+
       return acc;
     }, {});
 
-    //console.log("Filtros con IDs:", filtrosConIds);
+    // Aquí reemplazamos 'worker_rut' por 'worker' si 'worker_rut' está presente
+    if (filtrosConIds.worker_rut && !filtrosConIds.worker) {
+      filtrosConIds.worker = filtrosConIds.worker_rut;  // Asignamos el valor de 'worker_rut' a 'worker'
+      //delete filtrosConIds.worker_rut;  // Eliminamos 'worker_rut'
+      filtrosConIds.worker_rut = '';  // Asignamos un valor vacío a 'worker_rut'
+    }
+
+    // Si 'worker' está presente, podemos actualizar su valor aquí
+    if (filtrosConIds.worker) {
+      filtrosConIds.worker = Number(filtrosConIds.worker);  // Convertimos a número
+      filtrosConIds.worker_rut = '';
+      //delete filtrosConIds.worker_rut;
+    }
 
     try {
+      // Pasamos el filtro ya modificado a la función 'filterResults'
       const results = await filterResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
-
-      //console.log("Resultados filtrados:", results);
 
       const filteredData = results.map((item) => {
         const date = new Date(item.harvest_date);
         let formattedDate = '';
         let formattedTime = '';
-      
+
         if (item.harvest_date && !isNaN(date)) {
           const day = String(date.getDate()).padStart(2, '0');
           const month = String(date.getMonth() + 1).padStart(2, '0');
           const year = date.getFullYear();
           formattedDate = `${day}-${month}-${year}`; // Formato DD-MM-YYYY
-      
+
           // Extraer la hora y los minutos respetando la zona horaria original
           const originalHours = item.harvest_date.substring(11, 16); // "14:27"
           formattedTime = originalHours;
         }
-      
-        const resultItem = { ...item, harvest_date: formattedDate };
-      
+
+
+
+        const resultItem = { ...item };
+
+        // Solo agregar `harvest_date` si tiene un valor válido
+        if (formattedDate) {
+          resultItem.harvest_date = formattedDate;
+        }
+
+        // Solo agregar `harvest_time` si tiene un valor válido
         if (formattedTime) {
           resultItem.harvest_time = formattedTime;
         }
-      
-        //console.log("Result Item:", resultItem);
         return resultItem;
       });
-
 
       setInitialData(filteredData);
       setDataReport(filteredData);
@@ -721,6 +814,8 @@ const CardTableProductionReports = ({
       setCurrentPage(1);
     }
   };
+
+
 
 
   const generateUniqueId = () => "_" + Math.random().toString(36).substr(2, 9);
@@ -746,6 +841,8 @@ const CardTableProductionReports = ({
               : []}
             className={`h-12 w-full rounded-xl border bg-white/0 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-blueTertiary ${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""}`}
             placeholder="Seleccione una opción"
+            isClearable
+            isSearchable
           />
         );
 
@@ -909,15 +1006,17 @@ const CardTableProductionReports = ({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 px-5 py-2 rounded-md">
-          <label
-            htmlFor="selectAll"
-            className="text-sm font-semibold text-gray-800 dark:text-whitee"
-          >
-            Filtrar por totales
-          </label>
-          <Switch id="switchRead" defaultChecked={0} onChange={handleSwitchChange} />
-        </div>
+        {filterTotal != true && filterTotal != false && (
+          <div className="flex flex-col gap-2 px-5 py-2 rounded-md">
+            <label
+              htmlFor="selectAll"
+              className="text-sm font-semibold text-gray-800 dark:text-whitee"
+            >
+              Filtrar por totales
+            </label>
+            <Switch id="switchRead" defaultChecked={0} onChange={handleSwitchChange} />
+          </div>
+        )}
 
         <button
           type="button"
@@ -938,7 +1037,7 @@ const CardTableProductionReports = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+            className={`relative flex items-center mt-5 ${title ? "justify-between md:flex-col md:items-start" : "justify-between flex-col md:items-start md:flex-row"
               } `}
           >
             {title && (
@@ -946,17 +1045,45 @@ const CardTableProductionReports = ({
                 {title}
               </h4>
             )}
-
+            {Array.isArray(initialData) && initialData.length > 0 && (
+              <div className="totalizadores bg-lightPrimary p-2 rounded-md flex items-center gap-4 w-full mb-4 md:w-auto md:mb-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    Total registros: {initialData.length}
+                  </p>
+                </div>
+                |
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    Total kilos:{" "}
+                    {initialData
+                      .reduce((acc, item) => acc + (parseFloat(item.kg_boxes) || 0), 0)
+                      .toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                |
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    Total cajas:{" "}
+                    {initialData
+                      .reduce((acc, item) => acc + (parseFloat(item.boxes) || 0), 0)
+                      .toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="buttonsActions mb-3 flex gap-2 w-full flex-col md:w-auto md:flex-row md:gap-5">
               {Array.isArray(initialData) &&
                 initialData.length > 0 &&
                 downloadBtn && (
-                  <ExportarExcel
-                    data={formatInitialData}
-                    filename="reporte_de_produccion"
-                    sheetname="Reporte de recolección"
-                    titlebutton="Exportar a excel"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => handlerDownloadExcel(filterTotal ? "reporte_produccion_total" : "reporte_produccion", "Reporte Producción")}
+                    className="w-full md:max-w-[300px] max-w-full linear mt-2 md:w-fit px-5 rounded-xl bg-green-600 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-green-900 dark:text-white items-center justify-center flex gap-2 normal-case !flex-1"
+                  >
+                    <ArrowDownTrayIcon className="w-5 h-5" />
+                    Exportar a Excel
+                  </button>
                 )}
 
               {/*SearchInput && (
@@ -969,6 +1096,8 @@ const CardTableProductionReports = ({
               )*/}
             </div>
           </div>
+
+
 
           <div className="h-full overflow-x-scroll max-h-dvh">
             <table

@@ -117,9 +117,12 @@ const TitlePage = () => {
         case "exporters":
             translatedSegment = "Exportadoras";
             break;
-            case "monthly-workers-production":
-                translatedSegment = "Producción mensual";
-                break;
+        case "monthly-workers-production":
+            translatedSegment = "Producción mensual";
+            break;
+        case "total-production-report":
+            translatedSegment = "Reporte de producción total";
+            break;
         default:
             translatedSegment = segment;
             break;
