@@ -842,57 +842,109 @@ const CardTableWorkers = ({
         "Pulsera", "Observación", "Banco", "Tipo de cuenta", "Número de cuenta", "AFP", "Salud", "status"
     ];
 
+    // Hoja de trabajadores - Agregar cabecera
     sheet.addRow(headers).font = { bold: true };
     sheet.views = [{ state: 'frozen', xSplit: 4 }];
-    sheet.columns = headers.map(() => ({ width: 15 }));
+    sheet.columns = headers.map(() => ({ width: 20 }));
+
+    // Agregar borde a las celdas de la cabecera en la hoja "Trabajadores"
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true };
+
+    headerRow.eachCell((cell) => {
+        cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+        };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' }; // Centrar texto
+    });
+
+    // Ejemplo de datos en la hoja de "Trabajadores"
+    const ejemploTrabajadores = [
+        ["12345678", "9", "Juan", "Pérez", "González", "04-02-1987", "Masculino", "Soltero", "Santiago", "Santiago", "Calle Falsa 123", "912345678", "juan.perez@ejemplo.com", "234567890", "01-01-2010", "Operario", "Contratista X", "Cuadrilla A", "Líder", "Turno 1", "Pulsera 1", "Observación de ejemplo", "Banco A", "Cuenta corriente", "123456789", "AFP X", "Salud A", "Activo"],
+        ["87654321", "4", "María", "López", "González", "09-02-1987", "Femenino", "Casada", "Valparaíso", "Valparaíso", "Av. Libertador 456", "987654321", "maria.lopez@ejemplo.com", "345678901", "15-03-2015", "Supervisor", "Contratista Y", "Cuadrilla B", "No", "Turno 2", "Pulsera 2", "Observación 2", "Banco B", "Cuenta vista", "987654321", "AFP Y", "Salud B", "Activo"],
+        ["11223344", "K", "Carlos", "Martínez", "Ruiz", "12-12-1987", "Masculino", "Soltero", "Concepción", "Concepción", "Calle Principal 789", "123456789", "carlos.martinez@ejemplo.com", "456789012", "20-10-2018", "Operario", "Contratista Z", "Cuadrilla C", "Líder", "Turno 3", "Pulsera 3", "Observación 3", "Banco C", "Cuenta corriente", "654321987", "AFP Z", "Salud C", "Inactivo"]
+    ];
+
+    // Agregar los datos de ejemplo a la hoja "Trabajadores"
+    ejemploTrabajadores.forEach(rowData => {
+        sheet.addRow(rowData);
+    });
 
     // ================================
     // HOJA "Opciones" - Listas de datos
     // ================================
     const generoValues = ["Masculino", "Femenino", "Otro"];
     const estadoCivilValues = ["Soltero", "Casado", "Divorciado", "Viudo"];
-    const StateCL = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"];
-    const comunas = ["Santiago", "Viña del Mar", "Concepción", "Temuco", "Antofagasta"];
+    const regionesValues = StateCL.map((item) => item.region).sort();
+    const comunasValues = StateCL.flatMap((item) => item.comunas.map((comuna) => comuna.name)).sort();
+    const cargoValues = dataPosition.map(position => position.name).sort();
+    const contratistaValues = dataContractor.map(contractors => contractors.name).sort();
+    const cuadrillaValues = dataSquad.map(dataSquad => dataSquad.name).sort();
+    const liderCuadrillaValues = ["SI", "NO"];
+    const turnoValues = dataShift.map(dataSquad => dataSquad.name).sort();
+    const bancoValues = dataBank.map(item => item.bank).sort();
+    const tipoCuentaValues = dataAccountType.map(item => item.accountType).sort();
+    const afpValues = dataAFP.map(item => item.afp).sort();
+    const previsionValues = dataSalud.map(item => item.salud).sort();
+    const estadoValues = ["Inactivo", "Activo"];
 
     optionsSheet.getColumn(1).values = ["Género", ...generoValues];
-    optionsSheet.getColumn(2).values = ["Estado Civil", ...estadoCivilValues];
-    optionsSheet.getColumn(3).values = ["Región", ...StateCL];
-    optionsSheet.getColumn(4).values = ["Ciudad", ...comunas];
+    optionsSheet.getColumn(3).values = ["Estado Civil", ...estadoCivilValues];
+    optionsSheet.getColumn(5).values = ["Región", ...regionesValues];
+    optionsSheet.getColumn(7).values = ["Ciudad", ...comunasValues];
+    optionsSheet.getColumn(9).values = ["Cargo", ...cargoValues];
+    optionsSheet.getColumn(11).values = ["Contratista", ...contratistaValues];
+    optionsSheet.getColumn(13).values = ["Cuadrilla", ...cuadrillaValues];
+    optionsSheet.getColumn(15).values = ["Lider Cuadrilla", ...liderCuadrillaValues];
+    optionsSheet.getColumn(17).values = ["Turno", ...turnoValues];
+    optionsSheet.getColumn(19).values = ["Banco", ...bancoValues];
+    optionsSheet.getColumn(21).values = ["Tipo de Banco", ...tipoCuentaValues];
+    optionsSheet.getColumn(23).values = ["AFP", ...afpValues];
+    optionsSheet.getColumn(25).values = ["Previsión", ...previsionValues];
+    optionsSheet.getColumn(27).values = ["Estado", ...estadoValues];
 
     // ================================
-    // ASIGNAR VALIDACIÓN PARA MOSTRAR LISTAS
+    // AGREGAR BORDES A LA HOJA "Opciones"
     // ================================
-    const applyValidation = (colIndex, rangeStart, rangeEnd) => {
-        sheet.getColumn(colIndex).eachCell((cell, rowNumber) => {
-            if (rowNumber > 1 && rowNumber <= 100) {
-                // Asignar validación de datos usando los valores de la hoja "Opciones"
-                cell.dataValidation = {
-                    type: 'list',
-                    allowBlank: true,
-                    formula1: `'Opciones'!$${rangeStart}$2:$${rangeEnd}$${rangeEnd === 'A' ? generoValues.length + 1 : rangeEnd === 'B' ? estadoCivilValues.length + 1 : rangeEnd === 'C' ? StateCL.length + 1 : comunas.length + 1}`,
-                    showDropDown: true
-                };
+    const headerRowOptions = optionsSheet.getRow(1);
+    headerRowOptions.font = { bold: true };
+
+    headerRowOptions.eachCell((cell) => {
+        cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+        };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' }; // Centrar texto
+    });
+
+    optionsSheet.eachRow((row) => {
+        row.eachCell((cell) => {
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' }; // Centrar texto
+        });
+    });
+
+    // Ajustar el tamaño de las columnas en "Opciones"
+    optionsSheet.columns.forEach(column => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+            if (cell.value && cell.value.toString().length > maxLength) {
+                maxLength = cell.value.toString().length;
             }
         });
-    };
-
-    // Aplicar la validación de listas usando las celdas en "Opciones"
-    applyValidation(7, "A", "A"); // Género - Referencia a la columna A de Opciones
-    applyValidation(8, "B", "B"); // Estado Civil - Referencia a la columna B de Opciones
-    applyValidation(9, "C", "C"); // Región - Referencia a la columna C de Opciones
-    applyValidation(10, "D", "D"); // Ciudad - Referencia a la columna D de Opciones
-
-    // ================================
-    // DATOS DE EJEMPLO
-    // ================================
-    const exampleData = [
-        ["16874117", "0", "Prueba", "Prueba", "Fernanda", "04-02-1987", "Femenino",
-        "Soltero", "8", "Santiago", "Calle Falsa 123", "987654321", "correo@ejemplo.com", "987654321",
-        "01-01-2020", "Agricultor", "Empresa X", "Cuadrilla 1", "Juan Pérez", "Diurno",
-        "Pulsera123", "Observación", "Banco Estado", "Cuenta RUT", "21366539", "AFP Uno", "Fonasa", "Activo"]
-    ];
-
-    exampleData.forEach(row => sheet.addRow(row));
+        const padding = 2; // Un pequeño espacio adicional
+        column.width = maxLength + padding;
+    });
 
     // ================================
     // EXPORTAR Y DESCARGAR
@@ -901,6 +953,12 @@ const CardTableWorkers = ({
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     saveAs(blob, "template-trabajadores-agrisoft.xlsx");
 };
+
+
+
+
+
+
 
   const getCurrentDate = () => {
     const today = new Date();
