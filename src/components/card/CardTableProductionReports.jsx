@@ -100,6 +100,7 @@ const CardTableProductionReports = ({
   const [dataHarvestFormat, setDataHarvestFormat] = useState([]);
   const [dataContractors, setDataContractors] = useState([]);
   const [dataUsers, setDataUsers] = useState([]);
+  const [mensajeNoFound, setMensajeNoFound] = useState("");
 
   const [openShowUser, setOpenShowUser] = useState(false);
 
@@ -766,6 +767,8 @@ const CardTableProductionReports = ({
   
       return acc;
     }, {});
+
+    console.log("Filtros con IDs:", filtrosConIds);
   
     // Aquí reemplazamos 'worker_rut' por 'worker' si 'worker_rut' está presente
     if (filtrosConIds.worker_rut && !filtrosConIds.worker) {
@@ -778,6 +781,8 @@ const CardTableProductionReports = ({
       filtrosConIds.worker = Number(filtrosConIds.worker);  // Convertimos a número
       filtrosConIds.worker_rut = '';
     }
+
+    console.log("Filtros con IDs:", filtrosConIds);
   
     try {
 
@@ -786,13 +791,17 @@ const CardTableProductionReports = ({
       if (Object.keys(filtrosConIds).length === 1 && filtrosConIds.hasOwnProperty('totals')) {
         filtersFiltered = { ...filtrosConIds, harvest_date: '' };
       }else if(filtrosConIds.hasOwnProperty('from') || filtrosConIds.hasOwnProperty('to')){
-        filtersFiltered = { ...filtrosConIds, harvest_date: '' };
+        if((filtrosConIds.from && filtrosConIds.from == '') || (filtrosConIds.to && filtrosConIds.to == '')){
+          filtersFiltered = { ...filtrosConIds, harvest_date: '' };
+        }
       }else{
         filtersFiltered = { ...filtrosConIds };
       }
 
       // Pasamos el filtro ya modificado a la función 'filterResults'
       const results = await filterResults(filtersFiltered, companyID); // Pasas los filtros y el ID de la compañía
+
+      //console.log("Results:", results);
 
       const filteredData = results.map((item) => {
         const date = new Date(item.harvest_date);
@@ -825,11 +834,13 @@ const CardTableProductionReports = ({
         
         return resultItem;
       });
-    
+  
   
       setInitialData(filteredData);
       setDataReport(filteredData);
     } catch (error) {
+      setMensajeNoFound('No se encontraron resultados para la búsqueda, intente con otros parámetros');
+      setInitialData([]);
       console.error("Error al filtrar los resultados:", error);
     } finally {
       setCurrentPage(1);
@@ -1218,7 +1229,7 @@ const CardTableProductionReports = ({
                 ) : (
                   <tr>
                     <td className="py-4" colSpan={5}>
-                      No se encontraron registros.
+                      {mensajeNoFound}
                     </td>
                   </tr>
                 )}
