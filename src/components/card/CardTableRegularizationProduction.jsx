@@ -910,14 +910,14 @@ const CardTableProductionReports = ({
 
     const [fields, setFields] = useState({
         //ground: { checked: false, type: "select", label: "Campo" },
-        //sector: { checked: false, type: "select", label: "Sector" },
+        sector: { checked: false, type: "select", label: "Sector" },
         //squad: { checked: false, type: "select", label: "Cuadrilla" },
         //squad_leader: { checked: false, type: "select", label: "Jefe cuadrilla" },
         //worker: { checked: false, type: "select", label: "Cosechero" },
         worker_rut: { checked: false, type: "select", label: "RUT Cosechero" },
         //specie: { checked: false, type: "select", label: "Especie" },
-        //quality: { checked: false, type: "select", label: "Calidad" },
-        //variety: { checked: false, type: "select", label: "Variedad" },
+        quality: { checked: false, type: "select", label: "Calidad" },
+        variety: { checked: false, type: "select", label: "Variedad" },
         /*harvest_format: {
             checked: false,
             type: "select",
