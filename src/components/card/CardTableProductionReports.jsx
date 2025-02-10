@@ -767,8 +767,6 @@ const CardTableProductionReports = ({
   
       return acc;
     }, {});
-
-    console.log("Filtros con IDs:", filtrosConIds);
   
     // Aquí reemplazamos 'worker_rut' por 'worker' si 'worker_rut' está presente
     if (filtrosConIds.worker_rut && !filtrosConIds.worker) {
@@ -781,8 +779,6 @@ const CardTableProductionReports = ({
       filtrosConIds.worker = Number(filtrosConIds.worker);  // Convertimos a número
       filtrosConIds.worker_rut = '';
     }
-
-    console.log("Filtros con IDs:", filtrosConIds);
   
     try {
 
@@ -828,9 +824,9 @@ const CardTableProductionReports = ({
           }
   
           // Solo agregar `harvest_time` si tiene un valor válido
-          if (formattedTime) {
+          /*if (formattedTime) {
             resultItem.harvest_time = formattedTime;
-          }
+          }*/
         
         return resultItem;
       });
