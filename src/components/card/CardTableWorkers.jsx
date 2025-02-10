@@ -1118,6 +1118,7 @@ const CardTableWorkers = ({
                       "afp",
                       "health",
                       "wristband",
+                      "email"
                     ];
 
                     // Verificar qué datos están vacíos
