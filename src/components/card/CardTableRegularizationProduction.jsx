@@ -84,8 +84,6 @@ const CardTableProductionReports = ({
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
 
-
-
     const [selectedItem, setSelectedItem] = useState(null); // Estado para almacenar los datos del item seleccionado para editar
     const [updateMessage, setUpdateMessage] = useState(null);
 
@@ -959,29 +957,6 @@ const CardTableProductionReports = ({
                 }
             }
 
-            // Lógica para desmarcar `worker` cuando se selecciona `worker_rut` y viceversa
-            /*if (id === 'worker_rut' && checked) {
-                newFields.worker.checked = false;  // Desmarcar `worker`
-                setFilters((prev) => ({
-                    ...prev,
-                    worker: undefined,  // Asegurar que se borra correctamente
-                    worker_rut: "",     // Agregar `worker_rut`
-                }));
-
-                setClearSelect(id);
-            }
-
-            if (id === 'worker' && checked) {
-                newFields.worker_rut.checked = false;  // Desmarcar `worker_rut`
-                setFilters((prev) => ({
-                    ...prev,
-                    worker_rut: undefined,  // Asegurar que se borra correctamente
-                    worker: "",             // Agregar `worker`
-                }));
-
-                setClearSelect(id);
-            }*/
-
             return newFields;
         });
 
@@ -1025,30 +1000,33 @@ const CardTableProductionReports = ({
 
 
     const handleFilterChange = (selectedOption, actionMeta) => {
+        // Verifica si selectedOption es nulo
+        if (!selectedOption) {
+            //console.log("El usuario ha limpiado la selección.");
+            return;
+        }
+    
         // Para inputs normales (event.target)
         if (selectedOption.target) {
             const { name, value } = selectedOption.target;
-
-            if (value !== undefined && value !== '') {
-                setFilters((prev) => ({
-                    ...prev,
-                    [name]: value,
-                }));
-            }
+    
+            setFilters((prev) => ({
+                ...prev,
+                [name]: value || "", 
+            }));
         }
         // Para Select de react-select
         else {
-            const { name } = actionMeta;  // `actionMeta` contiene el `name` del Select
-            const { value } = selectedOption;  // `value` es el valor seleccionado
-
-            if (value !== undefined && value !== '') {
-                setFilters((prev) => ({
-                    ...prev,
-                    [name]: value,
-                }));
-            }
+            const { name } = actionMeta;
+            const { value } = selectedOption; 
+    
+            setFilters((prev) => ({
+                ...prev,
+                [name]: value || "",
+            }));
         }
     };
+    
 
     const handleSwitchChange = (event) => {
         const isChecked = event.target.checked;
@@ -1145,7 +1123,7 @@ const CardTableProductionReports = ({
                             ? options[key].map(option => ({
                                 value: key === "batch" ? option : option.id,
                                 label: key === "worker_rut"
-                                    ? option.rut
+                                    ? option.rut + ' (' + option.name + ' ' + option.lastname + ')'
                                     : key === "batch"
                                         ? option
                                         : `${option.name}${key === "worker" || key === "squad_leader" ? ` ${option.lastname}` : ""}`,
@@ -1160,6 +1138,7 @@ const CardTableProductionReports = ({
                             menuPortal: base => ({ ...base, zIndex: 9 }) // Ajusta el z-index
                         }}
                         isClearable
+                        isSearchable
                     />
                 );
 
@@ -1518,13 +1497,13 @@ const CardTableProductionReports = ({
                         <div className="flex items-center gap-5">
                             <div className="bulkUpdate my-5">
                                 <h2 className="text-md font-semibold text-gray-800 dark:text-white mb-1">Editar masivamente</h2>
-                                <Switch id="switchRead" defaultChecked={0} onChange={handleBulkUpdateSwitch} checked={bulkUpdate} />
+                                <Switch id="switchRead" onChange={handleBulkUpdateSwitch} checked={bulkUpdate} />
 
                             </div>
 
                             <div className="bulkDelete my-5">
                                 <h2 className="text-md font-semibold text-gray-800 dark:text-white mb-1">Eliminar masivamente</h2>
-                                <Switch id="switchRead" defaultChecked={0} onChange={handleBulkDeleteSwitch} checked={bulkDelete} />
+                                <Switch id="switchRead" onChange={handleBulkDeleteSwitch} checked={bulkDelete} />
                             </div>
                         </div>
 
