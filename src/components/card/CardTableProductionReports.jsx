@@ -574,6 +574,8 @@ const CardTableProductionReports = ({
     // Si filterTotal es verdadero, añade la propiedad harvest_date
     if (!filterTotal) {
       baseFields.harvest_date = { checked: false, type: "date", label: "Fecha Cosecha" };
+    }else{
+      baseFields.harvest_date = { checked: false, type: "switch", label: "Fecha Cosecha" };
     }
 
     return baseFields;
@@ -601,6 +603,15 @@ const CardTableProductionReports = ({
         Object.keys(newFields).forEach((key) => {
           newFields[key].checked = checked;
         });
+        //total debe ir en 1 siempre que se cumpla esto filterTotal != true && filterTotal != false pero debe ir en setFilters
+        
+        if (filterTotal) {
+          setFilters((prevFilters) => ({
+            ...prevFilters,
+            totals: 1,
+          }));
+        }
+
       } else {
         if (newFields[id]) {
           newFields[id].checked = checked;
@@ -742,11 +753,10 @@ const CardTableProductionReports = ({
       setFilters((prev) => ({
         ...prev,
         totals: 1,
-        harvest_date: "",
+        //harvest_date: "",
       }));
     }
   }, []);
-
 
   const handleFilterResults = async () => {
     // Filtrar los filtros para evitar valores vacíos o no definidos
@@ -785,19 +795,17 @@ const CardTableProductionReports = ({
       let filtersFiltered = { ...filtrosConIds };
 
       if (Object.keys(filtrosConIds).length === 1 && filtrosConIds.hasOwnProperty('totals')) {
-        filtersFiltered = { ...filtrosConIds, harvest_date: '' };
-      }else if(filtrosConIds.hasOwnProperty('from') || filtrosConIds.hasOwnProperty('to')){
+        filtersFiltered = { ...filtrosConIds };
+      }else if((filtrosConIds.hasOwnProperty('from') || filtrosConIds.hasOwnProperty('to')) && (filterTotal != true )){
         if((filtrosConIds.from && filtrosConIds.from == '') || (filtrosConIds.to && filtrosConIds.to == '')){
           filtersFiltered = { ...filtrosConIds, harvest_date: '' };
         }
       }else{
         filtersFiltered = { ...filtrosConIds };
       }
-
       // Pasamos el filtro ya modificado a la función 'filterResults'
       const results = await filterResults(filtersFiltered, companyID); // Pasas los filtros y el ID de la compañía
 
-      //console.log("Results:", results);
 
       const filteredData = results.map((item) => {
         const date = new Date(item.harvest_date);
@@ -831,6 +839,7 @@ const CardTableProductionReports = ({
         return resultItem;
       });
   
+      
   
       setInitialData(filteredData);
       setDataReport(filteredData);
@@ -908,6 +917,21 @@ const CardTableProductionReports = ({
             disabled={!fields[key].checked}
           />
         );
+
+      /*case "switch":
+        return (
+          <Switch
+            //id={key}
+            name={key}
+            id="switchRead" 
+            defaultChecked={0}
+            onChange={handleSwitchChange}
+            className={`${!fields[key].checked ? "disabled opacity-70 !bg-gray-200" : ""
+              }`}
+            disabled={!fields[key].checked}
+          />
+        );*/
+
 
       default:
         return null;
