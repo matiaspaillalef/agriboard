@@ -127,7 +127,7 @@ const PieChart = ({ data, title, loadingData }) => {
           series={chart.series}
         />
       </div>
-      <div className="flex flex-row !justify-between flex-wrap gap-2 rounded-2xl px-6 py-3 dark:!bg-navy-700 dark:shadow-none w-fit m-auto">
+      <div className="flex flex-row !justify-between items-center flex-wrap gap-2 rounded-2xl px-6 py-3 dark:!bg-navy-700 dark:shadow-none w-fit m-auto">
         {(() => {
           // Sumar los valores del array
           const total = chart.series.reduce((acc, val) => acc + val, 0);
@@ -135,11 +135,11 @@ const PieChart = ({ data, title, loadingData }) => {
           // Mapear los valores para calcular el porcentaje
           return chart.series.map((item, index) => {
             const percentage = total > 0 ? (item / total) * 100 : 0;
-
+              {console.log(chart.options.colors[index])}
             return (
               <React.Fragment key={index}>
                 <div className="flex flex-col items-center justify-center">
-                  <div className={`h-2 w-2 rounded-full bg-[${chart.options.colors[index]}]`} />
+                  <div className={`h-2 w-2 rounded-full bg-[${chart.options.colors[index]}]`} style={{backgroundColor:chart.options.colors[index]}}/>
                   <p className="ml-1 text-sm font-normal text-gray-600">{chart.labels[index]}</p>
                   <p className="mt-px text-xl font-bold text-navy-700 dark:text-white">
                     {Math.round(percentage)}%
