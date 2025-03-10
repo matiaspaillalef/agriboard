@@ -2187,7 +2187,7 @@ export const updateBulkRegularizationProduction = async (id_company, filtrosIds,
       });
 
       const result = await response.json();
-     console.log(result);
+     //console.log(result);
       if (result.success) {
          // alert("Datos actualizados correctamente");
           return "OK";
@@ -2199,7 +2199,8 @@ export const updateBulkRegularizationProduction = async (id_company, filtrosIds,
   }
 };
 
-export const deleteBulkRegularizationProduction = async (id_company, filtrosIds) => {
+export const deleteBulkRegularizationProduction = async (id_company, filtrosIds, deleteData) => {
+  //console.log('deleteData', deleteData);
   try {
       const response = await fetch(URLAPI + `/api/v1/configuracion/production/deleteRegularizationResults/${id_company}`, {
           method: 'POST',
@@ -2209,6 +2210,7 @@ export const deleteBulkRegularizationProduction = async (id_company, filtrosIds)
            },
           body: JSON.stringify({
               filtrosIds, // Datos de filtrado
+              deletes: deleteData, // Valores a eliminar
           }),
       });
 

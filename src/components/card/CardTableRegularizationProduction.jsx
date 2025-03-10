@@ -132,6 +132,16 @@ const CardTableProductionReports = ({
     const [filtrosIds, setFiltrosIds] = useState({});
     const [clearSelect, setClearSelect] = useState();
 
+    const [ids, setIds] = useState([]);
+    const [checkedActive, setCheckedActive] = useState(false);
+    const [defaultIds, setDefaultIds] = useState([]); // Inicialmente vacío
+    const [bulkDeleteBool, setBulkDeleteBool] = useState(false);
+
+    const [clearCheckedIds, setClearCheckedIds] = useState(false);
+
+    const [selectedIds, setSelectedIds] = useState([]);
+
+
     //Checks para el filtro
 
     const [options, setOptions] = useState({
@@ -1005,28 +1015,28 @@ const CardTableProductionReports = ({
             //console.log("El usuario ha limpiado la selección.");
             return;
         }
-    
+
         // Para inputs normales (event.target)
         if (selectedOption.target) {
             const { name, value } = selectedOption.target;
-    
+
             setFilters((prev) => ({
                 ...prev,
-                [name]: value || "", 
+                [name]: value || "",
             }));
         }
         // Para Select de react-select
         else {
             const { name } = actionMeta;
-            const { value } = selectedOption; 
-    
+            const { value } = selectedOption;
+
             setFilters((prev) => ({
                 ...prev,
                 [name]: value || "",
             }));
         }
     };
-    
+
 
     const handleSwitchChange = (event) => {
         const isChecked = event.target.checked;
@@ -1095,6 +1105,12 @@ const CardTableProductionReports = ({
                 return resultItem;
             });
 
+            //console.log("Filtered Data:", filteredData);
+
+            //Guardar en un estados los id de los itemdel resultado
+            const idsResult = filteredData.map((item) => item.id);
+            setIds(idsResult);
+            setDefaultIds(idsResult);
 
             setInitialData(filteredData);
             setDataReport(filteredData);
@@ -1104,6 +1120,53 @@ const CardTableProductionReports = ({
         } finally {
             setCurrentPage(1);
         }
+    };
+
+    const handleCheckSelector = (event) => {
+        const { id, checked } = event.target;
+        const numericId = Number(id); // Convertir el ID a número
+
+        setCheckedActive(true);
+
+        setIds((prevIds) => {
+            let newIds;
+
+            if (checked) {
+                // Limpiar el array solo la primera vez (si prevIds aún tiene valores por defecto)
+                if (prevIds.length === defaultIds.length) {
+                    newIds = [numericId];
+                } else {
+                    newIds = [...prevIds, numericId];
+                }
+            } else {
+                // Si el checkbox está desmarcado, eliminar el ID del array
+                newIds = prevIds.filter((item) => item !== numericId);
+            }
+
+            // Si no queda ningún checkbox seleccionado, volver a los valores iniciales
+            if (newIds.length === 0) {
+                setCheckedActive(false);
+                return defaultIds;
+            }
+
+            setSelectedIds((prevSelectedIds) => {
+                let newSelectedIds;
+
+                if (checked) {
+                    // Agregar el ID si está checkeado y no está en la lista
+                    newSelectedIds = [...prevSelectedIds, numericId];
+                } else {
+                    // Remover el ID si está deseleccionado
+                    newSelectedIds = prevSelectedIds.filter((item) => item !== numericId);
+                }
+
+                //console.log("Selected IDs actualizados:", newSelectedIds);
+                return newSelectedIds;
+            });
+
+
+            return newIds;
+        });
     };
 
 
@@ -1256,11 +1319,10 @@ const CardTableProductionReports = ({
         }));
     };
 
+
     const handleBulkUpdate = async () => {
         const { bulkVariety, bulkQuality, bulkWorker } = bulkValues;
         const selectedIds = checkedIds;
-
-        //setBulkUpdate(!bulkUpdate);
 
         if (selectedIds.length === 0) {
             return;
@@ -1270,6 +1332,7 @@ const CardTableProductionReports = ({
             variety: bulkVariety,
             quality: bulkQuality,
             worker: bulkWorker,
+            ids: ids,
         };
 
         try {
@@ -1333,10 +1396,17 @@ const CardTableProductionReports = ({
             return;
         }
 
+        const deleteData = {
+            ids: ids,
+        };
+
         try {
-            const deleteBulk = await deleteBulkRegularizationProduction(companyID, filtrosIds);
+            const deleteBulk = await deleteBulkRegularizationProduction(companyID, filtrosIds, deleteData);
 
             if (deleteBulk === "OK") {
+
+                //setCheckedIds([]);
+                setSelectedIds([]);
                 const results = await filterRegularizationResults(filtrosIds, companyID) || [];
 
                 const updatedList = initialData.filter((item) => !selectedIds.includes(item.id));
@@ -1366,8 +1436,23 @@ const CardTableProductionReports = ({
                     return resultItem;
                 });
 
+                const idsResult = filteredData.map((item) => item.id);
+                setIds(idsResult);
+                setDefaultIds(idsResult);
+
                 setInitialData(updatedList);
                 setInitialData(filteredData || []);
+                //pasar lo check seleccionados a deseleccionados
+
+                setClearCheckedIds(true);
+
+
+                clearCheckedIds == true && (
+                    document.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+                        el.checked = false;
+                    })
+                )
+
                 //setBulkUpdate(false);
                 setUpdateMessage("Registros masivos eliminados correctamente.");
             }
@@ -1375,6 +1460,10 @@ const CardTableProductionReports = ({
         } catch (error) {
             console.error("Error al eliminar en bloque:", error);
             setUpdateMessage("No se pudo eliminar los registros masivamente.");
+        }
+        finally {
+            setBulkDeleteBool(false);
+            setClearCheckedIds(false);
         }
     };
 
@@ -1390,59 +1479,7 @@ const CardTableProductionReports = ({
                         {updateMessage}
                     </div>
                 )}
-                {/*
-                <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-3 w-full">
-                    <div className="dates block items-center gap-2">
-                        <label
-                            htmlFor="from"
-                            className="text-sm font-semibold text-gray-800 dark:text-white flex-initial mb-5"
-                        >
-                            Fecha Desde:
-                        </label>
-                        <input
-                            type="date"
-                            id="from"
-                            name="from"
-                            onChange={handleFilterChange}
-                            className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                        />
-                    </div>
 
-                    <div className="dates block items-center gap-2">
-                        <label
-                            htmlFor="to"
-                            className="text-sm font-semibold text-gray-800 dark:text-white mb-5"
-                        >
-                            Fecha Hasta:
-                        </label>
-                        <input
-                            type="date"
-                            id="to"
-                            name="to"
-                            onChange={handleFilterChange}
-                            className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-[50px]">
-                        <div className="check flex gap-2">
-                            <input
-                                type="checkbox"
-                                id="selectAll"
-                                name="selectAll"
-                                onChange={handleCheck}
-                                className="rounded-sm"
-                            />
-                            <label
-                                htmlFor="selectAll"
-                                className="text-sm font-semibold text-gray-800 dark:text-white"
-                            >
-                                Seleccionar todo
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                */}
 
                 <div className={`allFilters ${showFilter ? "active-filters" : ""}`}>
                     <div className="mb-3 grid grid-cols-1 gap-5 lg:grid-cols-3 w-full mt-5">
@@ -1469,18 +1506,6 @@ const CardTableProductionReports = ({
                         ))}
                     </div>
                 </div>
-
-                {/*
-                <div className="flex flex-col gap-2 px-5 py-2 rounded-md">
-                    <label
-                        htmlFor="selectAll"
-                        className="text-sm font-semibold text-gray-800 dark:text-whitee"
-                    >
-                        Filtrar por totales
-                    </label>
-                    <Switch id="switchRead" defaultChecked={0} onChange={handleSwitchChange} />
-                </div>
-                */}
 
                 <button
                     type="button"
@@ -1686,6 +1711,11 @@ const CardTableProductionReports = ({
                             {initialData && (
                                 <thead>
                                     <tr role="row">
+                                        <th
+                                            colSpan={1}
+                                            role="columnheader"
+                                            className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700 w-[20px]"
+                                        ></th>
                                         {Array.isArray(initialData) && initialData.length > 0
                                             ? Object.keys(initialData[0]).map((header, index) => {
                                                 if (omitirColumns.includes(header)) {
@@ -1732,6 +1762,16 @@ const CardTableProductionReports = ({
                                 {Array.isArray(initialData) && initialData.length > 0 ? (
                                     currentItems.map((row, index) => (
                                         <tr key={index} role="row">
+                                            <td
+                                                className={`pt-[14px] pb-3 text-[14px] px-5 min-w-[20px] ${index % 2 !== 0
+                                                    ? "bg-lightPrimary dark:bg-navy-900"
+                                                    : ""
+                                                    }`}
+                                            >
+
+                                                <input type="checkbox" id={row.id} name={row.id} checked={selectedIds.includes(row.id)} onChange={handleCheckSelector} />
+                                            </td>
+
                                             {Object.keys(row).map((key, rowIndex) => {
                                                 if (omitirColumns.includes(key)) {
                                                     return null; // Omitir la columna si está en omitirColumns
