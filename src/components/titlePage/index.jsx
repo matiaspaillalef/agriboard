@@ -123,6 +123,9 @@ const TitlePage = () => {
         case "total-production-report":
             translatedSegment = "Reporte de producción total";
             break;
+        case "create-qr":
+            translatedSegment = "Crear QR";
+            break;
         default:
             translatedSegment = segment;
             break;

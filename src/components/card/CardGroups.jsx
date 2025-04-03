@@ -105,7 +105,6 @@ const CardTableGroups = ({
 
         // Actualiza la fila en el front-end
         const updatedData = initialData.map((item) => {
-          console.log("item.id", item.id); // Imprime solo el id del item
 
           return item.id === data.id
             ? {

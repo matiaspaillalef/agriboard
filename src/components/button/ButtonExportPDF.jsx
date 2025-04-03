@@ -33,8 +33,6 @@ const ExportarPDF = ({ data, filename, titlebutton, orientation }) => {
    });
  });
 
-  console.log(rows);
-
    // Calcular la posición vertical para la tabla
 // Ajusta este valor según sea necesario
 

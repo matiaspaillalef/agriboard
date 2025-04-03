@@ -104,6 +104,39 @@ const Weather = () => {
           case 'cielo claro':
             iconClass = 'wi wi-day-sunny';
             break;
+          case 'nubes dispersas':
+            iconClass = 'wi wi-day-cloudy';
+            break;
+          case 'nubes rotas':
+            iconClass = 'wi wi-cloudy';
+            break;
+          case 'lluvia ligera':
+            iconClass = 'wi wi-day-showers';
+            break;
+          case 'nubes sobrecargadas':
+            iconClass = 'wi wi-cloudy';
+            break;
+          case 'tormenta eléctrica':
+            iconClass = 'wi wi-thunderstorm';
+            break;
+          case 'lluvia moderada':
+            iconClass = 'wi wi-showers';
+            break;
+          case 'lluvia':
+            iconClass = 'wi wi-showers';
+            break;
+          case 'tormenta':
+            iconClass = 'wi wi-storm-showers';
+            break;
+          case 'nieve':
+            iconClass = 'wi wi-snow';
+            break;
+          case 'tormenta de nieve':
+            iconClass = 'wi wi-snow';
+            break;
+          case 'nieve ligera':
+            iconClass = 'wi wi-snow';
+            break;
           default:
             iconClass = 'wi wi-na';
             break;

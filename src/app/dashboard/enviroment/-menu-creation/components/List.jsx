@@ -35,11 +35,6 @@ const List = ({ list, dragging }) => {
     // Eliminar elemento de la lista en el frontend
     const updatedItems = items.filter((item) => item.id !== list.id);
     setItems(updatedItems);
-
-    // Enviar solicitud a la API para actualizar los datos
-    // Aquí deberías implementar la lógica para enviar la solicitud a la API
-    // utilizando fetch u otra librería para manejar las solicitudes HTTP
-    console.log("Eliminar elemento con ID:", list.id);
   };
 
   return (

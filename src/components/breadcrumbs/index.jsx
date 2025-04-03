@@ -90,6 +90,8 @@ const path = usePathname();
           return "Producción mensual de trabajadores";
         case "total-production-report":
           return "Reporte de producción total";
+        case "create-qr":
+          return "Crear QR";
         default:
           return segment;
       }

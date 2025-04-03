@@ -20,7 +20,6 @@ export default function ForgotPassword() {
 
   const darkModeFx = useEffect(() => {
     const darkData = JSON.parse(sessionStorage.getItem("darkmode"));
-    console.log(darkData);
     if (darkData) {
       setDarkMode(true);
     } else {

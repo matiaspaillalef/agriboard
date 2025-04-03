@@ -24,7 +24,6 @@ const ModalUserCreation = (props) => {
   const onSubmitForm = async (data) => {
     try {
       const createUserapi = await createUser(data);
-      console.log(createUserapi);
 
       // Elimina la fila del front-end
       if (createUserapi == "OK") {
