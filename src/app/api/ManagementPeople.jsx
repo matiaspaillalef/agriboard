@@ -207,7 +207,6 @@ export const getDataPositions = async (id_company) => {
 };
 
 export const createPosition = async (data) => {
-  console.log(data);
   try {
     const res = await fetch(
       `${URLAPI}/api/v1/management-people/positions/createPosition`,
@@ -226,11 +225,8 @@ export const createPosition = async (data) => {
       }
     );
 
-    console.log(res);
-
     if (res.ok) {
       const positionData = await res.json();
-      console.log(positionData);
 
       return positionData;
     } else {
@@ -717,7 +713,7 @@ export const deleteShift = async (id) => {
 
 //Management People - Workers
 export const getDataWorkers = async (id_company) => {
-  //console.log('ID de la empresa:', id_company);
+  console.log('ID de la empresa:', id_company);
   try {
     const response = await fetch(
       `${URLAPI}/api/v1/management-people/workers/getWorkers/${id_company}`,

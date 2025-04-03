@@ -85,7 +85,7 @@ const CardTableManualHarvesting = ({
 
   //Estado para la paginación
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState({}); // Guarda los datos del item al editar

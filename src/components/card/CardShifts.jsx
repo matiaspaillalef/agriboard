@@ -286,7 +286,7 @@ const CardTableShifts = ({
   };
 
   let totalPages;
-  console.log("CAMBIO 1 RECORDAR" , initialData);
+  //console.log("CAMBIO 1 RECORDAR" , initialData);
   if (initialData  === undefined) {
     totalPages = 0; // O cualquier otro valor por defecto que desees asignar
   } else {

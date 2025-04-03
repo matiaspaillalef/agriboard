@@ -25,9 +25,9 @@ export const getDataGround = async (id_company) => {
     );
 
     if (res.ok) {
-      
+
       const groundData = await res.json();
-      return  groundData;
+      return groundData;
 
     }
   } catch (err) {
@@ -59,12 +59,12 @@ export const createGround = async (data) => {
         cache: "no-store",
       }
     );
-    
+
     if (res.ok) {
       const groundData = await res.json();
       return groundData;
     }
-    
+
   } catch (err) {
     console.error(err);
   }
@@ -130,7 +130,7 @@ export const deleteGround = async (id) => {
     );
 
     if (res.ok) {
-      
+
       const groundData = await res.json();
       return groundData;
 
@@ -146,7 +146,7 @@ export const getDataSectorBarracks = async (id_company) => {
   try {
     const res = await fetch(
       URLAPI +
-        `/api/v1/configuracion/production/getSectorsBarracks/${id_company}`,
+      `/api/v1/configuracion/production/getSectorsBarracks/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -284,7 +284,7 @@ export const getDataAttributesSector = async (id_company) => {
   try {
     const res = await fetch(
       URLAPI +
-        `/api/v1/configuracion/production/getAttributesSector/${id_company}`,
+      `/api/v1/configuracion/production/getAttributesSector/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -321,15 +321,15 @@ export const createAttributesSector = async (data) => {
           "x-api-key": token,
         },
         body: JSON.stringify({
-          sector:data.sector,
-          specie:data.specie,
-          variety:data.variety,
+          sector: data.sector,
+          specie: data.specie,
+          variety: data.variety,
           ha_productivas: data.ha_productivas,
-          season:data.season,
-          company_id:data.company_id,
+          season: data.season,
+          company_id: data.company_id,
           year_harvest: data.year_harvest,
           on_ha: data.on_ha,
-          between_ha: data.between_ha,   
+          between_ha: data.between_ha,
         }),
         cache: "no-store",
       }
@@ -400,15 +400,15 @@ export const updateAttributesSector = async (data) => {
         },
         body: JSON.stringify({
           id: data.id,
-          sector:data.sector,
-          specie:data.specie,
-          variety:data.variety,
+          sector: data.sector,
+          specie: data.specie,
+          variety: data.variety,
           ha_productivas: data.ha_productivas,
-          season:data.season,
-          company_id:data.company_id,
+          season: data.season,
+          company_id: data.company_id,
           year_harvest: data.year_harvest,
           on_ha: data.on_ha,
-          between_ha: data.between_ha,   
+          between_ha: data.between_ha,
         }),
       }
     );
@@ -528,7 +528,6 @@ export const createVariety = async (data) => {
 };
 
 export const updateVariety = async (data) => {
-  console.log(data);
   try {
     const res = await fetch(
       URLAPI + "/api/v1/configuracion/production/updateVariety",
@@ -876,7 +875,7 @@ export const getDataTypeCollection = async (id_company) => {
   try {
     const res = await fetch(
       URLAPI +
-        `/api/v1/configuracion/production/getCollectionType/${id_company}`,
+      `/api/v1/configuracion/production/getCollectionType/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1059,7 +1058,7 @@ export const createQuality = async (data) => {
 
     // Verificar si la respuesta es exitosa
     //if (!res.ok) {
-      //throw new Error(`HTTP error! Status: ${res.status}`);
+    //throw new Error(`HTTP error! Status: ${res.status}`);
     //}
 
     // Parsear la respuesta JSON
@@ -1152,7 +1151,7 @@ export const getDataHarvestFormat = async (id_company) => {
   try {
     const res = await fetch(
       URLAPI +
-        `/api/v1/configuracion/production/getHarvestFormat/${id_company}`,
+      `/api/v1/configuracion/production/getHarvestFormat/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1436,7 +1435,7 @@ export const getDataScaleRegister = async (id_company) => {
   try {
     const res = await fetch(
       URLAPI +
-        `/api/v1/configuracion/production/getScaleRegister/${id_company}`,
+      `/api/v1/configuracion/production/getScaleRegister/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1832,7 +1831,7 @@ export const getDataManualHarvesting = async (id_company) => {
   try {
     const res = await fetch(
       URLAPI +
-        `/api/v1/configuracion/production/getManualHarvesting/${id_company}`,
+      `/api/v1/configuracion/production/getManualHarvesting/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -1957,7 +1956,7 @@ export const getDataDispatchGuide = async (id_company) => {
   try {
     const res = await fetch(
       URLAPI +
-        `/api/v1/configuracion/production/getDispatchGuide/${id_company}`,
+      `/api/v1/configuracion/production/getDispatchGuide/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -2082,7 +2081,7 @@ export const getDataRegularizationProduction = async (id_company) => {
   try {
     const res = await fetch(
       URLAPI +
-        `/api/v1/configuracion/production/getRegularizationProduction/${id_company}`,
+      `/api/v1/configuracion/production/getRegularizationProduction/${id_company}`,
       {
         method: "GET",
         headers: {
@@ -2110,7 +2109,7 @@ export const updateRegularizationProduction = async (data) => {
   try {
     const res = await fetch(
       URLAPI +
-        "/api/v1/configuracion/production/updateRegularizationProduction",
+      "/api/v1/configuracion/production/updateRegularizationProduction",
       {
         method: "POST",
         headers: {
@@ -2142,7 +2141,7 @@ export const deleteRegularizationProduction = async (id) => {
   try {
     const response = await fetch(
       URLAPI +
-        "/api/v1/configuracion/production/deleteRegularizationProduction",
+      "/api/v1/configuracion/production/deleteRegularizationProduction",
       {
         method: "POST",
         headers: {
@@ -2174,55 +2173,55 @@ export const deleteRegularizationProduction = async (id) => {
 
 export const updateBulkRegularizationProduction = async (id_company, filtrosIds, bulkValues) => {
   try {
-      const response = await fetch(URLAPI + `/api/v1/configuracion/production/updateRegularizationResults/${id_company}`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            "x-api-key": token
-           },
-          body: JSON.stringify({
-              filtrosIds, // Datos de filtrado
-              updates: bulkValues, // Valores a actualizar
-          }),
-      });
+    const response = await fetch(URLAPI + `/api/v1/configuracion/production/updateRegularizationResults/${id_company}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        "x-api-key": token
+      },
+      body: JSON.stringify({
+        filtrosIds, // Datos de filtrado
+        updates: bulkValues, // Valores a actualizar
+      }),
+    });
 
-      const result = await response.json();
-     //console.log(result);
-      if (result.success) {
-         // alert("Datos actualizados correctamente");
-          return "OK";
-      } else {
-          //alert("Error al actualizar los datos");
-      }
+    const result = await response.json();
+    //console.log(result);
+    if (result.success) {
+      // alert("Datos actualizados correctamente");
+      return "OK";
+    } else {
+      //alert("Error al actualizar los datos");
+    }
   } catch (error) {
-      console.error("Error al actualizar:", error);
+    console.error("Error al actualizar:", error);
   }
 };
 
 export const deleteBulkRegularizationProduction = async (id_company, filtrosIds, deleteData) => {
   //console.log('deleteData', deleteData);
   try {
-      const response = await fetch(URLAPI + `/api/v1/configuracion/production/deleteRegularizationResults/${id_company}`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            "x-api-key": token
-           },
-          body: JSON.stringify({
-              filtrosIds, // Datos de filtrado
-              deletes: deleteData, // Valores a eliminar
-          }),
-      });
+    const response = await fetch(URLAPI + `/api/v1/configuracion/production/deleteRegularizationResults/${id_company}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        "x-api-key": token
+      },
+      body: JSON.stringify({
+        filtrosIds, // Datos de filtrado
+        deletes: deleteData, // Valores a eliminar
+      }),
+    });
 
-      const result = await response.json();
-      if (result.success) {
-          //alert("Datos eliminados correctamente");
-          return "OK";
-      } else {
-          //alert("Error al eliminar los datos");
-      }
+    const result = await response.json();
+    if (result.success) {
+      //alert("Datos eliminados correctamente");
+      return "OK";
+    } else {
+      //alert("Error al eliminar los datos");
+    }
   } catch (error) {
-      console.error("Error al eliminar:", error);
+    console.error("Error al eliminar:", error);
   }
 };
 
@@ -2286,14 +2285,14 @@ export const filterResultsMonthly = async (filters, id_company) => {
 export const filterRegularizationResults = async (filters, id_company) => {
   try {
     const res = await fetch(
-      URLAPI + `/api/v1/configuracion/production/filterRegularizationResults/${id_company}`, // Asumiendo que tu endpoint para filtrar es similar
+      URLAPI + `/api/v1/configuracion/production/filterRegularizationResults/${id_company}`, 
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": token,
         },
-        body: JSON.stringify(filters), // Envía los filtros como cuerpo de la solicitud
+        body: JSON.stringify(filters),
       }
     );
 
@@ -2301,12 +2300,76 @@ export const filterRegularizationResults = async (filters, id_company) => {
       const data = await res.json();
 
       if (data.code === "OK") {
-        return data.results; // Devuelve los resultados filtrados
+        return data.results;
       } else if (data.code === "ERROR") {
-        return data.mensaje; // Maneja el error según tu lógica
+        return data.mensaje;
       }
     }
   } catch (err) {
     console.error(err);
   }
 };
+
+
+//Production - Correlative
+export const getDataCorrelative = async (id_company) => {
+  try {
+    const res = await fetch(
+      URLAPI + `/api/v1/configuracion/production/getDataCorrelative/${id_company}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token, 
+        },
+      }
+    );
+
+    if (res.ok) {
+      const correlativeData = await res.json();
+      if (correlativeData.code === "OK") {
+        return correlativeData.correlative;
+      } else if (correlativeData.code === "ERROR") {
+        return correlativeData.mensaje;
+      }
+    }
+  } catch (err) {
+    console.error("Error al obtener el correlativo:", err);
+    return "Error al obtener el correlativo";
+  }
+};
+
+
+// Production - Correlative - Update
+export const updateCorrelative = async (id_company, newCorrelativeNumber) => {
+  try {
+    const res = await fetch(URLAPI + `/api/v1/configuracion/production/updateCorrelative/${id_company}`, {
+      method: "POST",  
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": token,
+      },
+      body: JSON.stringify({
+        correlative_number: newCorrelativeNumber, 
+      }),
+    });
+
+    // Comprobar si la respuesta es válida
+    if (res.ok) {
+      const result = await res.json();
+      if (result.code == 'OK') {
+        return result;  // Mensaje de éxito
+      } else {
+        throw new Error(result.message || 'Error al actualizar el correlativo');
+      }
+    } else {
+      const textResponse = await res.text();
+      throw new Error(textResponse || 'Error al conectar con el servidor');
+    }
+  } catch (err) {
+    console.error("Error al actualizar el correlativo:", err);
+    return err.message || 'Error al realizar la solicitud';
+  }
+};
+
+

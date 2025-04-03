@@ -320,7 +320,7 @@ const CardTableWorkers = ({
 
     const transformedData = transformKeys(jsonData);
 
-    console.log(transformedData);
+    //console.log(transformedData);
     let success = true;
     const duplicatedRuts = [];
     // Obtenemos el número de filas (sin contar la cabecera)
@@ -329,7 +329,7 @@ const CardTableWorkers = ({
     for (let i = 0; i < numberOfWorkers; i++) {
       const worker = transformedData[i];
       try {
-        console.log("Creando trabajador:", worker);
+        //console.log("Creando trabajador:", worker);
         //const createWorkerResult = await createWorker(worker);
         const createWorkerResult = await importWorker(worker);
 
@@ -527,7 +527,6 @@ const CardTableWorkers = ({
       const deleteWorker = await deleteWorkerApi(id);
       const userData = await getDataUser();
 
-      console.log(deleteWorker);
       // Elimina la fila del front-end si la eliminación fue exitosa
       if (deleteWorker == "OK") {
         const updatedData = [...initialData];
@@ -1183,8 +1182,6 @@ const CardTableWorkers = ({
                     const emptyFields = Object.keys(row).filter(
                       (key) => !excludedKeys.includes(key) && (!row[key] && row[key] !== 0)
                     );
-
-                    console.log(`Campos vacíos en la fila ${index}:`, initialData);
 
                     // Verificar si hay campos vacíos en la fila
                     const hasEmptyFields = emptyFields.length > 0;

@@ -142,9 +142,6 @@ const CardTableCompany = ({
   const onUpdateItem = async (data) => {
     let logoPath = selectedItem.logo; // Conservar la imagen existente
 
-    console.log(data);
-    console.log(file);
-
     if (file) {
       try {
         const formDataFile = new FormData();
@@ -302,7 +299,7 @@ const CardTableCompany = ({
       });
 
       const data = await response.json();
-      console.log("Imagen subida:", data.data.url);
+      //console.log("Imagen subida:", data.data.url);
 
       setUploadCloud(data.data.url); // Guarda la URL en el estado para actualizar la vista
     } catch (error) {
