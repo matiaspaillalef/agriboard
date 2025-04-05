@@ -128,7 +128,7 @@ const Dashboard = () => {
 
         //console.log('dataGround', dataGround);
 
-        if (dataGround.code == 'OK') {
+        if (dataGround.code === 'OK') {
           if (dataGround.grounds.length > 0) {
             dataGround.grounds.map((item) => {
               const firstGroundId = dataGround.grounds[0].id;
@@ -322,7 +322,7 @@ const Dashboard = () => {
             setDataKgAvgDay(dataKgAvgDay);
             setDataDaysOfHarvest(dataDaysOfHarvest);
             setDataAllDaysOfHarvest(dataAllDaysOfHarvest);
-            setDataKgGroundAll(dataKgGroundAll);
+            //setDataKgGroundAll(dataKgGroundAll);
             setDataKgGroundAllTemp(dataKgGroundAllTemp);
             setDataKgGroundAllDay(dataKgGroundAllDay);
           } else {
@@ -385,7 +385,7 @@ const Dashboard = () => {
 
         const grounds = await getDataGround(newCompanyId);
 
-        if (grounds.code == 'OK') {
+        if (grounds.code === 'OK') {
           if (grounds.grounds.length > 0) {
             const firstGroundId = grounds.grounds[0].id;
 
@@ -793,25 +793,22 @@ const Dashboard = () => {
               </select>
             </div>
 
-{console.log('filteredDataDay', filteredDataDay)}
-{console.log('filteredData', filteredData)}
-
             {selectedOptionHours === '1' ? (
               <CardTable
-              data={filteredDataDay}
-              thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
-              omitirColumns={["id", "ground_status"]}
-              title="Rango por horarios"
-              loadingData={loadingDataKgGroundAllDay}
-            />
-            ):(
+                data={filteredDataDay}
+                thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
+                omitirColumns={["id", "ground_status"]}
+                title="Rango por horarios"
+                loadingData={loadingDataKgGroundAllDay}
+              />
+            ) : (
               <CardTable
-              data={filteredData}
-              thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
-              omitirColumns={["id", "ground_status"]}
-              title="Rango por horarios"
-              loadingData={loadingDataKgGroundAllTemp}
-            />
+                data={filteredData}
+                thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
+                omitirColumns={["id", "ground_status"]}
+                title="Rango por horarios"
+                loadingData={loadingDataKgGroundAllTemp}
+              />
             )}
           </div>
         </div>
