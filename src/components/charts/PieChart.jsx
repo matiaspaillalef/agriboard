@@ -135,7 +135,7 @@ const PieChart = ({ data, title, loadingData }) => {
           // Mapear los valores para calcular el porcentaje
           return chart.series.map((item, index) => {
             const percentage = total > 0 ? (item / total) * 100 : 0;
-              {console.log(chart.options.colors[index])}
+  
             return (
               <React.Fragment key={index}>
                 <div className="flex flex-col items-center justify-center">
