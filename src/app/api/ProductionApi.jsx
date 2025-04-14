@@ -2241,8 +2241,10 @@ export const filterResults = async (filters, id_company) => {
     );
 
     if (res.ok) {
-      const data = await res.json();
 
+      
+      const data = await res.json();
+      //console.log('data', data);
       if (data.code === "OK") {
         return data.results; // Devuelve los resultados filtrados
       } else if (data.code === "ERROR") {
