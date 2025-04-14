@@ -301,6 +301,8 @@ const CardTableProductionReports = ({
 
                     const resultItem = { ...item, harvest_date: formattedDate };
 
+                    console.log("Result Item:", resultItem);
+
                     if (formattedTime) {
                         resultItem.harvest_time = formattedTime;
                     }
@@ -1078,7 +1080,7 @@ const CardTableProductionReports = ({
 
         try {
             const results = await filterRegularizationResults(filtrosConIds, companyID); // Pasas los filtros y el ID de la compañía
-
+            //console.log("Resultados filtrados:", results);
             const filteredData = results.map((item) => {
                 const date = new Date(item.harvest_date);
                 let formattedDate = '';
@@ -1097,9 +1099,9 @@ const CardTableProductionReports = ({
 
                 const resultItem = { ...item, harvest_date: formattedDate };
 
-                if (formattedTime) {
+                /*if (formattedTime) {
                     resultItem.harvest_time = formattedTime;
-                }
+                }*/
 
                 //console.log("Result Item:", resultItem);
                 return resultItem;
