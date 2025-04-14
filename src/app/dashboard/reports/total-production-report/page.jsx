@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CardTableRegularizationProduction from "@/components/card/CardTableRegularizationProduction";
+import CardTableProductionReports from "@/components/card/CardTableProductionReports";
 
 const ProductionProductionReports = () => {
     const [companyId, setCompanyId] = useState("");
@@ -25,14 +25,15 @@ const ProductionProductionReports = () => {
         <div className="flex w-full flex-col gap-5 mt-3">
             <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
                 <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-                    <CardTableRegularizationProduction
+                    <CardTableProductionReports
                         data="[]"
                         thead=""
                         downloadBtn={true}
                         SearchInput={true}
-                        actions={true}
+                        actions={false}
                         companyID={companyId}
-                        omitirColumns={["id", "company_id", "sync", "sync_date", "turns", "temp", "wet", "date_register", "contractor", "source", 'zone', 'hilera', 'squad', 'squad_leader', 'batch','quality', 'harvest_format', 'weigher_rut', 'sector', 'season']}
+                        filterTotal={true}
+                        omitirColumns={["id", "company_id", "sync", "sync_date", "turns", "temp", "wet", "date_register", "contractor", "source", 'zone', 'hilera']}
                     />
                 </div>
             </div>

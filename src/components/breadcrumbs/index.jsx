@@ -86,8 +86,12 @@ const path = usePathname();
           return "Regularización de producción";
         case "exporters":
           return "Exportadoras";
-          case "monthly-workers-production":
+        case "monthly-workers-production":
           return "Producción mensual de trabajadores";
+        case "total-production-report":
+          return "Reporte de producción total";
+        case "create-qr":
+          return "Crear QR";
         default:
           return segment;
       }

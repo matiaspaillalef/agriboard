@@ -151,9 +151,6 @@ const CardTableSquads = ({
       workers: selectedWorkerIds, // Agregamos los IDs de los trabajadores seleccionados
     };
 
-    console.log("Updated squad:", selectedWorkerIds);
-    console.log("Updated squad:", selectSquad);
-
     const responseCode = await updateSquad(updatedSquad);
     const workerData = await getDataWorkers(companyID);
 
@@ -163,14 +160,8 @@ const CardTableSquads = ({
     };
     
     const SquadForWorker = await updateSquadForWorker(squadForWorkerData);
-
-      console.log("SquadForWorker:", SquadForWorker);
-    
-    console.log("Response code:", responseCode);
-    console.log("workerData:", workerData);
     
     if (responseCode === "OK") {
-
       
       // Manejar éxito
       setUpdateMessage("Trabajadores asignados correctamente.");

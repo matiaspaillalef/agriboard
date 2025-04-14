@@ -32,6 +32,7 @@ const ProductionProductionReports = () => {
                         SearchInput={true}
                         actions={false}
                         companyID={companyId}
+                        filterTotal={false}
                         omitirColumns={["id", "company_id", "sync", "sync_date", "turns", "temp", "wet", "date_register", "contractor", "source", 'zone', 'hilera']}
                     />
                 </div>

@@ -1,15 +1,15 @@
 "use client";
 
-import CardTableBarracks from "@/components/card/CardTableBarracks";
-import { getDataGround, getDataSectorBarracks } from "@/app/api/ProductionApi";
+import CardTableRegularizationProduction from "@/components/card/CardTableRegularizationProduction";
+import { getDataGround, getDataRegularizationProduction } from "@/app/api/ProductionApi";
 import { getDataCompanies } from "@/app/api/ConfiguracionApi";
 import { useEffect, useState, useCallback } from "react";
 
 import LoadingData from "@/components/loadingData/loadingData";
 import { set } from "react-hook-form";
 
-const PeopleManagementSectorsBarracks = () => {
-  const [dataSectors, setDataSectors] = useState([]);
+const ProductionRegularizationProduction = () => {
+  const [dataRegularizationProduction, setDataRegularizationProduction] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [dataCompanies, setDataCompanies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,15 +27,10 @@ const PeopleManagementSectorsBarracks = () => {
   const fetchData = useCallback(async (companyId) => {
     setIsLoading(true);
     try {
-      const data = await getDataSectorBarracks(companyId);
+      const data = await  getDataRegularizationProduction(companyId);
       const companies = await getDataCompanies();
-
-      if(data === 'ERROR'){
-        console.log("Error al obtener datos de sectores");
-        setDataSectors([]);
-      }else{
-        setDataSectors(data);
-      }
+      
+      setDataRegularizationProduction(data);
       setDataCompanies(companies);
 
     } catch (error) {
@@ -75,6 +70,7 @@ const PeopleManagementSectorsBarracks = () => {
     };
   }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
 
+
   return (
     <>
       {isLoading ? (
@@ -83,15 +79,15 @@ const PeopleManagementSectorsBarracks = () => {
         <div className="flex w-full flex-col gap-5 mt-3">
           <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-1">
             <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
-              <CardTableBarracks
-                data={dataSectors}
-                thead="Nombre, Campo, Estado"
+              <CardTableRegularizationProduction
+                data={dataRegularizationProduction}
+                thead="Fecha Cosecha, Hora Cosecha, Campo, Trabajador, RUT, Especie, Variedad, Kilos, Sector"    
                 downloadBtn={true}
                 SearchInput={true}
                 actions={true}
                 companyID={selectedCompanyId} //PAso esto para tener el id actual para llevarlo oculto en el formulario de edición y creación
                 datosCompanies={dataCompanies}
-                omitirColumns={["id", "company_id"]}
+                omitirColumns={["id", "company_id", "zone", "squad", "squad_leader", "batch", "hilera", "boxes", "quality", "season", "sync", "sync_date", "turns", "date_register", "temp", "wet", "contractor", "weigher_rut", "source", "harvest_format"]}
               />
             </div>
           </div>
@@ -101,4 +97,4 @@ const PeopleManagementSectorsBarracks = () => {
   );
 };
 
-export default PeopleManagementSectorsBarracks;
+export default ProductionRegularizationProduction;

@@ -29,7 +29,6 @@ const PeopleManagementShifts = () => {
     try {
 
       const data = await getDataShifts(companyId);
-      console.log(data);
       if(data.code === 'OK'){
     
         setdataShifts(data);

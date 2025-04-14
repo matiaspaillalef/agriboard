@@ -23,6 +23,7 @@ import {
   getDataAllDaysOfHarvest,
   getDataKgGroundAll,
   getDataKgGroundAllTemp,
+  getDataKgGroundAllDay,
 } from "@/app/api/FilterDashboardApi";
 import { getDataGround } from "../api/ProductionApi";
 import MiniCard from "@/components/card/MiniCard";
@@ -72,11 +73,13 @@ const Dashboard = () => {
   const [error, setError] = useState("");
   const [dataGrounds, setDataGrounds] = useState([]);
   const [selectedOption, setSelectedOption] = useState('1'); // Inicialmente seleccionado 'Día'
+  const [selectedOptionHours, setSelectedOptionHours] = useState('1'); // Inicialmente seleccionado 'Día'
 
   //Toda las data de los campos
   const [dataAllCountries, setDataAllCountries] = useState(true);
   const [dataKgGroundAllState, setDataKgGroundAll] = useState([]);
   const [dataKgGroundAllStateTemp, setDataKgGroundAllTemp] = useState([]);
+  const [dataKgGroundAllStateDay, setDataKgGroundAllDay] = useState([]);
   const [allChangeDataGround, setAllChangeDataGround] = useState([]);
   const [dataSelectedGround, setDataSelectedGround] = useState([]);
   const [allGround, setAllGround] = useState([]);
@@ -97,9 +100,14 @@ const Dashboard = () => {
   const [loadingDataAllDaysOfHarvest, setLoadingDataAllDaysOfHarvest] = useState(true);
   const [loadingDataKgGroundAll, setLoadingDataKgGroundAll] = useState(true);
   const [loadingDataKgGroundAllTemp, setLoadingDataKgGroundAllTemp] = useState(true);
+  const [loadingDataKgGroundAllDay, setLoadingDataKgGroundAllDay] = useState(true);
 
   const handleSelectChange = (event) => {
     setSelectedOption(event.target.value);
+  };
+
+  const handleSelectChangeHours = (event) => {
+    setSelectedOptionHours(event.target.value);
   };
 
   const getSelectedGroundFromSessionStorage = useCallback(() => {
@@ -120,7 +128,7 @@ const Dashboard = () => {
 
         //console.log('dataGround', dataGround);
 
-        if (dataGround.code == 'OK') {
+        if (dataGround.code === 'OK') {
           if (dataGround.grounds.length > 0) {
             dataGround.grounds.map((item) => {
               const firstGroundId = dataGround.grounds[0].id;
@@ -215,6 +223,7 @@ const Dashboard = () => {
     setLoadingDataVarietiesSeasonPercentage(true);
     setLoadingDataKgGroundAll(true);
     setLoadingDataKgGroundAllTemp(true);
+    setLoadingDataKgGroundAllDay(true);
 
     setError(""); // Reset error state
 
@@ -234,7 +243,8 @@ const Dashboard = () => {
         const dataDaysOfHarvest = await getDataDaysOfHarvest(companyId, groundId);
         const dataAllDaysOfHarvest = await getDataAllDaysOfHarvest(companyId, groundId);
         const dataKgGroundAll = await getDataKgGroundAll(companyId, groundId);
-        const dataKgGroundAllTemp = await getDataKgGroundAllTemp(companyId, groundId);
+        const dataKgGroundAllTemp = await getDataKgGroundAllTemp(companyId, 0); //Le paso 0 ya que cuando se usa ese endpoint no importa el campo
+        const dataKgGroundAllDay = await getDataKgGroundAllDay(companyId, 0); //Le paso 0 ya que cuando se usa ese endpoint no importa el campo
 
         setDataKgDay(dataDay);
         setDataKgSeason(dataSeason);
@@ -271,6 +281,7 @@ const Dashboard = () => {
 
         setDataKgGroundAll(dataKgGroundAll);
         setDataKgGroundAllTemp(dataKgGroundAllTemp);
+        setDataKgGroundAllDay(dataKgGroundAllDay);
 
       } else {
         const grounds = await getDataGround(companyId);
@@ -296,6 +307,7 @@ const Dashboard = () => {
             const dataAllDaysOfHarvest = await getDataAllDaysOfHarvest(companyId, firstGroundId);
             const dataKgGroundAll = await getDataKgGroundAll(companyId, firstGroundId);
             const dataKgGroundAllTemp = await getDataKgGroundAllTemp(companyId, firstGroundId);
+            const dataKgGroundAllDay = await getDataKgGroundAllDay(companyId, firstGroundId);
 
             setDataKgDay(dataDay);
             setDataKgSeason(dataSeason);
@@ -310,8 +322,9 @@ const Dashboard = () => {
             setDataKgAvgDay(dataKgAvgDay);
             setDataDaysOfHarvest(dataDaysOfHarvest);
             setDataAllDaysOfHarvest(dataAllDaysOfHarvest);
-            setDataKgGroundAll(dataKgGroundAll);
+            //setDataKgGroundAll(dataKgGroundAll);
             setDataKgGroundAllTemp(dataKgGroundAllTemp);
+            setDataKgGroundAllDay(dataKgGroundAllDay);
           } else {
             setError("No grounds found for the company.");
           }
@@ -321,7 +334,7 @@ const Dashboard = () => {
 
       }
 
-      if (dataKgDay && dataKgSeason && dataWorkers) {
+      if (dataKgDay && dataKgSeason && dataWorkers && dataKgGroundAllStateTemp) {
         //console.log("Datos ya cargados, evitando nueva solicitud.");
         return; // Si ya están cargados, no realizamos la llamada.
       }
@@ -344,6 +357,7 @@ const Dashboard = () => {
         setLoadingDataVarietiesSeasonPercentage(false);
         setLoadingDataKgGroundAll(false);
         setLoadingDataKgGroundAllTemp(false);
+        setLoadingDataKgGroundAllDay(false);
 
       }, 0);
     }
@@ -371,7 +385,7 @@ const Dashboard = () => {
 
         const grounds = await getDataGround(newCompanyId);
 
-        if (grounds.code == 'OK') {
+        if (grounds.code === 'OK') {
           if (grounds.grounds.length > 0) {
             const firstGroundId = grounds.grounds[0].id;
 
@@ -485,6 +499,10 @@ const Dashboard = () => {
 
   const filteredData = Array.isArray(dataKgGroundAllStateTemp)
     ? dataKgGroundAllStateTemp.filter(item => item.ground_name === allChangeDataGround)
+    : [];
+
+  const filteredDataDay = Array.isArray(dataKgGroundAllStateDay)
+    ? dataKgGroundAllStateDay.filter(item => item.ground_name === allChangeDataGround)
     : [];
 
   const [selectedGroundValue, setSelectedGroundValue] = useState(''); // Estado para el valor seleccionado
@@ -765,13 +783,33 @@ const Dashboard = () => {
               </div>
             )}
 
-            <CardTable
-              data={filteredData}
-              thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
-              omitirColumns={["id", "ground_status"]}
-              title="Rango por horarios"
-              loadingData={loadingDataKgGroundAllTemp}
-            />
+            <div className="ml-auto mr-0 flex items-center gap-4">
+              <p>Rango de horario por:</p>
+              <select className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
+                value={selectedOptionHours}
+                onChange={handleSelectChangeHours}>
+                <option value="1">Día</option>
+                <option value="2">Temporada</option>
+              </select>
+            </div>
+
+            {selectedOptionHours === '1' ? (
+              <CardTable
+                data={filteredDataDay}
+                thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
+                omitirColumns={["id", "ground_status"]}
+                title="Rango por horarios"
+                loadingData={loadingDataKgGroundAllDay}
+              />
+            ) : (
+              <CardTable
+                data={filteredData}
+                thead="Campo, Horas, Temp. Prom., Hum. Prom., Kg totales"
+                omitirColumns={["id", "ground_status"]}
+                title="Rango por horarios"
+                loadingData={loadingDataKgGroundAllTemp}
+              />
+            )}
           </div>
         </div>
       )

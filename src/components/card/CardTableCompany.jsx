@@ -142,9 +142,6 @@ const CardTableCompany = ({
   const onUpdateItem = async (data) => {
     let logoPath = selectedItem.logo; // Conservar la imagen existente
 
-    console.log(data);
-    console.log(file);
-
     if (file) {
       try {
         const formDataFile = new FormData();
@@ -163,7 +160,7 @@ const CardTableCompany = ({
         const dataLogo = await res.json();
         logoPath = dataLogo.path; // Actualiza el logo solo si se ha subido uno nuevo
         */
-       logoPath = uploadCloud || '';
+        logoPath = uploadCloud || '';
       } catch (error) {
         console.error(error);
         setUpdateMessage("Error al intentar subir la imagen");
@@ -203,7 +200,7 @@ const CardTableCompany = ({
       setInitialData(updatedData);
       setUpdateMessage("Empresa actualizada correctamente");
       setOpen(false);
-    }else if (updateCompanyApi.code === "ERROR") {
+    } else if (updateCompanyApi.code === "ERROR") {
 
       setUpdateMessage(updateCompanyApi.mensaje);
 
@@ -236,10 +233,10 @@ const CardTableCompany = ({
         setOpenAlert(false);
         setUpdateMessage(deleteCompany.mensaje);
 
-      }else if (deleteCompany.code === "ERROR") {
+      } else if (deleteCompany.code === "ERROR") {
 
         setUpdateMessage(deleteCompany.mensaje);
-  
+
       }
 
     } catch (error) {
@@ -265,7 +262,7 @@ const CardTableCompany = ({
   const onClickFileInput = () => {
     fileInputRef.current?.click();
   };
-  
+
 
   /*const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -296,13 +293,13 @@ const CardTableCompany = ({
     formData.append("image", selectedFile);
 
     try {
-      const response = await fetch("https://api.imgbb.com/1/upload?key="+ IMGBB_API , {
+      const response = await fetch("https://api.imgbb.com/1/upload?key=" + IMGBB_API, {
         method: "POST",
         body: formData,
       });
 
       const data = await response.json();
-      console.log("Imagen subida:", data.data.url);
+      //console.log("Imagen subida:", data.data.url);
 
       setUploadCloud(data.data.url); // Guarda la URL en el estado para actualizar la vista
     } catch (error) {
@@ -310,7 +307,7 @@ const CardTableCompany = ({
     }
   };
 
- 
+
 
   /*const handleFileChange = async (event) => {
     const file = event.target.files[0];
@@ -357,7 +354,7 @@ const CardTableCompany = ({
         const dataLogo = await res.json();
         logoPath = dataLogo.path; // Actualizamos la ruta con la respuesta del servidor
         */
-       logoPath = uploadCloud || '';
+        logoPath = uploadCloud || '';
       } catch (error) {
         console.error("Error al subir el archivo:", error);
         setUpdateMessage(
@@ -399,11 +396,11 @@ const CardTableCompany = ({
 
         const newDataFetch = await getDataCompanies();
 
-        if(newDataFetch.code  === "OK"){
+        if (newDataFetch.code === "OK") {
 
           setInitialData(newDataFetch.companies);
 
-        }else if (newDataFetch.code === "ERROR") {
+        } else if (newDataFetch.code === "ERROR") {
 
           setUpdateMessage(newDataFetch.mensaje);
 
@@ -412,10 +409,10 @@ const CardTableCompany = ({
         setOpen(false);
         setUpdateMessage(createCompanyApi.mensaje);
 
-      }else if (createCompanyApi.code === "ERROR") {
+      } else if (createCompanyApi.code === "ERROR") {
 
         setUpdateMessage(createCompanyApi.mensaje);
-  
+
       }
     } catch (error) {
       console.error("Error en el proceso:", error);
@@ -472,9 +469,8 @@ const CardTableCompany = ({
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
         <div
-          className={`bg-${
-            updateMessage.includes("correctamente") ? "green" : "red"
-          }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
+          className={`bg-${updateMessage.includes("correctamente") ? "green" : "red"
+            }-500 text-white text-center py-2 fixed top-0 left-0 right-0 z-50`}
           style={{ zIndex: 999999 }}
         >
           {updateMessage}
@@ -500,9 +496,8 @@ const CardTableCompany = ({
       ) : (
         <>
           <div
-            className={`relative flex items-center ${
-              title ? "justify-between" : "justify-end"
-            } `}
+            className={`relative flex items-center ${title ? "justify-between" : "justify-end"
+              } `}
           >
             {title && (
               <h4 className="text-xl font-bold text-navy-700 dark:text-white md:hidden">
@@ -558,9 +553,8 @@ const CardTableCompany = ({
                             className="border-b border-gray-200 px-5 pb-[10px] text-start dark:!border-navy-700"
                           >
                             <p
-                              className={`text-xs tracking-wide text-gray-600 ${
-                                columnsClasses[index] || "text-start"
-                              } `}
+                              className={`text-xs tracking-wide text-gray-600 ${columnsClasses[index] || "text-start"
+                                } `}
                             >
                               {label}
                             </p>
@@ -595,11 +589,10 @@ const CardTableCompany = ({
                         <td
                           key={rowIndex}
                           role="cell"
-                          className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                            index % 2 !== 0
+                          className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                               ? "bg-lightPrimary dark:bg-navy-900"
                               : ""
-                          } ${columnsClasses[rowIndex] || "text-left"}`}
+                            } ${columnsClasses[rowIndex] || "text-left"}`}
                         >
                           <div className="text-base font-medium text-navy-700 dark:text-white">
                             {key === "status" ? (
@@ -634,11 +627,10 @@ const CardTableCompany = ({
                     {actions && (
                       <td
                         colSpan={columnLabels.length}
-                        className={`pt-[14px] pb-3 text-[14px] px-5 ${
-                          index % 2 !== 0
+                        className={`pt-[14px] pb-3 text-[14px] px-5 ${index % 2 !== 0
                             ? "bg-lightPrimary dark:bg-navy-900"
                             : ""
-                        }`}
+                          }`}
                       >
                         <button
                           type="button"
@@ -685,9 +677,8 @@ const CardTableCompany = ({
                 <div className="flex items-center gap-2 mt-5 md:gap-5 md:mt-0">
                   <button
                     type="button"
-                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${
-                      currentPage === 1 && "hidden"
-                    }`}
+                    className={`p-1 bg-gray-200 dark:bg-navy-900 rounded-md ${currentPage === 1 && "hidden"
+                      }`}
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
@@ -697,11 +688,10 @@ const CardTableCompany = ({
                     <button
                       key={page}
                       type="button"
-                      className={`${
-                        currentPage === page
+                      className={`${currentPage === page
                           ? "font-semibold text-navy-500 dark:text-navy-300"
                           : ""
-                      }`}
+                        }`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -747,31 +737,30 @@ const CardTableCompany = ({
                   defaultValue={selectedItem ? selectedItem.id : ""}
                 />
                 <div
-                  className={`mb-3 grid gap-3 ${
-                    isEdit
+                  className={`mb-3 grid gap-3 ${isEdit
                       ? "grid-cols-2 lg:grid-cols-2"
                       : "grid-cols-12 lg:grid-cols-2"
-                  } `}
+                    } `}
                 >
                   <div className="flex flex-col gap-3">
                     <div className="relative max-h-[150px] max-w-[150px]">
-                    <Image
-          src={
-            uploadCloud // Usa la URL de la imagen subida si existe
-              ? uploadCloud
-              : file // Si hay un archivo seleccionado, usa la previsualización
-              ? URL.createObjectURL(file)
-              : selectedItem?.logo // Si hay un logo previo, mostrarlo
-              ? selectedItem?.logo.includes("https://") ? selectedItem.logo : `/${selectedItem.logo.replace("public/", "")}`
-              : isEdit // Si está en modo edición, mostrar el logo por defecto
-              ? "/agrisoft_logo.png"
-              : "/agrisoft_logo.png"
-          }
-          width={200}
-          height={200}
-          className="rounded-xl border border-gray-200 dark:border-white/10 dark:bg-white min-h-[150px] min-w-[150px] object-contain p-4"
-          alt="Logo"
-        />
+                      <Image
+                        src={
+                          uploadCloud // Usa la URL de la imagen subida si existe
+                            ? uploadCloud
+                            : file // Si hay un archivo seleccionado, usa la previsualización
+                              ? URL.createObjectURL(file)
+                              : selectedItem?.logo // Si hay un logo previo, mostrarlo
+                                ? selectedItem?.logo.includes("https://") ? selectedItem.logo : `/${selectedItem.logo.replace("public/", "")}`
+                                : isEdit // Si está en modo edición, mostrar el logo por defecto
+                                  ? "/agrisoft_logo.png"
+                                  : "/agrisoft_logo.png"
+                        }
+                        width={200}
+                        height={200}
+                        className="rounded-xl border border-gray-200 dark:border-white/10 dark:bg-white min-h-[150px] min-w-[150px] object-contain p-4"
+                        alt="Logo"
+                      />
 
                       <button
                         type="button"

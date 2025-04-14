@@ -19,8 +19,6 @@ const UserCreationPage = async () => {
 
   const roles = await getRoles();
   const companies = await getDataCompanies();
-
-  console.log(roles);
   
   return (
     <>
