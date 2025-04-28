@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
-import Avatar from "@/assets/img/avatars/avatar7.png";
-
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-
 import { getDataGround } from "@/app/api/ProductionApi";
 
 import WeatherMini from "../weather/WatherMini";
@@ -16,15 +12,13 @@ import TitlePage from "../titlePage";
 const Navbar = (props) => {
   const { onOpenSidenav } = props;
   const [darkmode, setDarkmode] = useState(false);
-
   const [dataGrounds, setDataGrounds] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
-  const [selectedGround, setSelectedGround] = useState("");
+  const [selectedGround, setSelectedGround] = useState(0); // Valor inicial como string "0"
   const [isLoading, setIsLoading] = useState(true);
   const [idRole, setIdRole] = useState("");
   const [ultimaActualizacion, setUltimaActualizacion] = useState("");
   const [buttonClicked, setButtonClicked] = useState(false);
-
   const path = usePathname();
 
   useEffect(() => {
@@ -32,6 +26,10 @@ const Navbar = (props) => {
     if (darkmodeSession) {
       setDarkmode(JSON.parse(darkmodeSession));
     }
+
+    // Al iniciar, traer selectedGround de sessionStorage o poner "0"
+    const groundStored = sessionStorage.getItem("selectedGround") || "0";
+    setSelectedGround(groundStored);
   }, []);
 
   const getCompanyIdFromSessionStorage = useCallback(() => {
@@ -50,13 +48,11 @@ const Navbar = (props) => {
     setIsLoading(true);
     try {
       const data = await getDataGround(companyId);
-
       if (data.code === "OK") {
         setDataGrounds(data.grounds);
       } else {
         setDataGrounds([]);
       }
-
     } catch (error) {
       console.error("Error al obtener datos:", error);
     } finally {
@@ -92,71 +88,27 @@ const Navbar = (props) => {
       .toUpperCase();
   };
 
-  useEffect(() => {
-    const companyId = getCompanyIdFromSessionStorage();
-    setSelectedCompanyId(companyId);
-    if (companyId) {
-      fetchData(companyId);
-    }
-  }, [getCompanyIdFromSessionStorage, fetchData]);
-
-  useEffect(() => {
-    if (!selectedCompanyId) return;
-
-    const observer = new MutationObserver(() => {
-      const companyId = getCompanyIdFromSessionStorage();
-      if (companyId !== selectedCompanyId) {
-        setSelectedCompanyId(companyId);
-        fetchData(companyId);
-      }
-    });
-
-    observer.observe(document.body, {
-      attributes: true,
-      subtree: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [selectedCompanyId, fetchData, getCompanyIdFromSessionStorage]);
-
-  // Obtener el valor almacenado en sessionStorage
-  const userDataString = sessionStorage.getItem("userData");
-  const userData = JSON.parse(userDataString);
-
   const handleGroundChange = (event) => {
     const selectedValue = event.target.value;
     setSelectedGround(selectedValue);
     sessionStorage.setItem("selectedGround", selectedValue);
-    sessionStorage.setItem("userData", JSON.stringify({ ...userData, idGround: selectedValue }));
-    // Añadir clase al body
+
     document.body.classList.forEach((className) => {
       if (className.startsWith("ground-")) {
         document.body.classList.remove(className);
       }
     });
-    if (selectedValue) {
+
+    if (selectedValue !== "0") {
       document.body.classList.add(`ground-${selectedValue}`);
+    } else {
+      document.body.classList.add("ground-0");
     }
   };
 
-  useEffect(() => {
-    const ultimaRecarga = localStorage.getItem("ultimaRecarga");
-    if (ultimaRecarga) {
-      setUltimaActualizacion(ultimaRecarga);
-    }
-    setSelectedGround(0);
-    sessionStorage.setItem("selectedGround", 0);
-    sessionStorage.setItem("userData", JSON.stringify({ ...userData, idGround: 0 }));
-  }, []);
-
   const initialDate = new Date().toLocaleString();
-  //console.log("initialDate", initialDate);
 
   const handleRecargar = () => {
-
     const fechaRecarga = new Date().toLocaleString();
     localStorage.setItem("ultimaRecarga", fechaRecarga);
 
@@ -164,8 +116,11 @@ const Navbar = (props) => {
 
     setTimeout(() => {
       window.location.reload();
-    }, 1000); // 1000 ms = 1 segundo
+    }, 1000);
   };
+
+  const userDataString = sessionStorage.getItem("userData");
+  const userData = JSON.parse(userDataString);
 
   return (
     <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
@@ -180,7 +135,7 @@ const Navbar = (props) => {
       <div className="flex w-full items-center gap-2 flex-col md:flex-row justify-end">
         {path === "/dashboard" && (
           <div className="flex flex-row w-full gap-2 md:flex-row sm:w-full justify-end">
-
+            {/*
             <div className="relative mt-[3px] flex h-[61px] w-full md:w-[265px] flex-grow items-center gap-2 rounded-full bg-blueSecondary px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[265px] xl:gap-2 pl-5 justify-start">
               <button
                 className={`flex items-center justify-center w-[40px] h-[40px] bg-white rounded-full shadow-xl shadow-shadow-500 dark:bg-navy-900 dark:text-white basis-[40px] flex-shrink-0 ${buttonClicked ? "animate-spin" : ""}`}
@@ -196,7 +151,7 @@ const Navbar = (props) => {
                 </span>
               </p>
             </div>
-
+            
             <div className="relative mt-[3px] flex h-[61px] w-full md:w-[255px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[255px] xl:gap-2">
               <select
                 className="flex h-full w-full items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white md:w-[250px]xl:w-[225px] px-5 gap-3 border-none text-[14px]"
@@ -206,17 +161,14 @@ const Navbar = (props) => {
                 onChange={handleGroundChange}
               >
                 <option value="0">Todos los campos</option>
-                {dataGrounds && Array.isArray(dataGrounds) && dataGrounds.length > 0 ? (
-                  dataGrounds.map((ground) => (
-                    <option key={ground.id} value={ground.id}>
-                      {ground.name}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>Sin campos</option>
-                )}
+                {dataGrounds.map((ground) => (
+                  <option key={ground.id} value={ground.id}>
+                    {ground.name}
+                  </option>
+                ))}
               </select>
             </div>
+            */}
           </div>
         )}
 
@@ -228,9 +180,7 @@ const Navbar = (props) => {
                 Bienvenido
               </p>
               <h4 className="text-l font-bold text-navy-700 dark:text-white">
-                {userData
-                  ? userData.nombre + " " + userData.apellido
-                  : "No identificado"}
+                {userData ? `${userData.nombre} ${userData.apellido}` : "No identificado"}
               </h4>
             </div>
           </div>
@@ -263,15 +213,6 @@ const Navbar = (props) => {
           </span>
           <div
             className="cursor-pointer text-gray-600"
-            /*onClick={() => {
-            if (darkmode) {
-              document.body.classList.remove("dark");
-              setDarkmode(false);
-            } else {
-              document.body.classList.add("dark");
-              setDarkmode(true);
-            }
-          }}*/
             onClick={toggleDarkMode}
           >
             <svg
@@ -290,11 +231,7 @@ const Navbar = (props) => {
           <div className="relative flex">
             <div className="flex">
               <div className="flex items-center justify-center w-10 h-10 bg-lightPrimary rounded-full shadow-xl shadow-shadow-500 dark:bg-navy-900 dark:text-white">
-                {getInitials(
-                  userData
-                    ? userData.nombre + " " + userData.apellido
-                    : "Agrisoft Software"
-                )}
+                {getInitials(userData ? `${userData.nombre} ${userData.apellido}` : "Agrisoft Software")}
               </div>
             </div>
           </div>

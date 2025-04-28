@@ -5,7 +5,6 @@ import {
   CalendarDaysIcon,
   ChartBarIcon,
   UsersIcon,
-  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import {
   getDataKgDay,
@@ -82,10 +81,8 @@ const Dashboard = () => {
   const [dataKgGroundAllState, setDataKgGroundAll] = useState([]);
   const [dataKgGroundAllStateTemp, setDataKgGroundAllTemp] = useState([]);
   const [dataKgGroundAllStateDay, setDataKgGroundAllDay] = useState([]);
-  const [allChangeDataGround, setAllChangeDataGround] = useState("0");
-
+  const [allChangeDataGround, setAllChangeDataGround] = useState([]);
   const [dataSelectedGround, setDataSelectedGround] = useState([]);
-  const [selectedGroundValue, setSelectedGroundValue] = useState("");
   const [allGround, setAllGround] = useState([]);
 
   //Loading data
@@ -106,8 +103,77 @@ const Dashboard = () => {
   const [loadingDataKgGroundAllTemp, setLoadingDataKgGroundAllTemp] = useState(true);
   const [loadingDataKgGroundAllDay, setLoadingDataKgGroundAllDay] = useState(true);
 
-  const [ultimaActualizacion, setUltimaActualizacion] = useState("");
-  const [buttonClicked, setButtonClicked] = useState(false);
+  const handleSelectChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
+
+  const handleSelectChangeHours = (event) => {
+    setSelectedOptionHours(event.target.value);
+  };
+
+  const getSelectedGroundFromSessionStorage = useCallback(() => {
+    return sessionStorage.getItem("selectedGround");
+  }, []);
+  
+
+  //Se hace la llamada a la API para obtener los datos de la empresa al cargar la pagina por promera vez y controlar algunos problemas
+  useEffect(() => {
+
+    const userCompantData = JSON.parse(sessionStorage.getItem("selectedCompanyId"));
+    
+
+    const body = document.body;
+    
+    // Verifica si el body ya tiene la clase ground-0
+    if (body.classList.contains('ground-0')) {
+      return; // Si ya tiene ground-0, no hacer nada
+    }
+
+    // Verifica si hay una clase que empieza con 'ground-'
+    const groundClass = Array.from(body.classList).find((className) =>
+      className.startsWith('ground-') && className !== 'ground-0'
+    );
+
+    // Si se encuentra una clase ground-<número>, la eliminamos y agregamos ground-0
+    if (groundClass) {
+      body.classList.remove(groundClass); // Elimina la clase existente, como ground-8, etc.
+    }
+
+    // Finalmente, agregamos la clase ground-0
+    body.classList.add('ground-0');
+    sessionStorage.setItem("selectedGround", "0");
+
+    const fetchData = async () => {
+
+    if(!document.body.classList.contains('ground-0')){
+      document.body.classList.add('ground-0');
+    }
+
+      try {
+        const dataGround = await getDataGround(Number(companyId ? companyId : userCompantData)); // Aquí haces la llamada a la API
+        //console.log(dataGround);
+        setDataGrounds(dataGround);
+
+        //console.log('dataGround', dataGround);
+
+        if (dataGround.code === 'OK') {
+          if (dataGround.grounds.length > 0) {
+            dataGround.grounds.map((item) => {
+              const firstGroundId = dataGround.grounds[0].id;
+              //console.log('firstGroundId', firstGroundId);
+              setSelectedGround(firstGroundId);
+
+            });
+          }
+        }
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData(); // Llamas a la función asincrónica
+  }, []); // Este useEffect se ejecutará solo una vez al montar el componente
 
   const getCompanyIdFromSessionStorage = useCallback(() => {
 
@@ -122,85 +188,41 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchKgDataQlty = useCallback(async (companyId, groundId, quality) => {
 
-  function obtenerNumeroDeSemana(fecha) {
-    const primerDiaDelAño = new Date(fecha.getFullYear(), 0, 1);
-    const diasTranscurridos = Math.floor(
-      (fecha - primerDiaDelAño) / (24 * 60 * 60 * 1000)
-    );
-    const numeroDeSemana = Math.ceil(
-      (diasTranscurridos + primerDiaDelAño.getDay() + 1) / 7
-    );
-    return numeroDeSemana;
-  }
-
-  const handleSelectChange = (event) => {
-    setSelectedOption(event.target.value);
-  };
-
-  const handleSelectChangeHours = (event) => {
-    setSelectedOptionHours(event.target.value);
-  };
-
-  const handleGroundChange = (e) => {
-    const selected = e.target.value;
-    setSelectedGround(selected);
-    setAllChangeDataGround(selected);
-
-    if (selected === "0") {
-      setDataAllCountries(true);
-    } else {
-      setDataAllCountries(false);
+    if (!companyId) {
+      setError("Company ID is required.");
+      return;
     }
 
-    const initialCompanyId = getCompanyIdFromSessionStorage();
-    fetchDataDay(initialCompanyId, selected);
-  };
-
-  const handleSelectChangeGround = (e) => {
-    const selected = e.target.value;
-    setSelectedGroundValue(selected);
-    setAllChangeDataGround(selected);
-  };
-
-  const initialDate = new Date().toLocaleString();
-
-  const handleRecargar = () => {
-    const fechaRecarga = new Date().toLocaleString();
-    localStorage.setItem("ultimaRecarga", fechaRecarga);
-
-    setButtonClicked(true);
-
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
-  };
-
-  const filteredData = Array.isArray(dataKgGroundAllStateTemp)
-    ? dataKgGroundAllStateTemp.filter(item => item.ground_name === selectedGroundValue)
-    : [];
-
-  const filteredDataDay = Array.isArray(dataKgGroundAllStateDay)
-    ? dataKgGroundAllStateDay.filter(item => item.ground_name === selectedGroundValue)
-    : [];
-
-  const fetchDataGrounds = useCallback(async (companyId) => {
     setIsLoading(true);
+    setError(""); // Reset error state
+
     try {
-      const data = await getDataGround(companyId);
-      if (data.code === "OK" && Array.isArray(data.grounds)) {
-        setDataGrounds(data.grounds);
-        const firstGround = data.grounds[0];
-        if (firstGround) {
-          setAllGround(data.grounds.map(g => g.name)); // llenar los nombres
-          setSelectedGroundValue(firstGround.name); // seleccionar el primer campo por defecto
-        }
+      if (groundId) {
+        const data = await getDataKgDayQlty(companyId, groundId, quality);
+        const dataKgSeason = await getDataKgSeason(companyId, groundId, quality);
+
+        setDataKgDayQlty(data);
+        setDataKgSeasonQlty(dataKgSeason);
+
+        const grounds = await getDataGround(companyId);
+        setAllGround(grounds.grounds.map((item) => item.name));
+
       } else {
-        setDataGrounds([]);
-        setAllGround([]);
+        const grounds = await getDataGround(companyId);
+        if (grounds.length > 0) {
+          const firstGroundId = grounds[0].id;
+          setSelectedGround(firstGroundId);
+          const data = await getDataKgDayQlty(companyId, firstGroundId, quality);
+          setDataKgDayQlty(data);
+          setDataKgSeasonQlty(dataKgSeason);
+        } else {
+          setError("No grounds found for the company.");
+        }
       }
     } catch (error) {
-      console.error("Error al obtener datos:", error);
+      setError("Error al obtener datos: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -208,8 +230,19 @@ const Dashboard = () => {
 
 
   const fetchDataDay = useCallback(async (companyId, groundId) => {
+    if (!companyId || !groundId ) {
+      setError("Company ID y Ground ID son requeridos.");
+      return;
+    }
 
-
+    if (alreadyFetched) return;
+  setAlreadyFetched(true);
+  
+    // Si ya existen datos, evitar volver a hacer fetch innecesario
+    if (dataKgDay?.kg_boxes && dataKgSeason?.kg_boxes && (dataAllCountries !== true)) {
+      return;
+    }
+  
     setIsLoading(true);
     setLoadingDataKgDay(true);
     setLoadingDataKgSeason(true);
@@ -225,9 +258,9 @@ const Dashboard = () => {
     setLoadingDataKgGroundAll(true);
     setLoadingDataKgGroundAllTemp(true);
     setLoadingDataKgGroundAllDay(true);
-
+  
     setError("");
-
+  
     try {
       const [
         dataDay,
@@ -264,12 +297,12 @@ const Dashboard = () => {
         getDataKgGroundAllTemp(companyId, 0),
         getDataKgGroundAllDay(companyId, 0)
       ]);
-
+  
       setDataKgDay(dataDay);
       setDataKgSeason(dataSeason);
       setDataWorkers(dataWorkers);
       setDataWorkersWeek(dataWorkersWeek);
-
+  
       const newOrderDataVarietiesDay = Array.isArray(dataVaritiesDay) ?
         dataVaritiesDay.map((item) => ({
           specie: item.specie,
@@ -278,7 +311,7 @@ const Dashboard = () => {
           cantidad: item.cantidad,
           cajas: item.cajas
         })) : [];
-
+  
       setDataVaritiesDay(newOrderDataVarietiesDay);
       setDataVaritiesSeason(dataVaritiesSeason);
       setDataDispatchGuideDay(dataDispatchGuideDay);
@@ -291,7 +324,7 @@ const Dashboard = () => {
       setDataKgGroundAll(dataKgGroundAll);
       setDataKgGroundAllTemp(dataKgGroundAllTemp);
       setDataKgGroundAllDay(dataKgGroundAllDay);
-
+  
     } catch (error) {
       setError("Error al obtener datos: " + error.message);
     } finally {
@@ -313,55 +346,168 @@ const Dashboard = () => {
     }
   }, []);
 
+  useEffect(() => {
+    setAlreadyFetched(false);
+  }, [companyId, selectedGround]);
+
+  const checkForCompanyAndGroundChange = async () => {
+    const body = document.body;
+    const companyClass = Array.from(body.classList).find((className) =>
+      className.startsWith("company-")
+    );
+    const groundClass = Array.from(body.classList).find((className) =>
+      className.startsWith("ground-")
+    );
+
+
+    if (!groundClass || groundClass === 'ground-0' || groundClass === 'ground-') {
+      setDataAllCountries(true);
+    } else {
+      setDataAllCountries(false);
+    }
+
+    if (companyClass) {
+      const newCompanyId = companyClass.split("-")[1];
+      if (newCompanyId !== companyId) {
+        setCompanyId(newCompanyId);
+
+        const grounds = await getDataGround(newCompanyId);
+
+        if (grounds.code === 'OK') {
+          if (grounds.grounds.length > 0) {
+            const firstGroundId = grounds.grounds[0].id;
+
+            setSelectedGround(firstGroundId);
+            fetchDataDay(newCompanyId, firstGroundId);
+            fetchKgDataQlty(newCompanyId, firstGroundId, 1);
+          }
+        } else {
+          setSelectedGround("");
+          fetchDataDay(newCompanyId, "");
+          fetchKgDataQlty(newCompanyId, "", 1);
+        }
+      }
+    }
+
+    if (groundClass) {
+      const newGroundId = groundClass.split("-")[1];
+      if (newGroundId !== selectedGround) {
+        setSelectedGround(newGroundId);
+        if (companyId) {
+          fetchDataDay(companyId, newGroundId);
+          fetchKgDataQlty(companyId, newGroundId, 1);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     const initialCompanyId = getCompanyIdFromSessionStorage();
-    fetchDataDay(initialCompanyId, 0);
-    fetchDataGrounds(initialCompanyId);
-  }, []);
+    const initialGroundId = getSelectedGroundFromSessionStorage();
+
+    if (initialCompanyId) {
+      setCompanyId(initialCompanyId);
+      if (initialGroundId) {
+        setSelectedGround(initialGroundId);
+        fetchDataDay(initialCompanyId, 0);
+        fetchKgDataQlty(initialCompanyId, initialGroundId, 1);
+      } else {
+        getDataGround(initialCompanyId).then((grounds) => {
+          if (grounds.length > 0) {
+            const firstGroundId = grounds[0].id;
+            setSelectedGround(firstGroundId);
+            fetchDataDay(initialCompanyId, 0);
+            fetchKgDataQlty(initialCompanyId, firstGroundId, 1);
+          } else {
+            setError("No grounds found for the company.");
+          }
+        }).catch(err => setError("Error fetching grounds: " + err.message));
+      }
+    }
+  }, [
+    getCompanyIdFromSessionStorage,
+    getSelectedGroundFromSessionStorage,
+    fetchDataDay,
+    fetchKgDataQlty
+  ]);
+
+  
+
+  useEffect(() => {
+    const body = document.body;
+
+    const observer = new MutationObserver(checkForCompanyAndGroundChange);
+    observer.observe(body, { attributes: true, attributeFilter: ["class"] });
+
+    //console.log('companyId', companyId);
+    //console.log('selectedGround', selectedGround);
+
+    checkForCompanyAndGroundChange();
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [companyId, selectedGround, checkForCompanyAndGroundChange]);
+
+  /*useEffect(() => {
+
+    if (selectedGround && companyId) {
+      fetchDataDay(companyId, selectedGround);
+      fetchKgDataQlty(companyId, selectedGround, 1);
+    }
+  }, [selectedGround, companyId, fetchDataDay]);*/
+
+
+
+  function obtenerNumeroDeSemana(fecha) {
+    const primerDiaDelAño = new Date(fecha.getFullYear(), 0, 1);
+    const diasTranscurridos = Math.floor(
+      (fecha - primerDiaDelAño) / (24 * 60 * 60 * 1000)
+    );
+    const numeroDeSemana = Math.ceil(
+      (diasTranscurridos + primerDiaDelAño.getDay() + 1) / 7
+    );
+    return numeroDeSemana;
+  }
+
+  //Acciones para bloque de horas consolidado
+  const blocksGround = async (groundId) => {
+    setAllChangeDataGround(groundId);
+  };
+
+  useEffect(() => {
+    // Solo actualizar si `allGround` tiene elementos y `allChangeDataGround` aún no está seteado.
+    if (Array.isArray(allGround)) {
+      setAllChangeDataGround(allGround[0]);
+      allGround.filter((item) => {
+        if (item === allChangeDataGround) {
+          setAllChangeDataGround(allChangeDataGround);
+        }
+      });
+    }
+  }, [allGround, allChangeDataGround]);
+
+  const filteredData = Array.isArray(dataKgGroundAllStateTemp)
+    ? dataKgGroundAllStateTemp.filter(item => item.ground_name === allChangeDataGround)
+    : [];
+
+  const filteredDataDay = Array.isArray(dataKgGroundAllStateDay)
+    ? dataKgGroundAllStateDay.filter(item => item.ground_name === allChangeDataGround)
+    : [];
+
+  const [selectedGroundValue, setSelectedGroundValue] = useState(''); // Estado para el valor seleccionado
+
+  const handleSelectChangeGround = (e) => {
+    const value = e.target.value;
+    //console.log('value', value);
+    setSelectedGroundValue(value);  // Actualizar el estado con el valor seleccionado
+    blocksGround(value);       // Llamar a tu función (presumiblemente definida en otro lugar)
+  };
+
+  
 
   return (
     <>
-
-      <div className="flex w-full items-center gap-2 flex-col md:flex-row justify-end">
-        <div className="flex flex-row w-full gap-2 md:flex-row sm:w-full justify-start">
-          <div className="relative mt-[3px] flex h-[61px] w-full md:w-[265px] flex-grow items-center gap-2 rounded-full bg-blueSecondary px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[265px] xl:gap-2 pl-5 justify-start">
-            <button
-              className={`flex items-center justify-center w-[40px] h-[40px] bg-white rounded-full shadow-xl shadow-shadow-500 dark:bg-navy-900 dark:text-white basis-[40px] flex-shrink-0 ${buttonClicked ? "animate-spin" : ""}`}
-              onClick={handleRecargar}
-            >
-              <ArrowPathIcon className="h-6 w-6 text-blueSecondary" />
-            </button>
-            <p className="text-white text-[12px]">
-              <span className="hidden md:inline-block">Última actualización:</span> {" "}
-              <span className="inline-block md:hidden">Actualización:</span> {" "}
-              <span className="font-bold block">
-                {ultimaActualizacion || initialDate}
-              </span>
-            </p>
-          </div>
-
-          {allGround.length > 0 && (
-            <div className="relative mt-[3px] flex h-[61px] w-full md:w-[255px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none md:flex-grow-0 md:gap-1 xl:w-[255px] xl:gap-2">
-              <select
-                suppressHydrationWarning
-                className="flex h-full w-full items-center justify-start rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white md:w-[250px] xl:w-[225px] px-5 gap-3 border-none text-[14px]"
-                name="ground"
-                id="ground"
-                value={selectedGround || "0"}
-                onChange={handleGroundChange}
-              >
-                <option value="0">Todos los campos</option>
-                {Array.isArray(dataGrounds) && dataGrounds.length > 0 && dataGrounds.map((ground) => (
-                  <option key={ground.id} value={ground.id}>
-                    {ground.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-      </div>
       <div className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-2 2xl:grid-cols-2 3xl:grid-cols-4">
         <MiniCard
           name="Período"
@@ -581,6 +727,7 @@ const Dashboard = () => {
                   )}
                 </div>
 
+
                 <div className="!z-5 relative flex flex-col rounded-[20px] bg-white bg-clip-border shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:text-white dark:shadow-none w-full p-6">
                   <CardTable
                     data={dataDaysOfHarvest}
@@ -609,20 +756,19 @@ const Dashboard = () => {
             {allGround && Array.isArray(allGround) && allGround.length > 1 && (
               <div className="ml-auto mr-0 flex items-center gap-4">
                 <label htmlFor="ground">Campo:</label>
-                {allGround.length > 0 && (
-                  <select
-                    suppressHydrationWarning
-                    className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
-                    value={selectedGroundValue}
-                    onChange={handleSelectChangeGround}
-                  >
-                    {allGround && allGround.map((item, index) => (
-                      <option key={`${index}-ground`} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                )}
+
+                <select
+                  className="w-[150px] p-2 border border-gray-300 rounded-md dark:bg-navy-800 dark:text-white ml-auto mr-0"
+                  //onChange={(e) => blocksGround(e.target.value)}
+                  value={selectedGroundValue}
+                  onChange={handleSelectChangeGround}
+                >
+                  {allGround && allGround.map((item, index) => (
+                    <option key={index} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
