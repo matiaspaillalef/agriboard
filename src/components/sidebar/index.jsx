@@ -129,30 +129,32 @@ const Sidebar = ({ open, onClose }) => {
   const handleChange = (e) => {
     const companyId = e.target.value;
     setSelectedCompanyId(companyId);
-
+  
     // Actualizar sessionStorage con el nuevo idCompany seleccionado
     sessionStorage.setItem('selectedCompanyId', companyId);
-
+  
     // Actualizar userData en sessionStorage con el nuevo idCompany seleccionado
     const userData = JSON.parse(sessionStorage.getItem('userData')) || {};
     userData.idCompany = companyId;
     sessionStorage.setItem('userData', JSON.stringify(userData));
-    
-    //agregar clase con el id company al body
+  
+    // agregar clase con el id company al body
     document.body.classList.add(`company-${companyId}`);
-    // Actualizar la página para mostrar los datos de la empresa seleccionada
-    //window.location.reload();
-
+  
+    // 🚀 Recargar la página
+    window.location.reload();
   };
 
   useEffect(() => {
     if (selectedCompanyId) {
       // Agregar clase al body con el id de la empresa seleccionada
       document.body.classList.add(`company-${selectedCompanyId}`);
+      document.body.classList.add('ground-0');
 
       // Limpiar la clase al desmontar el componente o cambiar la selección
       return () => {
         document.body.classList.remove(`company-${selectedCompanyId}`);
+       
       };
     }
   }, [selectedCompanyId]);
