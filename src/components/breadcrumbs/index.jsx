@@ -92,6 +92,8 @@ const path = usePathname();
           return "Reporte de producción total";
         case "create-qr":
           return "Crear QR";
+        case "traceability-viewer":
+          return "Visor de trazabilidad";
         default:
           return segment;
       }

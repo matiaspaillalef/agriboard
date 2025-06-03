@@ -596,3 +596,32 @@ export const getDataKgGroundAllDay = async (company_id, ground) => {
     return {};
   }
 }
+
+//Filter Batch
+export const getDataFilterBatch = async (company_id, batch_id) => {
+
+  try{
+
+    const res = await fetch(
+      `${URLAPI}/api/v1/configuracion/production/filterBatch/${company_id}/${batch_id}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+
+      const data = await res.json();
+      return data;
+    }
+
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return {};
+  }
+}
