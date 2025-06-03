@@ -31,6 +31,7 @@
     "file-saver": "^2.0.5",
     "framer-motion": "^11.0.28",
     "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
     "jsonwebtoken": "^8.5.1",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
