@@ -139,6 +139,10 @@ body {
   color: rgb(11 20 55 );
 }
 
+#qr-reader video{
+  width: 100% !important;
+}
+
 [class*="css-13cymwt-control"],
 [class*="css-16xfy0z-control"],
 [class*="css-t3ipsp-control"]{

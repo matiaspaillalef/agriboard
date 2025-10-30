@@ -126,6 +126,9 @@ const TitlePage = () => {
         case "create-qr":
             translatedSegment = "Crear QR";
             break;
+        case "traceability-viewer":
+            translatedSegment = "Visor de trazabilidad";
+            break;
         default:
             translatedSegment = segment;
             break;
