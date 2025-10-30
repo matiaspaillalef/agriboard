@@ -814,27 +814,39 @@ const CardTableWorkers = ({
     }
   };*/
 
-  function excelSerialDateToDate(serial) {
+function excelSerialDateToDate(serial) {
+  if (!serial) return null;
 
+  // Si es un número, lo tratamos como fecha serial de Excel
+  if (typeof serial === "number") {
+    const excelBaseDate = new Date(1900, 0, 1);
+    // Restar 2 días para corregir el error de año bisiesto inexistente en Excel
+    const adjustedDate = new Date(excelBaseDate.getTime() + (serial - 2) * 24 * 60 * 60 * 1000);
 
-    // Dividir la fecha en componentes (Mes, Día, Año)
-    const [day, month, year] = serial.split("-");
+    const year = adjustedDate.getFullYear();
+    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(adjustedDate.getDate()).padStart(2, '0');
 
-    // Reorganizar y construir la fecha en formato YYYY-MM-DD
     return `${year}-${month}-${day}`;
+  }
 
-    // const excelBaseDate = new Date(1900, 0, 1); // 1 de enero de 1900
+  // Si es string, asumimos formato DD-MM-YY o DD-MM-YYYY
+  if (typeof serial === "string") {
+    const parts = serial.split("-");
+    if (parts.length === 3) {
+      let [day, month, year] = parts;
+      // Si el año es de 2 dígitos, asumimos que es 2000+ año
+      if (year.length === 2) {
+        year = `20${year}`;
+      }
+      return `${year}-${month}-${day}`;
+    }
+  }
 
-    // // Restar 2 días para corregir el error de año bisiesto inexistente
-    // const adjustedDate = new Date(excelBaseDate.getTime() + (serial - 2) * 24 * 60 * 60 * 1000);
+  // Si no es ninguno de los dos, retornamos null o el valor original
+  return null;
+}
 
-    // const year = adjustedDate.getFullYear();
-    // const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-    // const day = String(adjustedDate.getDate()).padStart(2, '0');
-
-    //return `${year}-${month}-${day}`;
-
-  };
 
   const generateExcel = async () => {
     const workbook = new ExcelJS.Workbook();
