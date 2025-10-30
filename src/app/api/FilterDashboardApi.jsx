@@ -441,9 +441,7 @@ export const getDataCalcKgAvgDay = async (company_id, ground) => {
 
 
 export const getDataAllDaysOfHarvest = async (company_id, ground) => {
-
-  try{
-
+  try {
     const res = await fetch(
       `${URLAPI}/api/v1/filter/dashboard/allDaysOfHarvest/${company_id}/${ground}`,
       {
@@ -456,19 +454,28 @@ export const getDataAllDaysOfHarvest = async (company_id, ground) => {
       }
     );
 
-    if (res.ok) {
+    const status = res.status;
 
-      const data = await res.json();
-      if (data.code === "OK") {
-        return data.data;
-      }
+    if (!res.ok) {
+      console.error(`Error en fetch: status ${status}`);
+      return { error: `Status ${status}` };
+    }
+
+    const data = await res.json();
+
+    if (data.code === "OK") {
+      return data.data;
+    } else {
+      console.warn("API respondió con código distinto a OK:", data);
+      return { error: data.message || "Código de respuesta desconocido" };
     }
 
   } catch (err) {
     console.error("Error en fetch:", err);
-    return {};
+    return { error: err.message };
   }
 }
+
 
 
 export const getDataDaysOfHarvest = async (company_id, ground) => {
