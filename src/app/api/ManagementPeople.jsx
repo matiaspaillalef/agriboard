@@ -713,7 +713,7 @@ export const deleteShift = async (id) => {
 
 //Management People - Workers
 export const getDataWorkers = async (id_company) => {
-  console.log('ID de la empresa:', id_company);
+
   try {
     const response = await fetch(
       `${URLAPI}/api/v1/management-people/workers/getWorkers/${id_company}`,
@@ -730,7 +730,6 @@ export const getDataWorkers = async (id_company) => {
     if (response.ok) {
       const workersData = await response.json();
 
-      //console.log('Datos de los trabajadores:', workersData);
       if (workersData.code === "OK") {
         return workersData.workers;
       } else {
@@ -745,7 +744,6 @@ export const getDataWorkers = async (id_company) => {
     throw err; // Re-throw error to handle it further up the call stack
   }
 }
-
 
 export const createWorker = async (data) => {
 
@@ -803,6 +801,62 @@ export const createWorker = async (data) => {
   }
 }
 
+export const importerWorker = async (data) => {
+  try {
+    const res = await fetch(
+      URLAPI + "/api/v1/management-people/workers/importWorker",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": token,
+        },
+        body: JSON.stringify({
+          rut: data.rut,
+          name: data.name,
+          lastname: data.lastname,
+          lastname2: data.lastname2,
+          born_date: data.born_date,
+          gender: data.gender,
+          state_civil: data.state_civil,
+          state: data.state,
+          city: data.city,
+          address: data.address,
+          phone: data.phone,
+          email: data.email,
+          date_admission: data.date_admission,
+          status: data.status,
+          position: data.position,
+          contractor: data.contractor,
+          squad: data.squad,
+          leader_squad: data.leader_squad,
+          shift: data.shift,
+          wristband: data.wristband,
+          observation: data.observation,
+          bank: data.bank,
+          account_type: data.account_type,
+          account_number: data.account_number,
+          afp: data.afp,
+          health: data.health,
+          company_id: Number(data.company_id),
+          is_weigher: Number(data.is_weigher) || 0,
+        }),
+        cache: "no-store",
+      }
+    );
+
+    if (res.ok) {
+      const result = await res.json();
+      return result;
+    } else {
+      return { code: "ERROR", mensaje: "Error al comunicarse con el servidor" };
+    }
+  } catch (err) {
+    console.error("Error importWorker:", err);
+    return { code: "ERROR", mensaje: err.message };
+  }
+};
+
 export const updateWorker = async (data) => {
 
   try {
@@ -830,7 +884,6 @@ export const updateWorker = async (data) => {
     console.error('Error en la solicitud:', err);
   }
 };
-
 
 export const deleteWorker = async (id) => {
   try {

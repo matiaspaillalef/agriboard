@@ -9,7 +9,8 @@ import {
   HomeModernIcon,
   TableCellsIcon,
   UserGroupIcon,
-  DocumentChartBarIcon
+  DocumentChartBarIcon,
+  ClipboardDocumentListIcon
 } from "@heroicons/react/24/outline";
 
 const iconMap = {
@@ -18,7 +19,8 @@ const iconMap = {
   HomeModernIcon,
   TableCellsIcon,
   UserGroupIcon,
-  DocumentChartBarIcon
+  DocumentChartBarIcon,
+  ClipboardDocumentListIcon
 };
 
 const SidebarMenu = ({ pathname }) => {

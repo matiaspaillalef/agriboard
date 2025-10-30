@@ -43,7 +43,7 @@ import {
   addWorkerToSquad,
   deleteWorkerFromSquad,
   updateWorkerFromSquad,
-  importWorker
+  importerWorker
 } from "@/app/api/ManagementPeople";
 
 import {
@@ -265,6 +265,11 @@ const CardTableWorkers = ({
       return data.map((item) => {
         //console.log("primera fecha" , item["Fecha de nacimiento"]);
         //console.log("segunda fecha " , item["Fecha de ingreso"]);
+        const formatDate = (dateStr) => {
+        if (!dateStr) return null;
+        const [day, month, year] = dateStr.split("-");
+        return `${year}-${month}-${day}T00:00:00.000Z`; // ISO format
+      };
         const bornDate = excelSerialDateToDate(item["Fecha de nacimiento"]);
         const admissionDate = excelSerialDateToDate(item["Fecha de ingreso"]);
         //console.log(bornDate);
@@ -331,13 +336,14 @@ const CardTableWorkers = ({
       try {
         //console.log("Creando trabajador:", worker);
         //const createWorkerResult = await createWorker(worker);
-        const createWorkerResult = await importWorker(worker);
+        const createWorkerResult = await importerWorker(worker);
 
         if (createWorkerResult.code !== "OK") {
           //console.error(`Error al procesar trabajador ${worker.rut}:`, createWorkerResult);
           duplicatedRuts.push(worker.rut);
           success = false;
         }
+
       } catch (error) {
         console.error(`Error al procesar trabajador ${worker.rut}:`, error);
         duplicatedRuts.push(worker.rut);
@@ -353,6 +359,7 @@ const CardTableWorkers = ({
       );
     } else {
       const newDataFetch = await getDataWorkers(companyID);
+
       setUpdateMessage("Trabajadores importados correctamente");
       setFile(null);
       setInitialData(newDataFetch);
