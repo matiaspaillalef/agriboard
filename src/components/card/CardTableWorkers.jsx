@@ -17,6 +17,7 @@ import {
   TrashIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
+  ChevronDownIcon,
   ArrowUpOnSquareIcon,
   PhoneIcon,
   ChatBubbleLeftRightIcon,
@@ -112,6 +113,16 @@ const CardTableWorkers = ({
 
   const [openImport, setOpenImport] = useState(false);
   const [openCleanBand, setOpenCleanBand] = useState(false);
+
+const [importErrors, setImportErrors] = useState([]);
+const [openErrors, setOpenErrors] = useState(false);
+
+//Apertura automatica de la tabla de errores
+useEffect(() => {
+  if (importErrors.length > 0) {
+    setOpenErrors(true);
+  }
+}, [importErrors]);
 
   const handleOpenImport = () => {
     setOpenImport(!openImport);
@@ -225,147 +236,166 @@ const CardTableWorkers = ({
   const workerMap = new Map(dataSquad.map((item) => [item.id, item.name]));
   const shiftMap = new Map(dataShift.map((item) => [item.id, item.name]));
 
-  const handleFileUpload = async () => {
-    if (!file) {
-      setUpdateMessage("Por favor, selecciona un archivo primero.");
+
+  //Validador
+const validateRut = (rut, dv) => {
+  if (!rut || !dv) return false;
+
+  rut = rut.toString().replace(/\D/g, "");
+  dv = dv.toString().toUpperCase();
+
+  let sum = 0;
+  let multiplier = 2;
+
+  for (let i = rut.length - 1; i >= 0; i--) {
+    sum += rut[i] * multiplier;
+    multiplier = multiplier === 7 ? 2 : multiplier + 1;
+  }
+
+  const expectedDv = 11 - (sum % 11);
+  const dvCalc =
+    expectedDv === 11 ? "0" :
+    expectedDv === 10 ? "K" :
+    expectedDv.toString();
+
+  return dv === dvCalc;
+};
+
+const handleFileUpload = async () => {
+  setImportErrors([]);
+  setOpenErrors(false);
+
+  if (!file) {
+    setUpdateMessage("Por favor, selecciona un archivo primero.");
+    return;
+  }
+
+  const data = await file.arrayBuffer();
+  const workbook = XLSX.read(data);
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+  const excelSerialDateToDate = (serial) => {
+    if (!serial) return null;
+    const utc_days = Math.floor(serial - 25569);
+    return new Date(utc_days * 86400 * 1000);
+  };
+
+  const errors = [];
+  const validWorkers = [];
+  const seenRuts = new Set();
+
+  // 👉 1. VALIDACIÓN LOCAL (Excel)
+  jsonData.forEach((item, index) => {
+    const rut = item.Rut;
+    const dv = item.Dv;
+    const row = index + 2;
+    const fullRut = `${rut}-${dv}`;
+
+    // ❌ RUT inválido
+    if (!rut || !dv || !validateRut(rut, dv)) {
+      errors.push({
+        type: "invalid",
+        rut: fullRut ,
+        row,
+        reason: "RUT o DV inválido",
+      });
       return;
     }
 
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data);
-    const worksheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[worksheetName];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-    const excelDateToJSDate = (serial) => {
-      const utc_days = Math.floor(serial - 25569);
-      const utc_value = utc_days * 86400;
-      const date_info = new Date(utc_value * 1000);
-      const fractional_day = serial - Math.floor(serial) + 0.0000001;
-      let total_seconds = Math.floor(86400 * fractional_day);
-      const seconds = total_seconds % 60;
-
-      total_seconds -= seconds;
-      const hours = Math.floor(total_seconds / (60 * 60));
-      const minutes = Math.floor(total_seconds / 60) % 60;
-
-      return new Date(
-        Date.UTC(
-          date_info.getFullYear(),
-          date_info.getMonth(),
-          date_info.getDate(),
-          hours,
-          minutes,
-          seconds
-        )
-      );
-    };
-
-    const transformKeys = (data) => {
-      return data.map((item) => {
-        //console.log("primera fecha" , item["Fecha de nacimiento"]);
-        //console.log("segunda fecha " , item["Fecha de ingreso"]);
-        const formatDate = (dateStr) => {
-        if (!dateStr) return null;
-        const [day, month, year] = dateStr.split("-");
-        return `${year}-${month}-${day}T00:00:00.000Z`; // ISO format
-      };
-        const bornDate = excelSerialDateToDate(item["Fecha de nacimiento"]);
-        const admissionDate = excelSerialDateToDate(item["Fecha de ingreso"]);
-        //console.log(bornDate);
-        //console.log(admissionDate);
-
-        return {
-          rut: item.Rut + "-" + item.Dv,
-          name: item.Nombre,
-          lastname: item["Apellido"],
-          lastname2: item["Apellido materno"],
-          address: item["Dirección"],
-          born_date: bornDate,
-          city: item.Ciudad,
-          date_admission: admissionDate,
-          gender: item.Género,
-          phone: item["Teléfono"],
-          email: item.Correo,
-          phone_company: item["Teléfono empresa"],
-          state: item.Estado,
-          state_civil: item["Estado civil"],
-          position:
-            [...cargoMap.entries()].find(
-              ([_, name]) => name === item.Cargo
-            )?.[0] || null,
-          contractor:
-            [...contractorMap.entries()].find(
-              ([_, name]) => name === item.Contratista
-            )?.[0] || null,
-          squad:
-            [...squadMap.entries()].find(
-              ([_, name]) => name === item.Cuadrilla
-            )?.[0] || null,
-          leader_squad:
-            [...workerMap.entries()].find(
-              ([_, name]) => name === item["Líder de Cuadrilla"]
-            )?.[0] || null,
-          shift:
-            [...shiftMap.entries()].find(
-              ([_, name]) => name === item["Turno"]
-            )?.[0] || null,
-          wristband: item["Pulsera"],
-          observation: item["Observación"],
-          bank: item.Banco,
-          account_type: item["Tipo de cuenta"],
-          account_number: item["Número de cuenta"],
-          afp: item["AFP"],
-          health: item.Salud,
-          status: item.status == "Activo" ? 1 : 0,
-          company_id: companyID,
-        };
+    // ⚠️ DUPLICADO EN EXCEL
+    if (seenRuts.has(fullRut)) {
+      errors.push({
+        type: "duplicated_excel",
+        rut: fullRut,
+        row,
+        reason: "RUT duplicado en el archivo",
       });
-    };
+      return;
+    }
 
-    const transformedData = transformKeys(jsonData);
+    seenRuts.add(fullRut);
 
-    //console.log(transformedData);
-    let success = true;
-    const duplicatedRuts = [];
-    // Obtenemos el número de filas (sin contar la cabecera)
-    const numberOfWorkers = transformedData.length;
+   
 
-    for (let i = 0; i < numberOfWorkers; i++) {
-      const worker = transformedData[i];
-      try {
-        //console.log("Creando trabajador:", worker);
-        //const createWorkerResult = await createWorker(worker);
-        const createWorkerResult = await importerWorker(worker);
+    validWorkers.push({
+      rut: fullRut,
+      name: item.Nombre,
+      lastname: item["Apellido"],
+      lastname2: item["Apellido materno"],
+      address: item["Dirección"],
+      born_date: excelSerialDateToDate(item["Fecha de nacimiento"]),
+      city: item.Ciudad,
+      date_admission: excelSerialDateToDate(item["Fecha de ingreso"]),
+      gender: item.Género,
+      phone: item["Teléfono"],
+      email: item.Correo,
+      phone_company: item["Teléfono empresa"],
+      state: item.Estado,
+      state_civil: item["Estado civil"],
+      position:
+        [...cargoMap.entries()].find(([_, name]) => name === item.Cargo)?.[0] || null,
+      contractor:
+        [...contractorMap.entries()].find(([_, name]) => name === item.Contratista)?.[0] || null,
+      squad:
+        [...squadMap.entries()].find(([_, name]) => name === item.Cuadrilla)?.[0] || null,
+      leader_squad:
+        [...workerMap.entries()].find(([_, name]) => name === item["Líder de Cuadrilla"])?.[0] || null,
+      shift:
+        [...shiftMap.entries()].find(([_, name]) => name === item["Turno"])?.[0] || null,
+      wristband: item["Pulsera"],
+      observation: item["Observación"],
+      bank: item.Banco,
+      account_type: item["Tipo de cuenta"],
+      account_number: item["Número de cuenta"],
+      afp: item["AFP"],
+      health: item.Salud,
+      status: item.status === "Activo" ? 1 : 0,
+      company_id: companyID,
+    });
+  });
 
-        if (createWorkerResult.code !== "OK") {
-          //console.error(`Error al procesar trabajador ${worker.rut}:`, createWorkerResult);
-          duplicatedRuts.push(worker.rut);
-          success = false;
-        }
+  // 👉 2. IMPORTACIÓN API
+  for (const worker of validWorkers) {
+    try {
+      const res = await importerWorker(worker);
 
-      } catch (error) {
-        console.error(`Error al procesar trabajador ${worker.rut}:`, error);
-        duplicatedRuts.push(worker.rut);
-        success = false;
+      if (res.code !== "OK") {
+        errors.push({
+          type: "duplicated_system",
+          rut: worker.rut,
+          row: null,
+          reason: "RUT ya existe en el sistema",
+        });
       }
+    } catch {
+      errors.push({
+        type: "api",
+        rut: worker.rut,
+        row: null,
+        reason: "Error al guardar en el servidor",
+      });
     }
+  }
 
-    if (!success) {
-      const uniqueDuplicatedRuts = [...new Set(duplicatedRuts)]; // Elimina duplicados en el array
-      const rutMessage = uniqueDuplicatedRuts.join(", ");
-      setUpdateMessage(
-        `Error al importar algunos trabajadores rut: ${rutMessage}`
-      );
-    } else {
-      const newDataFetch = await getDataWorkers(companyID);
+  // 👉 3. GUARDAMOS ERRORES
+  setImportErrors(errors);
+  setOpenErrors(errors.length > 0);
 
-      setUpdateMessage("Trabajadores importados correctamente");
-      setFile(null);
-      setInitialData(newDataFetch);
-      setOpenImport(false);
-    }
-  };
+  setUpdateMessage(
+    `Importación finalizada:
+✔ ${validWorkers.length - errors.filter(e => e.type !== "invalid").length} importados
+❌ ${errors.length} con problemas`
+  );
+
+  const newDataFetch = await getDataWorkers(companyID);
+  setInitialData(newDataFetch);
+  setFile(null);
+  setOpenImport(false);
+};
+
+
+
 
   const handleOpenShowUser = (user) => {
     //console.log(user);
@@ -1045,6 +1075,7 @@ function excelSerialDateToDate(serial) {
     };
   });
 
+
   return (
     <>
       {updateMessage && ( // Mostrar el mensaje si updateMessage no es null
@@ -1125,6 +1156,102 @@ function excelSerialDateToDate(serial) {
               )}
             </div>
           </div>
+
+
+{importErrors.length > 0 && (
+  <div className="mt-4 border rounded-lg border-red-300">
+
+    {/* HEADER */}
+    <button
+      onClick={() => setOpenErrors(!openErrors)}
+      className="w-full flex items-center justify-between px-4 py-3 bg-red-50 text-red-700 font-semibold hover:bg-red-100 transition"
+    >
+      <span className="text-[14px]">
+        Errores de importación ({importErrors.length})
+      </span>
+      <span className={`transition-transform ${openErrors ? "rotate-180" : ""}`}>
+        <ChevronDownIcon className="w-5 h-5" />
+      </span>
+    </button>
+
+    {/* BODY */}
+    <div
+      className={`transition-all duration-300 ease-in-out ${
+        openErrors ? "max-h-[9999px] opacity-100" : "max-h-0 opacity-0"
+      }`}
+    >
+      <div className="p-4 bg-white max-h-[70vh] overflow-y-auto space-y-2">
+
+        {/* LIMPIAR */}
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => {
+              setImportErrors([]);
+              setOpenErrors(false);
+            }}
+            className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+          >
+            <TrashIcon className="w-4 h-4" /> Limpiar lista de errores
+          </button>
+        </div>
+
+        {/* LISTA DE ERRORES */}
+        <ul className="space-y-2">
+          {importErrors.map((error, index) => {
+            const colorStyles =
+              error.type === "invalid"
+                ? "bg-red-50 border-red-300 text-red-700"
+                : error.type === "duplicated"
+                ? "bg-orange-50 border-orange-300 text-orange-700"
+                : "bg-purple-50 border-purple-300 text-purple-700";
+
+            const icon =
+              error.type === "invalid"
+                ? "⛔"
+                : error.type === "duplicated"
+                ? "⚠️"
+                : "❗";
+
+            return (
+              <li
+                key={index}
+                className={`border-l-4 p-3 rounded-md ${colorStyles}`}
+              >
+                <div className="flex justify-between items-start gap-3">
+                  <div>
+                    <p className="font-semibold text-[14px]">
+                      {icon} {error.rut}
+                    </p>
+                    <p className="text-sm opacity-90 text-[12px]">
+                      {error.reason}
+                      {error.row && ` · Fila ${error.row}`}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* LEYENDA */}
+        <div className="mt-4 flex flex-wrap gap-3 text-xs">
+          <span className="flex items-center gap-1 text-red-700">
+            ⛔ RUT inválido
+          </span>
+          <span className="flex items-center gap-1 text-orange-700">
+            ⚠️ RUT duplicado
+          </span>
+          <span className="flex items-center gap-1 text-purple-700">
+            ❗ Error servidor
+          </span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
+
+
 
           <div className="h-full overflow-x-scroll max-h-dvh">
             <table
